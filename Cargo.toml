@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "datfile_parser",
+    "replay_parser"
+]
