@@ -1,9 +1,18 @@
 [package]
-name = "wot-battle-results-dat-parser"
+name = "wot-datfile-parser"
 version = "0.1.0"
 edition = "2021"
 authors = ["dacite <d4cite@outlook.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name = "wot_datfile_parser"
+path = "src/lib.rs"
+
+[[bin]]
+name = "wot-datfile-parser-cli"
+path = "src/main.rs"
+
 [dependencies]
+unpickler = { path = "../unpickler" }
