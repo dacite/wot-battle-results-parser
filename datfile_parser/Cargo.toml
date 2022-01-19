@@ -16,3 +16,6 @@ path = "src/main.rs"
 
 [dependencies]
 unpickler = { path = "../unpickler" }
+anyhow = "1.0.52"
+serde_json = "1.0.74"
+serde-pickle = "1.1.0"
