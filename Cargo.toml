@@ -3,5 +3,6 @@
 members = [
     "datfile_parser",
     "replay_parser",
-    "unpickler"
+    "unpickler",
+    "wot_constants"
 ]
