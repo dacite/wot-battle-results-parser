@@ -1,8 +1,10 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap};
+
 pub use serde_pickle::Value as PickleValue;
 pub use serde_pickle::HashableValue as HashablePickleValue;
+
 use anyhow::{Result, Context, anyhow};
-use serde_pickle::{HashableValue, Value};
+use serde_pickle::{Value};
 
 pub fn load_pickle(input: &[u8]) -> Result<PickleValue> {
     let result = serde_pickle::value_from_slice(input, Default::default())
@@ -58,4 +60,3 @@ pub fn access_dict(x: &Value) -> Result<BTreeMap<HashablePickleValue, Value>> {
         Err(anyhow!("Underlying PickleValue is not a python dictionary"))
     }
 }
-
