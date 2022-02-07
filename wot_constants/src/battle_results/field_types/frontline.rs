@@ -1,4 +1,4 @@
-use crate::battle_results::field_types::{FieldArenaType, ResultField, ResultFieldType};
+use crate::battle_results::field_types::{ResultField, ResultFieldType};
 
 
 pub const FRONTLINE: [ResultField; 13] = [
