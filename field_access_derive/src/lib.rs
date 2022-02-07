@@ -1,11 +1,12 @@
+/// A macro that generates getters and setters for different structs (common, account_all etc.)
+/// inside the `standard_format` crate
+
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
 use syn;
 use syn::{Attribute, Data, DataStruct, Fields, Lit, Meta, MetaNameValue};
-
-
 
 #[proc_macro_derive(FieldAccess, attributes(custom_parser))]
 pub fn field_access_macro_derive(input: TokenStream) -> TokenStream {
@@ -87,11 +88,13 @@ fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
     gen.into()
 }
 
+/// to lower case from snake case
 fn to_lower_case(x: &syn::Ident) -> String{
     format!("{}", x).replace("_", "")
 }
 
-
+/// Get the value given to the attribute of the form:
+/// `#[customer_parser = "some value"]`
 fn get_value(attr: &Attribute) -> syn::Ident {
     if !attr.path.is_ident("custom_parser") {
         panic!("expected attribute path: custom_parser")
@@ -102,7 +105,7 @@ fn get_value(attr: &Attribute) -> syn::Ident {
             return syn::Ident::new(&lit_str.value(), lit_str.span());
         }
         _ => {
-            panic!("expected #[custom = \"functionName\"]");
+            panic!("expected #[custom_parser = \"functionName\"]");
         }
     }
 }
