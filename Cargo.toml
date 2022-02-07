@@ -4,5 +4,7 @@ members = [
     "datfile_parser",
     "replay_parser",
     "unpickler",
+    "standard_format",
+    "field_access_derive",
     "wot_constants"
 ]
