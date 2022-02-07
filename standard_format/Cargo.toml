@@ -9,8 +9,6 @@ authors = ["dacite <d4cite@outlook.com>"]
 [dependencies]
 serde-pickle = "1.1.0"
 unpickler = { path = "../unpickler" }
-anyhow = "1.0.52"
-miniz_oxide = "0.5.1"
 serde = { version = "1.0.135", features = ["derive"] }
 field_access_derive = { path = "../field_access_derive"}
 
