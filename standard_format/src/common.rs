@@ -29,7 +29,7 @@ pub struct Common {
 }
 
 impl Common {
-    pub fn parse_account_comp_descr(&mut self, item: serde_pickle::Value) -> WotValue {
+    pub fn parse_account_comp_descr(&mut self, _item: serde_pickle::Value) -> WotValue {
         WotValue::None
     }
 }

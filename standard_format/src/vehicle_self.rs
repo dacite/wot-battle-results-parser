@@ -264,11 +264,11 @@ pub struct VehicleSelf {
 }
 
 impl VehicleSelf {
-    pub fn parse_bytes(&mut self, item: serde_pickle::Value) -> WotValue {
+    pub fn parse_bytes(&mut self, _item: serde_pickle::Value) -> WotValue {
         WotValue::None
     }
 
-    pub fn parse_c11n_progress(&mut self, item: serde_pickle::Value) -> WotValue {
+    pub fn parse_c11n_progress(&mut self, _item: serde_pickle::Value) -> WotValue {
         WotValue::None
     }
 }
