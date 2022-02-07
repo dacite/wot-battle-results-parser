@@ -1,169 +1,234 @@
-mod field_types;
-
 use std::collections::HashMap;
 use unpickler::{access_bytes, access_dict, access_i64, access_list, access_tuple, decompress_vec, HashablePickleValue, load_pickle, PickleValue};
-use anyhow::{anyhow, Result};
-use serde_json::Value;
+use anyhow::{anyhow, Context, Error, Result};
 
-/// A list of key value of pairs where the key is a String
-type Dict = HashMap<String, PickleValue>;
-
-/// A list of key value of pairs where the key is an i32
-type IntDict = HashMap<i64, Dict>;
+use standard_format::{AccountAll, AccountSelf, Common, FieldAccess, PlayerInfo, Battle, VehicleAll, VehicleSelf};
+use wot_constants::ArenaBonusType;
+use wot_constants::battle_results::{ResultField, FieldCollection};
 
 
-
-// Key value pair where the key is the tank_id and value is the
-type VehicleAll = HashMap<String, PickleValue>;
-
-pub fn parse(input: &[u8]) -> Result<()>{
-    // Load the root pickle
-    let root_pickle = load_pickle(input)?;
-
-    // root pickle is a tuple of the shape : (i64, Tuple)
-    let root_tuple = access_tuple(&root_pickle)?;
-
-    // root tuple should contain the following: (arenaUniqueID, [u8], [u8], [u8])
-    // the three u8 buffers (named buffer1, buffer2, buffer3 respectively) in this tuple are
-    // compressed pickle dumps
-    let data_tuple = access_tuple(&root_tuple[1])?;
-    let mut pickle_list = Vec::new();
-    for i in 1..data_tuple.len() {
-        let compressed = access_bytes(&data_tuple[i])?;
-        let decompressed = decompress_vec(&compressed)?;
-        let pickle = load_pickle(&decompressed)?;
-
-        pickle_list.push(pickle);
-    }
-
-    let list1 = parse_list1(&pickle_list[0]).unwrap();
-    let list2 = parse_list2(&pickle_list[1]).unwrap();
-    let list3 = parse_list3(&pickle_list[2]).unwrap();
-    println!("{:#?}", list3);
-    Ok(())
-
+pub struct DatFileParser {
+    iden_list_collection: Vec<FieldCollection>
 }
 
-fn parse_list1(wrapped_list1: &PickleValue) -> Result<HashMap<String, PickleValue>> {
-    let list1 = access_list(wrapped_list1)?;
-    let mut result = HashMap::new();
+impl DatFileParser {
+    pub fn new() -> Self {
+        let mut iden_list_collection = Vec::new();
 
-    let mut i = 1;
-    for val in field_types::ACCOUNT_ALL {
-        result.insert(val.0.to_string(), list1[i].clone());
-        i += 1;
+        iden_list_collection.push(FieldCollection::new(ArenaBonusType::EpicRandom));
+        iden_list_collection.push(FieldCollection::new(ArenaBonusType::Ranked));
+        iden_list_collection.push(FieldCollection::new(ArenaBonusType::BattleRoyaleSolo));
+        iden_list_collection.push(FieldCollection::new(ArenaBonusType::MapsTraining));
+        iden_list_collection.push(FieldCollection::new(ArenaBonusType::EpicBattle));
+
+
+        Self {
+            iden_list_collection
+        }
     }
-    for val in field_types::ACCOUNT_SELF {
-        result.insert(val.0.to_string(), list1[i].clone());
-        i += 1;
+
+    pub fn get_identifier_list(&self, checksum: i32) -> Option<Vec<ResultField>> {
+        for arena_specific_list in &self.iden_list_collection {
+            if let Some(list) = arena_specific_list.get_child_from_checksum(checksum) {
+                return Some(list);
+            } else {
+                continue
+            }
+        }
+        None
     }
-    // if i != list1.len() {
-    //     return Err(anyhow!("Wrong format: expected list1 to be {} items but found {} items", i, list1.len()));
-    // }
+
+    pub fn parse(&self, input: &[u8]) -> Result<Battle>{
+        // Load the root pickle
+        let root_pickle = load_pickle(input)?;
+
+        // root pickle is a tuple of the shape : (i64, Tuple)
+        let root_tuple = access_tuple(&root_pickle)?;
+
+        // root tuple should contain the following: (arenaUniqueID, [u8], [u8], [u8])
+        // the three u8 buffers (named buffer1, buffer2, buffer3 respectively) in this tuple are
+        // compressed pickle dumps
+
+        let data_tuple = access_tuple(&root_tuple[1])?;
+        let arena_unique_id = access_i64(&data_tuple[0])?.to_string();
+        let mut pickle_list = Vec::new();
+        for i in 1..data_tuple.len() {
+            let compressed = access_bytes(&data_tuple[i])?;
+            let decompressed = decompress_vec(&compressed)?;
+            let pickle = load_pickle(&decompressed)?;
+
+            pickle_list.push(pickle);
+        }
+
+        // Once we get the pickle dumps, we parse them separately:
+
+        // Pickle dump @0 is AccountSelf of the "recording" player. We do not have AccountSelf of
+        // other players unless we get their dat file
+        let account_self: AccountSelf = self.parse_collection(access_list(&pickle_list[0])?)?;
+
+        // Pickle dump@1 is a dict with one element. The element has a key that refers to "recording"
+        // player's tank_id. We can discard it because it appears again inside the value pointed to
+        // by the key. The Value is VehicleSelf. The nature of AccountSelf(See above) applies to this
+        // structure as well.
+        let dict = access_dict(&pickle_list[1])?;
+        let item = dict.into_iter().next().context("Vehicle Self parse failed")?;
+        let(_tank_id, vehicle_self_list) = self.extract_from_item(item)?;
+        let vehicle_self: VehicleSelf = self.parse_collection(vehicle_self_list)?;
+
+        // Pickle dump@2 contains the following:
+        // common attributes of the battle
+        // player_info of all players
+        // account_all of all players
+        // vehicle_all of all players
+        let (
+            common,
+            player_info,
+            vehicle_all,
+            account_all
+        )
+            = self.parse_list(&pickle_list[2]).unwrap();
+
+        // Make battle
+        return if let standard_format::WotValue::Int(account_dbid) = account_self.get("account_dbid") {
+            let mut vehicle_self_list = HashMap::new();
+            let mut account_self_list = HashMap::new();
+
+            vehicle_self_list.insert(account_dbid.to_string(), vehicle_self);
+            account_self_list.insert(account_dbid.to_string(), account_self);
+
+            Ok(Battle {
+                arena_unique_id,
+                common,
+                player_info,
+                account_all,
+                vehicle_all,
+                vehicle_self: vehicle_self_list,
+                account_self: account_self_list,
+            })
+        } else {
+            Err(anyhow!("unable to get account_dbid"))
+        };
+    }
+
+    fn parse_list(&self, wrapped_list3: &PickleValue)
+                  -> Result<(Common, HashMap<String, PlayerInfo>, HashMap<String, VehicleAll>, HashMap<String, AccountAll>)>
+    {
+        let tuple = access_tuple(wrapped_list3)?;
+
+        let common: Common = self.parse_collection(access_list(&tuple[0])?)?;
+        let player_info_list = self.parse_player_info_list(&tuple[1])?;
+        let vehicle_all_list = self.parse_vehicle_all_list(&tuple[2])?;
+        let account_info_list = self.parse_all_account_info(&tuple[3])?;
+
+        Ok((common, player_info_list, vehicle_all_list, account_info_list))
+    }
+
+    fn parse_collection<T: FieldAccess + Default>(&self, value_list: Vec<PickleValue>) -> Result<T, Error> {
+        let checksum = get_checksum(&value_list)?;
+
+        let mut target: T = Default::default();
+        return if let Some(iden_list) = self.get_identifier_list(checksum) {
+            let collection = fill_field_identifiers(iden_list, &value_list[1..])?;
+            for item in collection {
+                if target.set(&item.0.to_lowercase().replace("/", ""), item.1).is_err() {
+                    return Err(anyhow!("Struct does not have member: {}", &item.0.to_lowercase().replace("/", "")))
+                }
+            }
+
+            Ok(target)
+        } else {
+            Err(anyhow!("Value list has unrecognized checksum. Format won't match"))
+        }
+    }
+
+
+    /// The data structure that contains player info is a dict
+    /// with wg_account_dbid as the key and an array(playerinfo) as the value
+    fn parse_player_info_list(&self, input: &PickleValue) -> Result<HashMap<String, PlayerInfo>> {
+        let dict = access_dict(input)?;
+
+        let mut player_info_list = HashMap::with_capacity(dict.len());
+
+        for item in dict.into_iter() {
+            let (account_dbid, value_list) = self.extract_from_item(item)?;
+            let player_info: PlayerInfo = self.parse_collection(value_list)?;
+
+            player_info_list.insert(account_dbid, player_info);
+
+        }
+
+        Ok(player_info_list)
+    }
+
+    /// The data structure that contains player info is a dict
+    /// with wg_account_dbid as the key and an array(playerinfo) as the value
+    fn parse_all_account_info(&self, input: &PickleValue) -> Result<HashMap<String, AccountAll>> {
+        let dict = access_dict(input)?;
+
+        let mut account_info_list = HashMap::with_capacity(dict.len());
+
+        for item in dict.into_iter() {
+            let (account_dbid, value_list) = self.extract_from_item(item)?;
+            let account_info: AccountAll = self.parse_collection(value_list)?;
+
+            account_info_list.insert(account_dbid, account_info);
+        }
+        Ok(account_info_list)
+    }
+
+    /// The data structure that contains player info is a dict
+    /// with wg_account_dbid as the key and an array(playerinfo) as the value
+    fn parse_vehicle_all_list(&self, input: &PickleValue) -> Result<HashMap<String, VehicleAll>> {
+        let dict = access_dict(input)?;
+
+        let mut vehicle_all_list = HashMap::with_capacity(dict.len());
+
+        for item in dict.into_iter() {
+            let (avatar_id, value_list) = self.extract_from_item(item)?;
+            let vehicle_all: VehicleAll = self.parse_collection(value_list)?;
+
+            vehicle_all_list.insert(avatar_id, vehicle_all);
+        }
+        Ok(vehicle_all_list)
+    }
+
+
+    /// Return the following when given a hashmap item:
+    /// - `key` This is either the account_dbid or the avatar_id
+    /// - `value_list` This finally should be a Vec but might have to parsed from either a dict or a list
+    fn extract_from_item(&self, item: (HashablePickleValue, PickleValue)) -> Result<(String, Vec<PickleValue>)> {
+        let key = item.0.to_string();
+        let value_list;
+
+        // Item can either be a list or a dict
+        // If dict we need to get the vec that is value of the item of the inner dict
+        match item.1 {
+            PickleValue::List(list) => value_list = list,
+            PickleValue::Dict(map) => value_list = access_list(&map.into_iter().next().unwrap().1)?,
+            _ => return Err(anyhow!("Value in (key,value) pair should be a list or dict")),
+        }
+
+        Ok((key, value_list))
+    }
+}
+
+
+/// Given a vec of values (parsed from the dat file), the first element is the checksum
+fn get_checksum(data_list: &[PickleValue]) -> Result<i32> {
+    let checksum = access_i64(&data_list[0])?;
+
+    i32::try_from(checksum).context("checksum conversion error")
+}
+
+/// Generate a HashMap when given a list of identifiers and then a list of values for that identifiers
+fn fill_field_identifiers(iden_list: Vec<ResultField>, value_list: &[PickleValue]) -> Result<HashMap<String, PickleValue>> {
+    let mut result = HashMap::with_capacity(iden_list.len());
+
+    iden_list.into_iter().zip(value_list.into_iter()).for_each(|pair| {
+        let (identifier, value) = pair;
+        result.insert(identifier.get_name().to_string(), value.clone());
+    });
+
     Ok(result)
 }
 
-fn parse_list2(x: &PickleValue) -> Result<HashMap<String, PickleValue>>{
-    let dict = access_dict(x)?;
-    let list2;
-
-    if let Some((tank_id, wrapped_list2)) = dict.into_iter().next() {
-        list2 = access_list(&wrapped_list2)?;
-    } else {
-        return Err(anyhow!("Found empty list2"));
-    }
-
-    let mut result = HashMap::new();
-
-    let mut i = 1;
-    for val in [field_types::VEHICLE_ALL.as_slice(), field_types::VEHICLE_SELF.as_slice()].concat() {
-        result.insert(val.0.to_string(), list2[i].clone());
-        i += 1;
-    }
-
-    if i != list2.len() {
-        return Err(anyhow!("Wrong format: expected list2 to be {} items but found {} items", i, list2.len()));
-    }
-    Ok(result)
-}
-
-fn parse_list3(x: &PickleValue)  -> Result<(HashMap<String, PickleValue>, HashMap<String, HashMap<String, PickleValue>>, HashMap<String, IntDict>)>{
-
-    let tuple = access_tuple(x)?;
-    let common_list_input = access_list(&tuple[0])?;
-    let player_info_list_input = access_dict(&tuple[1])?;
-    let account_all_list_input = access_dict(&tuple[2])?;
-
-    let mut common = HashMap::new();
-    let mut player_info_list = HashMap::new();
-    let mut account_info_list = HashMap::new();
-    let mut i = 1;
-    for val in field_types::COMMON {
-        common.insert(val.0.to_string(), common_list_input[i].clone());
-        i += 1;
-    }
-
-    for player_info in &player_info_list_input {
-        let player_wg_id = access_i64(&player_info.0.clone().into_value())?;
-
-        player_info_list.insert(player_wg_id.to_string(), get_player_info(player_info.1)?);
-    }
-
-    for account_all_info in &account_all_list_input {
-        let player_avatar_id = access_i64(&account_all_info.0.clone().into_value())?;
-
-        account_info_list.insert(player_avatar_id.to_string(), get_vehicle_all(account_all_info.1)?);
-    }
-
-
-    Ok((common, player_info_list, account_info_list))
-
-}
-
-fn get_player_info(x: &PickleValue) -> Result<HashMap<String, PickleValue>> {
-    let values_list = access_list(x)?;
-
-    let mut player_info = HashMap::new();
-    let mut i = 1;
-    for val in field_types::PLAYER_INFO {
-        player_info.insert(val.0.to_string(), values_list[i].clone());
-        i+= 1;
-    }
-
-    Ok(player_info)
-}
-
-fn get_vehicle_all(x: &PickleValue) -> Result<HashMap<i64, Dict>> {
-    let outer_dict = access_dict(x)?;
-    let inner_dict: (HashablePickleValue, PickleValue)  = get_single_item(outer_dict)?;
-    let tank_id = access_i64(&inner_dict.0.into_value())?;
-    let account_all_list = access_list(&inner_dict.1)?;
-    let mut account_all = HashMap::new();
-    let mut i = 1;
-    for val in field_types::VEHICLE_ALL {
-        account_all.insert(val.0.to_string(), account_all_list[i].clone());
-        i += 1;
-    }
-    let tank_id_account_all= [(tank_id, account_all)].into_iter().collect();
-    Ok(tank_id_account_all)
-}
-
-fn get_single_item<T: IntoIterator + IntoIterator<Item = V>, V>(x: T) -> Result<V> {
-    let mut result;
-    let mut dict = x.into_iter();
-    if let Some(item) = dict.next() {
-        result = Ok(item);
-    } else {
-        result = Err(anyhow!("Input dictionary is empty"));
-    }
-
-    if dict.next().is_some() {
-        result = Err(anyhow!("Input dictionary cannot contain more than one item"));
-    }
-
-    return result;
-}
-
-fn fill_field_identifiers(iden_list:(&str, &str), value_list: &PickleValue) -> HashMap<String, PickleValue>{
-
-}
