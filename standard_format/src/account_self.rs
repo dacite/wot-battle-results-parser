@@ -30,6 +30,7 @@ pub struct AccountSelf {
     active_rents: WotValue,
     recruits_i_ds: WotValue,
     recruiter_id: WotValue,
+    referral_bonus_vehicles: WotValue,
     fare_team_xp_position: WotValue,
     quests_progress: WotValue,
     pm2_progress: WotValue,
