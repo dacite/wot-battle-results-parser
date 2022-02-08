@@ -1,5 +1,5 @@
 [package]
-name = "wot-datfile-parser"
+name = "wot_datfile_parser"
 version = "0.1.0"
 edition = "2021"
 authors = ["dacite <d4cite@outlook.com>"]
@@ -13,6 +13,13 @@ path = "src/lib.rs"
 [[bin]]
 name = "wot-datfile-parser-cli"
 path = "src/main.rs"
+
+[dev-dependencies]
+criterion = "0.3.5"
+
+[[bench]]
+name = "benchmark"
+harness = false
 
 [dependencies]
 unpickler = { path = "../unpickler" }
