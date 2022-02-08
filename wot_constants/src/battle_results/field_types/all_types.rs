@@ -1,7 +1,7 @@
 use crate::battle_results::field_types::ResultField;
 use crate::battle_results::ResultFieldType;
 
-pub const ALL_TYPES: [ResultField; 346] = [
+pub const ALL_TYPES: [ResultField; 347] = [
     ResultField("health", "<type 'int'>", "0", "<type 'NoneType'>", "skip", ResultFieldType::VehicleAll),
     ResultField("maxHealth", "<type 'int'>", "0", "<type 'NoneType'>", "skip", ResultFieldType::VehicleAll),
     ResultField("credits", "<type 'int'>", "0", "<type 'NoneType'>", "sum", ResultFieldType::VehicleAll),
@@ -239,6 +239,7 @@ pub const ALL_TYPES: [ResultField; 346] = [
     ResultField("activeRents", "<type 'dict'>", "{}", "<type 'NoneType'>", "skip", ResultFieldType::AccountSelf),
     ResultField("recruitsIDs", "<type 'list'>", "[]", "<type 'NoneType'>", "skip", ResultFieldType::AccountSelf),
     ResultField("recruiterID", "<type 'int'>", "0", "<type 'NoneType'>", "skip", ResultFieldType::AccountSelf),
+    ResultField("referralBonusVehicles", "<type 'list'>", "[]", "<type 'NoneType'>", "skip", ResultFieldType::AccountSelf),
     ResultField("fareTeamXPPosition", "<type 'int'>", "0", "<type 'NoneType'>", "skip", ResultFieldType::AccountSelf),
     ResultField("questsProgress", "<type 'dict'>", "{}", "<type 'NoneType'>", "joinDicts", ResultFieldType::AccountSelf),
     ResultField("PM2Progress", "<type 'dict'>", "{}", "<type 'NoneType'>", "skip", ResultFieldType::AccountSelf),
