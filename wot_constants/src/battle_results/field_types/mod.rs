@@ -16,6 +16,43 @@ use crate::battle_results::field_types::maps_training::MAPS_TRAINING;
 use crate::battle_results::field_types::random_arena::RANDOM_ARENA;
 use crate::battle_results::field_types::ranked::RANKED;
 
+pub struct Field {
+    name: &'static str,
+    default: FieldDefault,
+    combined_string: &'static str,
+    original_idx: u32,
+    field_type: FieldType,
+}
+
+/// Type of a Field. For ex: if FieldType is VehicleAll, its a field that is present
+/// for every player in that particular battle. In this case name of that Field could 
+/// be damageDealt.
+pub enum FieldType {
+    Common,
+    PlayerInfo,
+    AccountAll,
+    AccountSelf,
+    VehicleAll,
+    VehicleSelf,
+    Server,
+}
+
+/// A Representation for the default value for a certain field.
+/// `Dict`, `Str`, `List` variants create empty instances of HashMap, String, Vec respectively.
+/// `Tuple` variant can be seen as the tuple.0 value repeated tuple.1 times. For ex: Tuple(&(Int(0), 3))
+/// is a tuple like (0, 0, 0) 
+pub enum FieldDefault {
+    None,
+    Int(i64),
+    Bool(bool),
+    Float(f64),
+    Dict,
+    Str,
+    List,
+    Set,
+    Tuple(&'static(FieldDefault, u32)),
+}
+
 pub const CRC32: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
 
 #[derive(Clone)]
@@ -29,34 +66,11 @@ pub enum FieldArenaType {
 }
 
 
-pub struct FieldCollection {
-    account_all: Vec<ResultField>,
-    account_self: Vec<ResultField>,
-    vehicle_all: Vec<ResultField>,
-    vehicle_self: Vec<ResultField>,
-    common: Vec<ResultField>,
-    player_info: Vec<ResultField>,
-    server: Vec<ResultField>,
-
-    checksums: HashMap<i32, ResultFieldType>
-}
 
 
 
-impl Default for FieldCollection {
-    fn default() -> Self {
-        Self {
-            account_all: Vec::new(),
-            account_self: Vec::new(),
-            vehicle_all: Vec::new(),
-            vehicle_self: Vec::new(),
-            common: Vec::new(),
-            player_info: Vec::new(),
-            server: Vec::new(),
-            checksums: HashMap::new(),
-        }
-    }
-}
+
+
 
 impl ArenaBonusType {
     pub fn get_collection(&self) -> Option<&[ResultField]> {
@@ -77,71 +91,7 @@ impl ArenaBonusType {
     }
 }
 
-impl FieldCollection {
-    pub fn new(arena_type: ArenaBonusType) -> Self {
-        let mut new_field_collection = FieldCollection::default();
-        new_field_collection.append(ALL_TYPES.as_slice());
 
-        if let Some(additional_collection) = arena_type.get_collection() {
-            new_field_collection.append(additional_collection)
-        }
-
-        new_field_collection.generate_checksums();
-
-        new_field_collection
-    }
-
-    pub fn append(&mut self, field_array: &[ResultField]) {
-        for field in field_array {
-            match field.5 {
-                ResultFieldType::PlayerInfo => self.player_info.push(field.clone()),
-                ResultFieldType::Common => self.common.push(field.clone()),
-                ResultFieldType::AccountAll => {
-                    self.account_all.push(field.clone());
-                    self.account_self.push(field.clone());
-                },
-                ResultFieldType::AccountSelf => self.account_self.push(field.clone()),
-                ResultFieldType::VehicleAll => {
-                    self.vehicle_all.push(field.clone());
-                    self.vehicle_self.push(field.clone());
-                },
-                ResultFieldType::VehicleSelf => self.vehicle_self.push(field.clone()),
-                ResultFieldType::Server => self.server.push(field.clone())
-            }
-        }
-    }
-
-    pub fn get_child_from_type(&self, child_type: &ResultFieldType) -> Vec<ResultField> {
-        match child_type {
-            ResultFieldType::Common => self.common.clone(),
-            ResultFieldType::PlayerInfo => self.player_info.clone(),
-            ResultFieldType::AccountAll => self.account_all.clone(),
-            ResultFieldType::AccountSelf => self.account_self.clone(),
-            ResultFieldType::VehicleAll => self.vehicle_all.clone(),
-            ResultFieldType::VehicleSelf => self.vehicle_self.clone(),
-            ResultFieldType::Server => self.server.clone(),
-        }
-    }
-
-    pub fn get_child_from_checksum(&self, checksum: i32) -> Option<Vec<ResultField>> {
-        return if let Some(result) = self.checksums.get(&checksum) {
-            Some(self.get_child_from_type(result))
-        } else {
-            None
-        }
-    }
-
-
-    fn generate_checksums(&mut self) {
-        self.checksums.insert(calculate_checksum(self.common.clone()), ResultFieldType::Common);
-        self.checksums.insert(calculate_checksum(self.player_info.clone()), ResultFieldType::PlayerInfo);
-        self.checksums.insert(calculate_checksum(self.account_self.clone()), ResultFieldType::AccountSelf);
-        self.checksums.insert(calculate_checksum(self.account_all.clone()), ResultFieldType::AccountAll);
-        self.checksums.insert(calculate_checksum(self.vehicle_self.clone()), ResultFieldType::VehicleSelf);
-        self.checksums.insert(calculate_checksum(self.vehicle_all.clone()), ResultFieldType::VehicleAll);
-        self.checksums.insert(calculate_checksum(self.server.clone()), ResultFieldType::Server);
-    }
-}
 
 fn calculate_checksum(data: Vec<ResultField>) -> i32 {
     let mut combined_string = String::from("");
