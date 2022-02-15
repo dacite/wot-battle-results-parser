@@ -1,3 +1,4 @@
+#[derive(PartialEq, Hash, Eq, Copy, Clone, Debug)]
 pub enum ArenaBonusType {
     Unknown = 0,
     Regular = 1,

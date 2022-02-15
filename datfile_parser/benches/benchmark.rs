@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 
 pub fn criterion_benchmark(c: &mut Criterion) {
@@ -6,7 +6,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 }
 
 fn parse_file() {
-    let path = "examples/7533133759693209.dat";
+    let path = "examples/33245410747151304.dat";
     let file = std::fs::read(path).expect("unable to read the file");
 
     let parser = wot_datfile_parser::DatFileParser::new();

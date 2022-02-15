@@ -8,7 +8,7 @@ fn main() {
     let result = parser.parse(&file).unwrap();
 
     let s= serde_json::to_string_pretty(&result).unwrap();
-    println!("{}", s);
+    // println!("{}", s);
     // std::fs::write("result.json", s);
 
 }

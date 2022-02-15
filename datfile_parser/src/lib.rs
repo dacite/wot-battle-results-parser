@@ -4,38 +4,18 @@ use anyhow::{anyhow, Context, Error, Result};
 
 use standard_format::{AccountAll, AccountSelf, Common, FieldAccess, PlayerInfo, Battle, VehicleAll, VehicleSelf};
 use wot_constants::ArenaBonusType;
-use wot_constants::battle_results::{ResultField, FieldCollection};
+use wot_constants::battle_results::{BattleResultsManager, Field, FieldType};
 
 
 pub struct DatFileParser {
-    iden_list_collection: Vec<FieldCollection>
+    battle_results: BattleResultsManager
 }
 
 impl DatFileParser {
     pub fn new() -> Self {
-        let mut iden_list_collection = Vec::new();
-
-        iden_list_collection.push(FieldCollection::new(ArenaBonusType::EpicRandom));
-        iden_list_collection.push(FieldCollection::new(ArenaBonusType::Ranked));
-        iden_list_collection.push(FieldCollection::new(ArenaBonusType::BattleRoyaleSolo));
-        iden_list_collection.push(FieldCollection::new(ArenaBonusType::MapsTraining));
-        iden_list_collection.push(FieldCollection::new(ArenaBonusType::EpicBattle));
-
-
         Self {
-            iden_list_collection
+            battle_results: BattleResultsManager::new()
         }
-    }
-
-    pub fn get_identifier_list(&self, checksum: i32) -> Option<Vec<ResultField>> {
-        for arena_specific_list in &self.iden_list_collection {
-            if let Some(list) = arena_specific_list.get_child_from_checksum(checksum) {
-                return Some(list);
-            } else {
-                continue
-            }
-        }
-        None
     }
 
     pub fn parse(&self, input: &[u8]) -> Result<Battle>{
@@ -64,7 +44,7 @@ impl DatFileParser {
 
         // Pickle dump @0 is AccountSelf of the "recording" player. We do not have AccountSelf of
         // other players unless we get their dat file
-        let account_self: AccountSelf = self.parse_collection(access_list(&pickle_list[0])?)?;
+        let account_self: AccountSelf = self.parse_collection(access_list(&pickle_list[0])?, FieldType::VehicleSelf)?;
 
         // Pickle dump@1 is a dict with one element. The element has a key that refers to "recording"
         // player's tank_id. We can discard it because it appears again inside the value pointed to
@@ -73,7 +53,7 @@ impl DatFileParser {
         let dict = access_dict(&pickle_list[1])?;
         let item = dict.into_iter().next().context("Vehicle Self parse failed")?;
         let(_tank_id, vehicle_self_list) = self.extract_from_item(item)?;
-        let vehicle_self: VehicleSelf = self.parse_collection(vehicle_self_list)?;
+        let vehicle_self: VehicleSelf = self.parse_collection(vehicle_self_list, FieldType::VehicleSelf)?;
 
         // Pickle dump@2 contains the following:
         // common attributes of the battle
@@ -115,7 +95,7 @@ impl DatFileParser {
     {
         let tuple = access_tuple(wrapped_list3)?;
 
-        let common: Common = self.parse_collection(access_list(&tuple[0])?)?;
+        let common: Common = self.parse_collection(access_list(&tuple[0])?, FieldType::Common)?;
         let player_info_list = self.parse_player_info_list(&tuple[1])?;
         let vehicle_all_list = self.parse_vehicle_all_list(&tuple[2])?;
         let account_info_list = self.parse_all_account_info(&tuple[3])?;
@@ -123,11 +103,11 @@ impl DatFileParser {
         Ok((common, player_info_list, vehicle_all_list, account_info_list))
     }
 
-    fn parse_collection<T: FieldAccess + Default>(&self, value_list: Vec<PickleValue>) -> Result<T, Error> {
+    fn parse_collection<T: FieldAccess + Default>(&self, value_list: Vec<PickleValue>, field_type: FieldType) -> Result<T, Error> {
         let checksum = get_checksum(&value_list)?;
 
         let mut target: T = Default::default();
-        return if let Some(iden_list) = self.get_identifier_list(checksum) {
+        return if let Some(iden_list) = self.battle_results.get_iden_list(field_type, checksum) {
             let collection = fill_field_identifiers(iden_list, &value_list[1..])?;
             for item in collection {
                 if target.set(&item.0.to_lowercase().replace("/", ""), item.1).is_err() {
@@ -151,7 +131,7 @@ impl DatFileParser {
 
         for item in dict.into_iter() {
             let (account_dbid, value_list) = self.extract_from_item(item)?;
-            let player_info: PlayerInfo = self.parse_collection(value_list)?;
+            let player_info: PlayerInfo = self.parse_collection(value_list, FieldType::PlayerInfo)?;
 
             player_info_list.insert(account_dbid, player_info);
 
@@ -169,7 +149,7 @@ impl DatFileParser {
 
         for item in dict.into_iter() {
             let (account_dbid, value_list) = self.extract_from_item(item)?;
-            let account_info: AccountAll = self.parse_collection(value_list)?;
+            let account_info: AccountAll = self.parse_collection(value_list, FieldType::AccountAll)?;
 
             account_info_list.insert(account_dbid, account_info);
         }
@@ -185,7 +165,7 @@ impl DatFileParser {
 
         for item in dict.into_iter() {
             let (avatar_id, value_list) = self.extract_from_item(item)?;
-            let vehicle_all: VehicleAll = self.parse_collection(value_list)?;
+            let vehicle_all: VehicleAll = self.parse_collection(value_list, FieldType::VehicleAll)?;
 
             vehicle_all_list.insert(avatar_id, vehicle_all);
         }
@@ -221,12 +201,12 @@ fn get_checksum(data_list: &[PickleValue]) -> Result<i32> {
 }
 
 /// Generate a HashMap when given a list of identifiers and then a list of values for that identifiers
-fn fill_field_identifiers(iden_list: Vec<ResultField>, value_list: &[PickleValue]) -> Result<HashMap<String, PickleValue>> {
+fn fill_field_identifiers(iden_list: Vec<Field>, value_list: &[PickleValue]) -> Result<HashMap<String, PickleValue>> {
     let mut result = HashMap::with_capacity(iden_list.len());
 
     iden_list.into_iter().zip(value_list.into_iter()).for_each(|pair| {
         let (identifier, value) = pair;
-        result.insert(identifier.get_name().to_string(), value.clone());
+        result.insert(identifier.name.to_string(), value.clone());
     });
 
     Ok(result)
