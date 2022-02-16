@@ -2,21 +2,25 @@ mod collection;
 mod field_list;
 mod checksum;
 
+use std::collections::{BTreeMap};
+
+use unpickler::PickleValue;
 
 use crate::ArenaBonusType;
 pub use checksum::{ChecksumInfo, ChecksumManager};
 pub use collection::Collection;
 
-use super::{ALL_TYPES, RANDOM_ARENA, RANKED, FRONTLINE, BATTLE_ROYALE, MAPS_TRAINING};
+use super::{RANDOM_ARENA, RANKED, FRONTLINE, BATTLE_ROYALE, MAPS_TRAINING};
 
 #[derive(Clone)]
 pub struct Field {
     pub name: &'static str,
     pub default: FieldDefault,
     pub combined_string: &'static str,
-    pub original_idx: usize,
+    pub version: usize,
     pub field_type: FieldType,
 }
+
 
 /// Type of a Field. For ex: if FieldType is VehicleAll, its a field that is present
 /// for every player in that particular battle. In this case name of that Field could 
@@ -51,20 +55,31 @@ pub enum FieldDefault {
     Tuple(&'static(FieldDefault, u32)),
 }
 
-#[derive(Clone)]
-pub enum FieldArenaType {
-    All,
-    BattleRoyale,
-    Frontline,
-    MapsTraining,
-    RandomArena,
-    Ranked,
+impl FieldDefault {
+    pub fn to_pickle_value(&self) -> PickleValue {
+        match self {
+            FieldDefault::None => PickleValue::None,
+            FieldDefault::Int(x) => PickleValue::I64(*x),
+            FieldDefault::Bool(x) => PickleValue::Bool(*x),
+            FieldDefault::Float(x) => PickleValue::F64(*x),
+            FieldDefault::Dict => PickleValue::Dict(BTreeMap::new()),
+            FieldDefault::Str => PickleValue::String(String::from("")),
+            FieldDefault::List => PickleValue::List(Vec::new()),
+            FieldDefault::Set => PickleValue::List(Vec::new()),
+            FieldDefault::Tuple(x) => {
+                let mut pickle_value = Vec::new();
+
+                for _ in 0..(x.1) {
+                    pickle_value.push(x.0.clone().to_pickle_value());
+                }
+                PickleValue::Tuple(pickle_value)
+            },
+        }
+    }
 }
 
-
-
 impl ArenaBonusType {
-    pub fn get_collection(&self) -> Option<&[&[Field]]> {
+    pub fn get_collection(&self) -> Option<&[Field]> {
         match self {
             ArenaBonusType::EpicRandom => Some(RANDOM_ARENA),
             ArenaBonusType::EpicRandomTraining => Some(RANDOM_ARENA),

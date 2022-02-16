@@ -5,7 +5,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn;
+
 use syn::{Attribute, Data, DataStruct, Fields, Lit, Meta, MetaNameValue};
 
 #[proc_macro_derive(FieldAccess, attributes(custom_parser))]
@@ -102,7 +102,7 @@ fn get_value(attr: &Attribute) -> syn::Ident {
 
     match attr.parse_meta().unwrap() {
         Meta::NameValue(MetaNameValue { lit: Lit::Str(lit_str), .. }) => {
-            return syn::Ident::new(&lit_str.value(), lit_str.span());
+            syn::Ident::new(&lit_str.value(), lit_str.span())
         }
         _ => {
             panic!("expected #[custom_parser = \"functionName\"]");

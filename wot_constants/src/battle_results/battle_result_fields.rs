@@ -328,7 +328,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "activeRents", default: FieldDefault::Dict, combined_string: "activeRents<type 'dict'>{}<type 'NoneType'>skip", version: 0, field_type: FieldType::AccountSelf },
     Field { name: "recruitsIDs", default: FieldDefault::List, combined_string: "recruitsIDs<type 'list'>[]<type 'NoneType'>skip", version: 0, field_type: FieldType::AccountSelf },
     Field { name: "recruiterID", default: FieldDefault::Int(0), combined_string: "recruiterID<type 'int'>0<type 'NoneType'>skip", version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "referralBonusVehicles", default: FieldDefault::List, combined_string: "referralBonusVehicles<type 'list'>[]<type 'NoneType'>skip", version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "referralBonusVehicles", default: FieldDefault::List, combined_string: "referralBonusVehicles<type 'list'>[]<type 'NoneType'>skip", version: 1, field_type: FieldType::AccountSelf },
     Field { name: "fareTeamXPPosition", default: FieldDefault::Int(0), combined_string: "fareTeamXPPosition<type 'int'>0<type 'NoneType'>skip", version: 0, field_type: FieldType::AccountSelf },
     Field { name: "questsProgress", default: FieldDefault::Dict, combined_string: "questsProgress<type 'dict'>{}<type 'NoneType'>joinDicts", version: 0, field_type: FieldType::AccountSelf },
     Field { name: "PM2Progress", default: FieldDefault::Dict, combined_string: "PM2Progress<type 'dict'>{}<type 'NoneType'>skip", version: 0, field_type: FieldType::AccountSelf },

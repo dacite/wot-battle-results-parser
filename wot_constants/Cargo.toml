@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 serde-pickle = "1.1.0"
 crc = "2.1.0"
+standard_format = { path = '../standard_format'}
+unpickler = { path = "../unpickler" }
