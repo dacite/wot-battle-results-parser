@@ -10,3 +10,4 @@ Cargo.lock
 **/*.rs.bk
 
 /.idea
+/datfile_parser/examples/other
