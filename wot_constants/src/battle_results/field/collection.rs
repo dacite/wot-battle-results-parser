@@ -1,31 +1,31 @@
 use crate::ArenaBonusType;
 
-use super::{field_list::FieldsList, FieldType};
+use super::{field_list::FieldList, FieldType};
 
 pub struct Collection {
-    pub account_all: FieldsList,
-    pub account_self: FieldsList,
-    pub vehicle_all: FieldsList,
-    pub vehicle_self: FieldsList,
-    pub common: FieldsList,
-    pub server: FieldsList,
-    pub player_info: FieldsList,
+    pub account_all: FieldList,
+    pub account_self: FieldList,
+    pub vehicle_all: FieldList,
+    pub vehicle_self: FieldList,
+    pub common: FieldList,
+    pub server: FieldList,
+    pub player_info: FieldList,
 }
 
 impl Collection {
     pub fn new(arena_type: ArenaBonusType) -> Self {
         Self {
-            account_all: FieldsList::new(arena_type, FieldType::AccountAll),
-            account_self: FieldsList::new(arena_type, FieldType::AccountSelf),
-            vehicle_all: FieldsList::new(arena_type, FieldType::VehicleAll),
-            vehicle_self: FieldsList::new(arena_type, FieldType::VehicleSelf),
-            common: FieldsList::new(arena_type, FieldType::Common),
-            server: FieldsList::new(arena_type, FieldType::Server),
-            player_info: FieldsList::new(arena_type, FieldType::PlayerInfo),
+            account_all: FieldList::new(arena_type, FieldType::AccountAll),
+            account_self: FieldList::new(arena_type, FieldType::AccountSelf),
+            vehicle_all: FieldList::new(arena_type, FieldType::VehicleAll),
+            vehicle_self: FieldList::new(arena_type, FieldType::VehicleSelf),
+            common: FieldList::new(arena_type, FieldType::Common),
+            server: FieldList::new(arena_type, FieldType::Server),
+            player_info: FieldList::new(arena_type, FieldType::PlayerInfo),
         }
     }
 
-    pub fn get_collection_from_type(&self, field_type: FieldType) -> FieldsList {
+    pub fn get_collection_from_type(&self, field_type: FieldType) -> FieldList {
         match field_type {
             FieldType::Common => self.common.clone(),
             FieldType::PlayerInfo => self.player_info.clone(),

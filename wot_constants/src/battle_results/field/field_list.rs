@@ -4,7 +4,7 @@ use super::{ChecksumInfo, FieldType, Field};
 pub const CRC32: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
 
 #[derive(Clone)]
-pub struct FieldsList {
+pub struct FieldList {
     arena_type: ArenaBonusType,
     field_type: FieldType,
     general: Vec<Field>,
@@ -12,12 +12,12 @@ pub struct FieldsList {
     max_version: usize,
 }
 
-impl FieldsList {
-    pub fn new(arena_type: ArenaBonusType, field_type: FieldType) -> FieldsList {
+impl FieldList {
+    pub fn new(arena_type: ArenaBonusType, field_type: FieldType) -> FieldList {
         let mut fields = Vec::new();
         let mut max_version = 0;
         for field in ALL_TYPES {
-            if FieldsList::should_insert(field, field_type) {
+            if FieldList::should_insert(field, field_type) {
                 if field.version > max_version {
                     max_version = field.version;
                 }
@@ -27,7 +27,7 @@ impl FieldsList {
 
         if let Some(arena_specific_fields) = arena_type.get_collection() {
             for field in arena_specific_fields {
-                if FieldsList::should_insert(field, field_type) {
+                if FieldList::should_insert(field, field_type) {
                     if field.version > max_version {
                         max_version = field.version;
                     }
@@ -36,7 +36,7 @@ impl FieldsList {
             }
         }
 
-        FieldsList {
+        FieldList {
             arena_type,
             field_type,
             general: fields,
@@ -62,13 +62,11 @@ impl FieldsList {
 
     // TODO: MAKE MORE EFFICIENT!
     pub fn generate_all_checksums(&mut self) -> Vec<ChecksumInfo> {
-
         let mut checksums = Vec::new();
         for i in 0..(self.max_version + 1) {
             checksums.push(self.get_checksum(i));
         }
-
-        println!("{:?}", checksums);
+        
         checksums
     }
 
