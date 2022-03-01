@@ -20,3 +20,14 @@ pub enum WotValue {
 impl Default for WotValue {
     fn default() -> Self { WotValue::None }
 }
+
+impl WotValue {
+    pub fn as_string(&self) -> String {
+        match self {
+            Self::Int(i) => i.to_string(),
+            Self::Text(s) => s.clone(),
+            Self::OutOfBounds => panic!("Incorrect usage: OutOfBounds Value"),
+            _ => panic!("Incorrect usage")
+        }
+    }
+}

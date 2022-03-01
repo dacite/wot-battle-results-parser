@@ -2,9 +2,7 @@ use anyhow::{anyhow, Context, Error, Result};
 use std::collections::HashMap;
 use unpickler::{HashablePickleValue, PickleValue};
 
-use standard_format::{
-    AccountAll, AccountSelf, Battle, Common, FieldAccess, PlayerInfo, VehicleAll, VehicleSelf,
-};
+use standard_format::{AccountAll, AccountSelf, Battle, Common, FieldAccess, PlayerInfo, VehicleAll, VehicleSelf,};
 use wot_constants::battle_results::{BattleResultsManager, Field, FieldType};
 
 type List3Result = (
@@ -78,8 +76,7 @@ impl DatFileParser {
         // player_info of all players
         // account_all of all players
         // vehicle_all of all players
-        let (common, player_info, vehicle_all, account_all) =
-            self.parse_list(&pickle_list[2]).unwrap();
+        let (common, player_info, vehicle_all, account_all) = self.parse_list(&pickle_list[2]).unwrap();
 
         // Make battle
         return if let standard_format::WotValue::Int(account_dbid) =
@@ -163,8 +160,7 @@ impl DatFileParser {
 
         for item in dict.into_iter() {
             let (account_dbid, value_list) = self.extract_from_item(item)?;
-            let player_info: PlayerInfo =
-                self.parse_collection(value_list, FieldType::PlayerInfo)?;
+            let player_info: PlayerInfo = self.parse_collection(value_list, FieldType::PlayerInfo)?;
 
             player_info_list.insert(account_dbid, player_info);
         }
@@ -172,7 +168,7 @@ impl DatFileParser {
         Ok(player_info_list)
     }
 
-    /// The data structure that contains player info is a dict
+    /// The data structure that contains account info is a dict
     /// with wg_account_dbid as the key and an array(playerinfo) as the value
     fn parse_all_account_info(&self, input: &PickleValue) -> Result<HashMap<String, AccountAll>> {
         let dict = unpickler::access_dict(input)?;
@@ -181,8 +177,7 @@ impl DatFileParser {
 
         for item in dict.into_iter() {
             let (account_dbid, value_list) = self.extract_from_item(item)?;
-            let account_info: AccountAll =
-                self.parse_collection(value_list, FieldType::AccountAll)?;
+            let account_info: AccountAll = self.parse_collection(value_list, FieldType::AccountAll)?;
 
             account_info_list.insert(account_dbid, account_info);
         }

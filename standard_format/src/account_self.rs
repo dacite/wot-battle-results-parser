@@ -4,7 +4,7 @@ use crate::WotValue;
 use field_access_derive::FieldAccess;
 use crate::FieldAccess;
 
-#[derive(FieldAccess, Default, Debug, Serialize, Deserialize)]
+#[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct AccountSelf {
     // Common
     avatar_damage_dealt: WotValue,

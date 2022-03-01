@@ -4,7 +4,7 @@ use crate::wot_value::WotValue;
 use crate::FieldAccess;
 use field_access_derive::FieldAccess;
 
-#[derive(FieldAccess, Default, Debug, Serialize, Deserialize)]
+#[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct Common {
     arena_type_id: WotValue,
     arena_create_time: WotValue,
