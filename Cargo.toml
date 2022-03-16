@@ -5,6 +5,6 @@ members = [
     "replay_parser",
     "unpickler",
     "standard_format",
-    "field_access_derive",
+    "macros",
     "wot_constants"
 ]
