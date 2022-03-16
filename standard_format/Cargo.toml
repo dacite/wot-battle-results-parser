@@ -10,7 +10,8 @@ authors = ["dacite <d4cite@outlook.com>"]
 serde-pickle = "1.1.0"
 unpickler = { path = "../unpickler" }
 serde = { version = "1.0.135", features = ["derive"] }
-field_access_derive = { path = "../field_access_derive"}
+macros = { path = "../macros"}
+anyhow = "1.0.52"
 
 [dependencies.num]
 version = "0.3"

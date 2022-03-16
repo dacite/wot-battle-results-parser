@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::wot_value::WotValue;
 use crate::FieldAccess;
-use field_access_derive::FieldAccess;
+use macros::FieldAccess;
 
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct VehicleSelf {
@@ -149,7 +149,9 @@ pub struct VehicleSelf {
     #[custom_parser = "parse_bytes"]
     event_coin_replay: WotValue,
 
+    #[custom_parser = "parse_bytes"]
     bpcoin_replay: WotValue,
+    
     factual_xp: WotValue,
     factual_free_xp: WotValue,
     factual_credits: WotValue,
@@ -170,6 +172,7 @@ pub struct VehicleSelf {
     event_event_coin_list: WotValue,
     event_bpcoin_list: WotValue,
     event_credits_factor1000_list: WotValue,
+    event_credits_factor100_list: WotValue,
     event_xp_factor100_list: WotValue,
     event_free_xp_factor100_list: WotValue,
     event_t_men_xp_factor100_list: WotValue,
@@ -239,6 +242,8 @@ pub struct VehicleSelf {
     moving_avg_damage: WotValue,
     damage_rating: WotValue,
     battle_num: WotValue,
+
+    #[custom_parser = "parse_quests_progress"]
     quests_progress: WotValue,
 
     #[custom_parser = "parse_c11n_progress"]
@@ -270,5 +275,14 @@ impl VehicleSelf {
 
     pub fn parse_c11n_progress(&mut self, _item: serde_pickle::Value) -> WotValue {
         WotValue::None
+    }
+
+    //TODO: This custom parser was not needed before. find out why its needed now
+    pub fn parse_quests_progress(&mut self, _item: serde_pickle::Value) -> WotValue {
+        if let Ok(value) = serde_pickle::from_value(_item) {
+            value
+        } else {
+            WotValue::None
+        }
     }
 }

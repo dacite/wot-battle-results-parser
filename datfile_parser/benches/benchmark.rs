@@ -6,10 +6,15 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 }
 
 fn parse_files() {
-    let paths = std::fs::read_dir("examples").unwrap();
+    let entries = std::fs::read_dir("examples").unwrap();
 
-    for path in paths {
-        let file = std::fs::read(path.unwrap().path()).expect("unable to read the file");
+    for entry in entries {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            continue;
+        }
+
+        let file = std::fs::read(path).expect("unable to read the file");
 
         let parser = wot_datfile_parser::DatFileParser::new();
         let result = parser.parse(&file).unwrap();

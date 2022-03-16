@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::WotValue;
-use field_access_derive::FieldAccess;
+use macros::FieldAccess;
 use crate::FieldAccess;
 
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
@@ -52,7 +52,9 @@ pub struct AccountSelf {
 
     // Steel Hunter?
     max_achieved_br_title: WotValue,
+    // bp_chapter: WotValue,
     // base_points_diff: WotValue,
+    // bp_non_chapter_points_diff: WotValue,
     // sum_points: WotValue,
     // has_battle_pass: WotValue,
 
@@ -67,12 +69,16 @@ pub struct AccountSelf {
     booster_fl_xp: WotValue,
     booster_fl_xp_factor100: WotValue,
     fl_xp_replay: WotValue,
+    // bp_chapter: WotValue,
     // base_points_diff: WotValue,
+    // bp_non_chapter_points_diff: WotValue,
     // sum_points: WotValue,
     // has_battle_pass: WotValue,
 
     // Random Battles
+    bp_chapter: WotValue,
     base_points_diff: WotValue,
+    bp_non_chapter_points_diff: WotValue,
     sum_points: WotValue,
     has_battle_pass: WotValue,
 
@@ -95,7 +101,9 @@ pub struct AccountSelf {
     efficiency_bonus_battles: WotValue,
     steps_bonus_battles: WotValue,
     prev_acc_rank: WotValue,
+    // bp_chapter: WotValue,
     // base_points_diff: WotValue,
+    // bp_non_chapter_points_diff: WotValue,
     // sum_points: WotValue,
     // has_battle_pass: WotValue,
 }

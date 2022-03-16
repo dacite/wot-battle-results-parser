@@ -52,7 +52,7 @@ impl FieldList {
         let mut combined_string = String::from("");
 
         self.general.iter().for_each(|field| {
-            if field.version <= max_version {
+            if field.version <= max_version && (field.max_version >= max_version || field.max_version == 0) {
                 combined_string.push_str(field.combined_string)
             }
         });

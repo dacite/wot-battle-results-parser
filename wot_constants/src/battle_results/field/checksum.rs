@@ -9,7 +9,7 @@ use super::FieldType;
 /// For ex: `FieldType::PlayerInfo` and `ArenaBonusType::Random` and `version = 1 `
 ///
 /// In the above example it tells us that the `checksum` belongs to a list of values that describes a particular player's
-/// player info in random battles and the exact version (which tells us which values may/may not be present) is `1`
+/// player info in random battles and the exact version (which tells us which identifiers may/may not be present) is `1`
 #[derive(Clone, Debug)]
 pub struct ChecksumInfo {
     pub field_type: FieldType,

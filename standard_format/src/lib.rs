@@ -104,5 +104,5 @@ impl Battle {
 
 pub trait FieldAccess {
     fn get(&self, index: &str) -> &WotValue;
-    fn set(&mut self, index: &str, val: serde_pickle::Value) -> std::result::Result<(), String>;
+    fn set(&mut self, index: &str, val: serde_pickle::Value) -> anyhow::Result<()>;
 }

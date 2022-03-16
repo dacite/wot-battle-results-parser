@@ -18,6 +18,7 @@ pub struct Field {
     pub default: FieldDefault,
     pub combined_string: &'static str,
     pub version: usize,
+    pub max_version: usize,
     pub field_type: FieldType,
 }
 

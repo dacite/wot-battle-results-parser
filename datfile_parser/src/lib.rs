@@ -130,15 +130,7 @@ impl DatFileParser {
         return if let Some(iden_list) = self.battle_results.get_iden_list(field_type, checksum) {
             let collection = fill_field_identifiers(iden_list, &value_list[1..])?;
             for item in collection {
-                if target
-                    .set(&item.0.to_lowercase().replace("/", ""), item.1)
-                    .is_err()
-                {
-                    return Err(anyhow!(
-                        "Struct does not have member: {}",
-                        &item.0.to_lowercase().replace("/", "")
-                    ));
-                }
+                target.set(&item.0.to_lowercase().replace("/", ""), item.1)?;
             }
 
             Ok(target)
