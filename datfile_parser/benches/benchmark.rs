@@ -1,4 +1,7 @@
+use std::{fs::DirEntry, io::Error, borrow::BorrowMut};
+
 use criterion::{criterion_group, criterion_main, Criterion};
+use rand::prelude::SliceRandom;
 
 
 pub fn criterion_benchmark(c: &mut Criterion) {
@@ -6,10 +9,11 @@ pub fn criterion_benchmark(c: &mut Criterion) {
 }
 
 fn parse_files() {
-    let entries = std::fs::read_dir("examples").unwrap();
+    let all_entries: Vec<_> =  std::fs::read_dir("examples").unwrap().map(|entry| entry.unwrap()).collect();
+    let entries: Vec<_> = all_entries.choose_multiple(&mut rand::thread_rng(), 5).collect();
 
-    for entry in entries {
-        let path = entry.unwrap().path();
+    for entry in  entries {
+        let path = entry.path();
         if path.is_dir() {
             continue;
         }
