@@ -1,5 +1,3 @@
-use std::{fs::DirEntry, io::Error, borrow::BorrowMut};
-
 use criterion::{criterion_group, criterion_main, Criterion};
 use rand::prelude::SliceRandom;
 
