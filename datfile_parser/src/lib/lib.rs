@@ -1,9 +1,11 @@
+mod battle_results;
 use anyhow::{anyhow, Context, Error, Result};
+use wot_constants::battle_results::{FieldType, Field};
 use std::collections::HashMap;
 use unpickler::{HashablePickleValue, PickleValue};
 
 use standard_format::{AccountAll, AccountSelf, Battle, Common, FieldAccess, PlayerInfo, VehicleAll, VehicleSelf,};
-use wot_constants::battle_results::{BattleResultsManager, Field, FieldType};
+use battle_results::BattleResultsManager;
 
 type List3Result = (
     Common,

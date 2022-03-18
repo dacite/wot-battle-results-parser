@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::FieldType;
+use wot_constants::battle_results::FieldType;
 
 
 
@@ -13,7 +13,7 @@ use super::FieldType;
 #[derive(Clone, Debug)]
 pub struct ChecksumInfo {
     pub field_type: FieldType,
-    pub arena_type: crate::ArenaBonusType,
+    pub arena_type: wot_constants::ArenaBonusType,
     pub checksum: i32,
     pub version: usize,
 }

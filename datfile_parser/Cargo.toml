@@ -8,11 +8,11 @@ authors = ["dacite <d4cite@outlook.com>"]
 
 [lib]
 name = "wot_datfile_parser"
-path = "src/lib.rs"
+path = "src/lib/lib.rs"
 
 [[bin]]
 name = "wot-datfile-parser-cli"
-path = "src/main.rs"
+path = "src/cli/main.rs"
 
 [dev-dependencies]
 criterion = "0.3.5"

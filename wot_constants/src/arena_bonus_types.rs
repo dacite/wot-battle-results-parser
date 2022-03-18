@@ -1,4 +1,5 @@
 #[derive(PartialEq, Hash, Eq, Copy, Clone, Debug)]
+/// Gamemode. It could be a random battle or a frontlines battle etc.
 pub enum ArenaBonusType {
     Unknown = 0,
     Regular = 1,

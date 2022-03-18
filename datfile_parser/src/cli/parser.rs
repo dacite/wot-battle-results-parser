@@ -1,8 +1,9 @@
 use std::{path::{Path, PathBuf}, fs};
 
 use standard_format::Battle;
-use wot_datfile_parser::DatFileParser;
+
 use anyhow::{Result, Context, anyhow};
+use wot_datfile_parser::DatFileParser;
 
 /// High level function that parses directly from the wot cache folder
 pub fn parse_from_wot_data_folder(wot_cache_folder: Option<String>, parser: &DatFileParser, out_dir: &str) -> Result<()> {

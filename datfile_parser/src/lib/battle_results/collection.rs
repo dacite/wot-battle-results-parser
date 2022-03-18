@@ -1,6 +1,7 @@
-use crate::ArenaBonusType;
+use wot_constants::ArenaBonusType;
+use wot_constants::battle_results::{FieldType};
 
-use super::{field_list::FieldList, FieldType};
+use super::field_list::FieldList;
 
 pub struct Collection {
     pub account_all: FieldList,

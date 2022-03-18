@@ -1,5 +1,8 @@
-use crate::{ArenaBonusType, battle_results::ALL_TYPES};
-use super::{ChecksumInfo, FieldType, Field};
+use wot_constants::ArenaBonusType;
+use wot_constants::battle_results::{ALL_TYPES, FieldType, Field};
+
+use super::checksum::ChecksumInfo;
+
 
 pub const CRC32: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
 

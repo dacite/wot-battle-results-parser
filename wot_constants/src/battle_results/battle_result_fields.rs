@@ -1,4 +1,4 @@
-use super::{field::FieldDefault, Field, FieldType};
+use super::{FieldDefault, Field, FieldType};
 
 pub const RANDOM_ARENA: &[Field] = &[
     Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },

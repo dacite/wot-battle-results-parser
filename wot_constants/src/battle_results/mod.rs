@@ -1,60 +1,109 @@
 mod battle_result_fields;
-mod field;
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap};
 
-use battle_result_fields::{ALL_TYPES, BATTLE_ROYALE, FRONTLINE, MAPS_TRAINING, RANDOM_ARENA, RANKED};
-pub use field::{ChecksumManager, Collection, Field, FieldType};
+use unpickler::PickleValue;
 
 use crate::ArenaBonusType;
 
-pub struct BattleResultsManager {
-    fields_collection: HashMap<ArenaBonusType, Collection>,
-    checksum_manager: ChecksumManager,
-}
-impl Default for BattleResultsManager {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-impl BattleResultsManager {
-    pub fn new() -> Self {
-        let mut fields_collection = HashMap::new();
+pub use battle_result_fields::{RANDOM_ARENA, RANKED, FRONTLINE, BATTLE_ROYALE, MAPS_TRAINING, ALL_TYPES};
 
-        let mut checksum_manager = ChecksumManager::new();
-        fields_collection.insert(ArenaBonusType::EpicRandom,Collection::new(ArenaBonusType::EpicRandom),);
-        fields_collection.insert(ArenaBonusType::Ranked,Collection::new(ArenaBonusType::Ranked),);
-        fields_collection.insert(ArenaBonusType::BattleRoyaleSolo,Collection::new(ArenaBonusType::BattleRoyaleSolo),);
-        fields_collection.insert(ArenaBonusType::MapsTraining,Collection::new(ArenaBonusType::MapsTraining),);
-        fields_collection.insert(ArenaBonusType::EpicBattle,Collection::new(ArenaBonusType::EpicBattle),);
-        fields_collection.insert(ArenaBonusType::Unknown,Collection::new(ArenaBonusType::Unknown),);
-        
-        fields_collection.iter_mut().for_each(|item| {
-            checksum_manager.insert_list(item.1.account_all.generate_all_checksums());
-            checksum_manager.insert_list(item.1.account_self.generate_all_checksums());
-            checksum_manager.insert_list(item.1.vehicle_all.generate_all_checksums());
-            checksum_manager.insert_list(item.1.vehicle_self.generate_all_checksums());
-            checksum_manager.insert_list(item.1.server.generate_all_checksums());
-            checksum_manager.insert_list(item.1.player_info.generate_all_checksums());
-            checksum_manager.insert_list(item.1.common.generate_all_checksums());
-        });
+#[derive(Clone)]
+/// A data structure that holds information about a field found in battle results.
+pub struct Field {
+    /// Name of the battle result field. Ex: damageDealt
+    pub name: &'static str,
+    
+    /// Default value of the battle result
+    pub default: FieldDefault,
 
-        Self {
-            fields_collection,
-            checksum_manager,
+    /// A value needed to generate the checksum. This value comes from WoT's python code
+    pub combined_string: &'static str,
+
+    /// A relative number that tells us when this field was introduced
+    pub version: usize,
+
+    /// A relative number that tells us when the field was removed
+    pub max_version: usize,
+
+    /// The context where this field occurs. Ex: damageDealt is found for the player themselves(VehicleSelf)
+    /// and all the other players in battle(VehicleAll)
+    pub field_type: FieldType,
+}
+
+
+/// Type of a Field. For ex: if FieldType is VehicleAll, its a field that is present
+/// for every player in that particular battle. In this case name of that Field could 
+/// be damageDealt.
+#[derive(Clone, Copy, Hash, PartialEq, Eq, Debug)]
+pub enum FieldType {
+    Common,
+    PlayerInfo,
+    AccountAll,
+    AccountSelf,
+    VehicleAll,
+    VehicleSelf,
+    Server,
+}
+
+
+
+/// A Representation for the default value for a certain field.
+/// `Dict`, `Str`, `List` variants create empty instances of HashMap, String, Vec respectively.
+/// `Tuple` variant can be seen as the tuple.0 value repeated tuple.1 times. For ex: Tuple(&(Int(0), 3))
+/// is a tuple like (0, 0, 0) 
+#[derive(Clone)]
+pub enum FieldDefault {
+    None,
+    Int(i64),
+    Bool(bool),
+    Float(f64),
+    Dict,
+    Str,
+    List,
+    Set,
+    Tuple(&'static(FieldDefault, u32)),
+}
+
+impl FieldDefault {
+    pub fn to_pickle_value(&self) -> PickleValue {
+        match self {
+            FieldDefault::None => PickleValue::None,
+            FieldDefault::Int(x) => PickleValue::I64(*x),
+            FieldDefault::Bool(x) => PickleValue::Bool(*x),
+            FieldDefault::Float(x) => PickleValue::F64(*x),
+            FieldDefault::Dict => PickleValue::Dict(BTreeMap::new()),
+            FieldDefault::Str => PickleValue::String(String::from("")),
+            FieldDefault::List => PickleValue::List(Vec::new()),
+            FieldDefault::Set => PickleValue::List(Vec::new()),
+            FieldDefault::Tuple(x) => {
+                let mut pickle_value = Vec::new();
+
+                for _ in 0..(x.1) {
+                    pickle_value.push(x.0.clone().to_pickle_value());
+                }
+                PickleValue::Tuple(pickle_value)
+            },
         }
     }
+}
 
-    pub fn get_iden_list(&self, field_type: FieldType, checksum: i32) -> Option<Vec<Field>> {
-        if let Some(checksum_info) = self.checksum_manager.get(checksum, field_type) {
-            let big_collection = self
-                .fields_collection
-                .get(&checksum_info.arena_type)
-                .unwrap();
-            let collection = big_collection.get_collection_from_type(field_type);
-
-            return Some(collection.get_fields(checksum_info.version));
+impl ArenaBonusType {
+    pub fn get_collection(&self) -> Option<&[Field]> {
+        match self {
+            ArenaBonusType::EpicRandom => Some(RANDOM_ARENA),
+            ArenaBonusType::EpicRandomTraining => Some(RANDOM_ARENA),
+            ArenaBonusType::Mapbox => Some(RANDOM_ARENA),
+            ArenaBonusType::Ranked => Some(RANKED),
+            ArenaBonusType::EpicBattle => Some(FRONTLINE),
+            ArenaBonusType::EpicBattleTraining => Some(FRONTLINE),
+            ArenaBonusType::BattleRoyaleTrnSolo => Some(BATTLE_ROYALE),
+            ArenaBonusType::BattleRoyaleTrnSquad => Some(BATTLE_ROYALE),
+            ArenaBonusType::BattleRoyaleSolo => Some(BATTLE_ROYALE),
+            ArenaBonusType::BattleRoyaleSquad => Some(BATTLE_ROYALE),
+            ArenaBonusType::MapsTraining => Some(MAPS_TRAINING),
+            _ => None
         }
-        None
     }
 }
+
