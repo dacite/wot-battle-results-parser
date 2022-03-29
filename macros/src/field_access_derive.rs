@@ -20,18 +20,23 @@ pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
     let mut match_conditions = Vec::new();
     let mut get_statements = Vec::new();
     let mut set_statements = Vec::new();
+    let mut type_names = Vec::new();
 
     fields.iter().for_each(|field| {
         let name = field.ident.clone().unwrap();
+        let type_name = field.ty.clone();
         let name_lower_case = to_lower_case(&field.ident.clone().unwrap());
         let attr_list = field.clone().attrs.into_iter().next();
+        
         match_conditions.push(quote! {
            stringify!(#name) | #name_lower_case
         });
 
         get_statements.push(quote! {
-            &self.#name
+            Some(serde_json::to_value(self.#name.clone()).unwrap())
         });
+
+        type_names.push(quote! {&#type_name});
 
         if let Some(attr) = attr_list {
             let attr_val = get_value(&attr);
@@ -61,12 +66,12 @@ pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
 
     let gen = quote! {
         impl FieldAccess for #name {
-            fn get(&self, index: &str) -> &WotValue {
+            fn get(&self, index: &str) -> Option<serde_json::Value> {
                 match index {
                     #(
                       #match_conditions => #get_statements,
                     )*
-                    _ => &WotValue::OutOfBounds
+                    _ => None
                 }
             }
 

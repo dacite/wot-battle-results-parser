@@ -1,19 +1,18 @@
 use serde::{Serialize, Deserialize};
 
-use crate::wot_value::WotValue;
+// use crate::wot_value::WotValue;
 use crate::FieldAccess;
 use macros::FieldAccess;
-
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct PlayerInfo {
     // Common
-    name: WotValue,
-    real_name: WotValue,
-    clan_dbid: WotValue,
-    clan_abbrev: WotValue,
-    prebattle_id: WotValue,
-    team: WotValue,
-    igr_type: WotValue,
+    name: String,
+    real_name: String,
+    clan_dbid: i64,
+    clan_abbrev: String,
+    prebattle_id: i32,
+    team: i32,
+    igr_type: i32,
 
     // Steel Hunter?
 
@@ -25,5 +24,4 @@ pub struct PlayerInfo {
 
     // Ranked Battles
 }
-
 

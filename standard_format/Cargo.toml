@@ -8,11 +8,13 @@ authors = ["dacite <d4cite@outlook.com>"]
 
 [dependencies]
 serde-pickle = "1.1.0"
+serde_json = "1.0.68"
 unpickler = { path = "../unpickler" }
 serde = { version = "1.0.135", features = ["derive"] }
 macros = { path = "../macros"}
 anyhow = "1.0.52"
 
-[dependencies.num]
-version = "0.3"
-features = ["serde"]
+
+# [dependencies.num]
+# version = "0.3"
+# features = ["serde"]

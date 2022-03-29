@@ -81,7 +81,7 @@ impl DatFileParser {
         let (common, player_info, vehicle_all, account_all) = self.parse_list(&pickle_list[2]).unwrap();
 
         // Make battle
-        return if let standard_format::WotValue::Int(account_dbid) =
+        return if let Some(serde_json::Value::Number(account_dbid)) =
             account_self.get("account_dbid")
         {
             let mut vehicle_self_list = HashMap::new();
