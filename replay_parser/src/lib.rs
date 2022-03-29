@@ -6,7 +6,6 @@ use miniz_oxide::inflate::decompress_to_vec_zlib;
 use std::io::{Cursor, Seek, SeekFrom};
 
 use anyhow::{anyhow, Result};
-pub mod event;
 pub mod packet_stream;
 
 /// A tuple of :
