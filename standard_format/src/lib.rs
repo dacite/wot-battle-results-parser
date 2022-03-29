@@ -28,12 +28,15 @@ pub struct Battle {
     pub account_self: HashMap<String, AccountSelf>
 }
 
+// To be removed
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct BattleCSV {
     #[serde(flatten)]
     players: HashMap<String, PlayerCSV>
 }
 
+
+// To be removed
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct PlayerCSV {
     pub arena_unique_id: String,
@@ -68,7 +71,7 @@ impl Battle {
             let avatar_id = player.0.clone();
             let vehicle_all = player.1.clone();
 
-            let account_dbid = vehicle_all.get("accountdbid").as_string();
+            let account_dbid = vehicle_all.get("accountdbid").unwrap().as_str().unwrap().to_string();
 
             let player_info = self.player_info.get(&account_dbid).unwrap().clone();
             let account_all = self.account_all.get(&account_dbid).unwrap().clone();
@@ -103,6 +106,6 @@ impl Battle {
 }
 
 pub trait FieldAccess {
-    fn get(&self, index: &str) -> &WotValue;
+    fn get(&self, index: &str) -> Option<serde_json::Value>;
     fn set(&mut self, index: &str, val: serde_pickle::Value) -> anyhow::Result<()>;
 }
