@@ -1,5 +1,5 @@
 [package]
-name = "wot-replay-parser"
+name = "wot_replay_parser"
 version = "0.1.0"
 edition = "2021"
 authors = ["dacite <d4cite@outlook.com>"]

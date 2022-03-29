@@ -14,6 +14,7 @@ pub mod packet_stream;
 /// 2. `Binary buffer` (contains data used to play replay)
 type ReplayParseResult = (Vec<serde_json::Value>, Vec<u8>);
 
+/// Parse both the JSON portion and the binary portion
 pub fn parse(input: &[u8]) -> Result<ReplayParseResult> {
     let mut seekable = Cursor::new(input);
 
@@ -27,6 +28,16 @@ pub fn parse(input: &[u8]) -> Result<ReplayParseResult> {
 
     Ok((json_dumps, binary_dump))
 }
+
+/// Parse the JSON portion only
+pub fn parse_json(input: &[u8]) -> Result<Vec<serde_json::Value>> {
+    let mut seekable = Cursor::new(input);
+
+    // Parse JSON Dump
+    seekable.seek(SeekFrom::Start(4))?;
+    seperate_json(&mut seekable)
+}
+
 
 /// Seperate the JSON dumps
 fn seperate_json(seekable: &mut Cursor<&[u8]>) -> Result<Vec<serde_json::Value>> {
