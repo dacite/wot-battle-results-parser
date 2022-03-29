@@ -1,6 +1,5 @@
 use serde::{Serialize, Deserialize};
 
-use crate::WotValue;
 use macros::FieldAccess;
 use crate::FieldAccess;
 
