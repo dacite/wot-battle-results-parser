@@ -21,6 +21,12 @@ pub fn decompress_vec(compressed:&[u8]) -> Result<Vec<u8>> {
     Ok(result)
 }
 
+pub fn decompress_and_load_pickle(val: &PickleValue) -> Result<PickleValue> {
+    let compressed = access_bytes(val)?;
+    let decompressed = decompress_vec(&compressed)?;
+    load_pickle(&decompressed)
+}
+
 pub fn access_tuple(x: &PickleValue) -> Result<Vec<PickleValue>> {
     return if let PickleValue::Tuple(value) = x {
         Ok(value.clone())

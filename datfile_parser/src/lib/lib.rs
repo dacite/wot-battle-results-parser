@@ -40,23 +40,18 @@ impl DatFileParser {
         // the three u8 buffers (named buffer1, buffer2, buffer3 respectively) in this tuple are
         // compressed pickle dumps
         let data_tuple = unpickler::access_tuple(&root_tuple[1])?;
+
         let arena_unique_id = unpickler::access_i64(&data_tuple[0])?.to_string();
-
-        let mut pickle_list = Vec::new();
-        for item in data_tuple.iter().skip(1) {
-            let compressed = unpickler::access_bytes(item)?;
-            let decompressed = unpickler::decompress_vec(&compressed)?;
-            let pickle = unpickler::load_pickle(&decompressed)?;
-
-            pickle_list.push(pickle);
-        }
+        let account_self_pickle = unpickler::decompress_and_load_pickle(&data_tuple[1])?;
+        let vehicle_self_pickle = unpickler::decompress_and_load_pickle(&data_tuple[2])?;
+        let mixed_pickle = unpickler::decompress_and_load_pickle(&data_tuple[3])?;
 
         // Once we get the pickle dumps, we parse them separately:
 
         // Pickle dump @0 is AccountSelf of the "recording" player. We do not have AccountSelf of
         // other players unless we get their dat file
         let account_self: AccountSelf = self.parse_collection(
-            unpickler::access_list(&pickle_list[0])?,
+            unpickler::access_list(&account_self_pickle)?,
             FieldType::AccountSelf,
         )?;
 
@@ -64,7 +59,7 @@ impl DatFileParser {
         // player's tank_id. We can discard it because it appears again inside the value pointed to
         // by the key. The Value is VehicleSelf. The nature of AccountSelf(See above) applies to this
         // structure as well.
-        let dict = unpickler::access_dict(&pickle_list[1])?;
+        let dict = unpickler::access_dict(&vehicle_self_pickle)?;
         let item = dict
             .into_iter()
             .next()
@@ -78,7 +73,7 @@ impl DatFileParser {
         // player_info of all players
         // account_all of all players
         // vehicle_all of all players
-        let (common, player_info, vehicle_all, account_all) = self.parse_mixed_list(&pickle_list[2]).unwrap();
+        let (common, player_info, vehicle_all, account_all) = self.parse_mixed_list(&mixed_pickle).unwrap();
 
         // Make battle
         return if let Some(serde_json::Value::Number(account_dbid)) =
