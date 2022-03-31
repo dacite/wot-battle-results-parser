@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::FieldAccess;
 use macros::FieldAccess;
-
+use crate::WotValue;
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct VehicleAll {
     // Common
@@ -42,7 +42,7 @@ pub struct VehicleAll {
     explosion_hits_received: i32,
     piercings_received: i32,
     tdamage_dealt: i32,
-    tdestroyed_modules: i32,
+    tdestroyed_modules: serde_json::Value,
     tkills: i32,
     is_team_killer: bool,
     capture_points: i32,

@@ -2,11 +2,12 @@ use serde::{Serialize, Deserialize};
 
 use macros::FieldAccess;
 use crate::FieldAccess;
-
+use crate::WotValue;
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct AccountSelf {
     // Common
     avatar_damage_dealt: i32,
+    account_dbid: u64,
     avatar_kills: i32,
     avatar_damaged: i32,
     total_damaged: i32,
@@ -31,7 +32,10 @@ pub struct AccountSelf {
     referral_bonus_vehicles: serde_json::Value,
     fare_team_xp_position: i32,
     quests_progress: serde_json::Value,
+
+    #[custom_parser = "parse_pm2_progress"]
     pm2_progress: serde_json::Value,
+
     dog_tags: serde_json::Value,
     event_credits: i32,
     event_xp: i32,
@@ -107,5 +111,7 @@ pub struct AccountSelf {
 }
 
 impl AccountSelf {
-
+    pub fn parse_pm2_progress(&mut self, _item: serde_pickle::Value) -> serde_json::Value {
+        serde_json::Value::Null
+    }
 }

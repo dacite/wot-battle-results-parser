@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::FieldAccess;
+use crate::WotValue;
 use macros::FieldAccess;
 
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]

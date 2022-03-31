@@ -1,6 +1,5 @@
 /// A macro that generates getters and setters for different structs (common, account_all etc.)
 /// inside the `standard_format` crate
-
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
@@ -8,10 +7,8 @@ use quote::quote;
 
 use syn::{Attribute, Data, DataStruct, Fields, Lit, Meta, MetaNameValue};
 
-
-
 pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
-    let name = &ast.ident;
+    let struct_name = &ast.ident;
     let fields = match &ast.data {
         Data::Struct(DataStruct { fields: Fields::Named(fields), .. }) => &fields.named,
         _ => panic!("expected a struct with named fields"),
@@ -27,7 +24,7 @@ pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
         let type_name = field.ty.clone();
         let name_lower_case = to_lower_case(&field.ident.clone().unwrap());
         let attr_list = field.clone().attrs.into_iter().next();
-        
+
         match_conditions.push(quote! {
            stringify!(#name) | #name_lower_case
         });
@@ -49,23 +46,21 @@ pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
             });
         } else {
             set_statements.push(quote! {
-                 {
-                     let result = serde_pickle::from_value(val);
-                     if let Ok(value) = result {
-                     self.#name = value;
+               {
+                  let result = serde_pickle::from_value::<WotValue>(val)?;
+                  if let Ok(value) = serde_json::to_value(result) {
+                     self.#name = serde_json::from_value(value).unwrap();
                      return Ok(())
-                 } else {
+                  } else {
                      return anyhow::Result::Err(anyhow::anyhow!("Value conversion error on {}", index));
-                 }
-
-
-                 }
+                  }
+               }
             });
         }
     });
 
     let gen = quote! {
-        impl FieldAccess for #name {
+        impl FieldAccess for #struct_name {
             fn get(&self, index: &str) -> Option<serde_json::Value> {
                 match index {
                     #(
@@ -80,7 +75,7 @@ pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
                     #(
                       #match_conditions => #set_statements,
                     )*
-                    _ => return anyhow::Result::Err(anyhow::anyhow!("Struct {} does not have the member: /{}/", index, stringify!(#name)))
+                    _ => return anyhow::Result::Err(anyhow::anyhow!("Struct {} does not have the member: /{}/", stringify!(#struct_name), index))
                 }
             }
         }
@@ -89,7 +84,7 @@ pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
 }
 
 /// to lower case from snake case
-fn to_lower_case(x: &syn::Ident) -> String{
+fn to_lower_case(x: &syn::Ident) -> String {
     format!("{}", x).replace("_", "")
 }
 
@@ -101,9 +96,10 @@ fn get_value(attr: &Attribute) -> syn::Ident {
     }
 
     match attr.parse_meta().unwrap() {
-        Meta::NameValue(MetaNameValue { lit: Lit::Str(lit_str), .. }) => {
-            syn::Ident::new(&lit_str.value(), lit_str.span())
-        }
+        Meta::NameValue(MetaNameValue {
+            lit: Lit::Str(lit_str),
+            ..
+        }) => syn::Ident::new(&lit_str.value(), lit_str.span()),
         _ => {
             panic!("expected #[custom_parser = \"functionName\"]");
         }

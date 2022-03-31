@@ -7,7 +7,7 @@ use unpickler::{HashablePickleValue, PickleValue};
 use standard_format::{AccountAll, AccountSelf, Battle, Common, FieldAccess, PlayerInfo, VehicleAll, VehicleSelf,};
 use battle_results::BattleResultsManager;
 
-type List3Result = (
+type MixedResult = (
     Common,
     HashMap<String, PlayerInfo>,
     HashMap<String, VehicleAll>,
@@ -78,7 +78,7 @@ impl DatFileParser {
         // player_info of all players
         // account_all of all players
         // vehicle_all of all players
-        let (common, player_info, vehicle_all, account_all) = self.parse_list(&pickle_list[2]).unwrap();
+        let (common, player_info, vehicle_all, account_all) = self.parse_mixed_list(&pickle_list[2]).unwrap();
 
         // Make battle
         return if let Some(serde_json::Value::Number(account_dbid)) =
@@ -104,7 +104,7 @@ impl DatFileParser {
         };
     }
 
-    fn parse_list(&self, wrapped_list3: &PickleValue) -> Result<List3Result> {
+    fn parse_mixed_list(&self, wrapped_list3: &PickleValue) -> Result<MixedResult> {
         let tuple = unpickler::access_tuple(wrapped_list3)?;
 
         let common: Common =
@@ -161,7 +161,7 @@ impl DatFileParser {
 
         Ok(player_info_list)
     }
-
+    
     /// The data structure that contains account info is a dict
     /// with wg_account_dbid as the key and an array(playerinfo) as the value
     fn parse_all_account_info(&self, input: &PickleValue) -> Result<HashMap<String, AccountAll>> {
@@ -194,7 +194,7 @@ impl DatFileParser {
         }
         Ok(vehicle_all_list)
     }
-
+    
     /// Return the following when given a hashmap item:
     /// - `key` This is either the account_dbid or the avatar_id
     /// - `value_list` This finally should be a Vec but might have to parsed from either a dict or a list
@@ -231,10 +231,7 @@ fn get_checksum(data_list: &[PickleValue]) -> Result<i32> {
 }
 
 /// Generate a HashMap when given a list of identifiers and then a list of values for that identifiers
-fn fill_field_identifiers(
-    iden_list: Vec<Field>,
-    value_list: &[PickleValue],
-) -> Result<HashMap<String, PickleValue>> {
+fn fill_field_identifiers(iden_list: Vec<Field>, value_list: &[PickleValue]) -> Result<HashMap<String, PickleValue>> {
     let mut result = HashMap::with_capacity(iden_list.len());
 
     iden_list

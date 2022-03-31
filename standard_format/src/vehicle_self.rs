@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::FieldAccess;
 use macros::FieldAccess;
+use crate::WotValue;
 
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct VehicleSelf {
@@ -42,7 +43,7 @@ pub struct VehicleSelf {
     explosion_hits_received: i32,
     piercings_received: i32,
     tdamage_dealt: i32,
-    tdestroyed_modules: i32,
+    tdestroyed_modules: serde_json::Value,
     tkills: i32,
     is_team_killer: bool,
     capture_points: i32,
@@ -68,6 +69,7 @@ pub struct VehicleSelf {
     destructibles_damage_dealt: i32,
     destructibles_hits: i32,
     num_defended: i32,
+    account_dbid: u64,
     type_comp_descr: i32,
     index: i32,
     death_reason: i32,
@@ -223,16 +225,16 @@ pub struct VehicleSelf {
     booster_free_xp_factor100: i32,
     booster_t_men_xp_factor100: i32,
     player_rank_xp: i32,
-    player_rank_xp_factor100: i32,
-    is_premium: bool,
-    prem_mask: i32,
+    player_rank_xp_factor100: serde_json::Value,
+    is_premium: serde_json::Value,
+    prem_mask: serde_json::Value,
     xp_by_tmen: serde_json::Value,
-    auto_repair_cost: i32,
+    auto_repair_cost: serde_json::Value,
     auto_load_cost: serde_json::Value,
     auto_equip_cost: serde_json::Value,
     auto_equip_boosters_cost: serde_json::Value,
     prev_mark_of_mastery: i32,
-    mark_of_mastery: i32,
+    mark_of_mastery: serde_json::Value,
     dossier_pop_ups: serde_json::Value,
     dossier_log_records: serde_json::Value,
     veh_type_lock_time: i32,
@@ -240,7 +242,7 @@ pub struct VehicleSelf {
     marks_on_gun: i32,
     moving_avg_damage: i32,
     damage_rating: i32,
-    battle_num: i32,
+    battle_num: serde_json::Value,
 
     #[custom_parser = "parse_quests_progress"]
     quests_progress: serde_json::Value,
@@ -251,7 +253,7 @@ pub struct VehicleSelf {
     original_credits_to_draw_squad: i32,
     original_credits_penalty_squad: i32,
     original_credits_contribution_in_squad: i32,
-    original_credits_contribution_out_squad: i32,
+    original_credits_contribution_out_squad: serde_json::Value,
     setups_indexes: serde_json::Value,
 
     // Steel Hunter?

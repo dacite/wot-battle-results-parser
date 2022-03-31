@@ -3,6 +3,7 @@ use serde::{Serialize, Deserialize};
 // use crate::wot_value::WotValue;
 use crate::FieldAccess;
 use macros::FieldAccess;
+use crate::WotValue;
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct PlayerInfo {
     // Common

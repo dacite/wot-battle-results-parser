@@ -54,7 +54,6 @@ pub fn parse_dir(path: &Path, parser: &DatFileParser) -> Result<Vec<Battle>>{
     for path_result in file_paths {
         match path_result {
             Ok(path) =>  {
-                println!("{:?}", path);
                 if path.path().is_file() {
                     match parse_datfile(path.path().as_path(), parser) {
                         Ok(battle) => vec.push(battle),
@@ -107,10 +106,10 @@ pub fn write_battle(battle: Battle, path: &str) {
 #[test]
 fn datfile_parser_test() {
     let parser = DatFileParser::new();
-    let mut battles = parse_dir(Path::new("examples"), &parser).unwrap();
-    battles.append(&mut parse_dir(Path::new("examples/other"), &parser).unwrap());
+    let battles = parse_dir(Path::new("examples"), &parser).unwrap();
+    // battles.append(&mut parse_dir(Path::new("examples/other"), &parser).unwrap());
 
     battles.iter().for_each(|battle| {
-        let _ = serde_json::to_string_pretty(battle).unwrap();
+        assert!(serde_json::to_string_pretty(battle).is_ok());
     });
 }
