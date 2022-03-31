@@ -11,7 +11,7 @@ name = "wot_datfile_parser"
 path = "src/lib/lib.rs"
 
 [[bin]]
-name = "wot-datfile-parser-cli"
+name = "wot_datfile_parser_cli"
 path = "src/cli/main.rs"
 
 [dev-dependencies]
