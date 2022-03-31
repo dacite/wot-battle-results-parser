@@ -12,7 +12,7 @@ on:
 
 env:
   BIN_NAME: wot_datfile_parser_cli
-  PROJECT_NAME: WoT Battle Results Parser
+  PROJECT_NAME: battle_results_parser
   REPO_NAME: dacite/wot-battle-results-parser
 
 jobs:
