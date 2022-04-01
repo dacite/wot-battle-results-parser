@@ -46,15 +46,15 @@ pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
             });
         } else {
             set_statements.push(quote! {
-               {
-                  let result = serde_pickle::from_value::<WotValue>(val)?;
-                  if let Ok(value) = serde_json::to_value(result) {
-                     self.#name = serde_json::from_value(value).unwrap();
-                     return Ok(())
-                  } else {
-                     return anyhow::Result::Err(anyhow::anyhow!("Value conversion error on {}", index));
-                  }
-               }
+                {
+                    let result = serde_pickle::from_value::<WotValue>(val)?;
+                    if let Ok(value) = serde_json::to_value(result) {
+                        self.#name = serde_json::from_value(value).unwrap();
+                        return Ok(())
+                    } else {
+                        return anyhow::Result::Err(anyhow::anyhow!("Value conversion error on {}", index));
+                    }
+                }
             });
         }
     });
