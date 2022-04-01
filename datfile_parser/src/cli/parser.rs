@@ -106,8 +106,8 @@ pub fn write_battle(battle: Battle, path: &str) {
 #[test]
 fn datfile_parser_test() {
     let parser = DatFileParser::new();
-    let battles = parse_dir(Path::new("examples"), &parser).unwrap();
-    // battles.append(&mut parse_dir(Path::new("examples/other"), &parser).unwrap());
+    let battles = parse_dir(Path::new("input_files"), &parser).unwrap();
+    // battles.append(&mut parse_dir(Path::new("input_files/other"), &parser).unwrap());
 
     battles.iter().for_each(|battle| {
         assert!(serde_json::to_string_pretty(battle).is_ok());
