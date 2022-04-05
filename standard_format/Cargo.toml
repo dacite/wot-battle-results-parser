@@ -13,7 +13,7 @@ unpickler = { path = "../unpickler" }
 serde = { version = "1.0.135", features = ["derive"] }
 macros = { path = "../macros"}
 anyhow = "1.0.52"
-
+wot_constants = { path = "../wot_constants" }
 
 # [dependencies.num]
 # version = "0.3"

@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
+use macros::FieldAccess;
+use serde::{Deserialize, Serialize};
 
 use crate::FieldAccess;
-use macros::FieldAccess;
 use crate::WotValue;
 
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
@@ -80,8 +80,7 @@ pub struct VehicleSelf {
     damaged_hp: i32,
     stunned: i32,
 
-
-    repair: i32,
+    repair:  i32,
     free_xp: i32,
     #[custom_parser = "parse_bytes"]
     details: serde_json::Value,
@@ -132,20 +131,20 @@ pub struct VehicleSelf {
     #[custom_parser = "parse_bytes"]
     tmen_xp_replay: serde_json::Value,
 
-    tmen_xp: i32,
+    tmen_xp:       i32,
     original_gold: i32,
 
     #[custom_parser = "parse_bytes"]
     gold_replay: serde_json::Value,
 
-    gold: i32,
+    gold:             i32,
     original_crystal: i32,
 
     #[custom_parser = "parse_bytes"]
     crystal_replay: serde_json::Value,
 
     original_event_coin: i32,
-    original_bpcoin: i32,
+    original_bpcoin:     i32,
 
     #[custom_parser = "parse_bytes"]
     event_coin_replay: serde_json::Value,
@@ -258,8 +257,7 @@ pub struct VehicleSelf {
 
     // Steel Hunter?
     br_pos_in_battle: i32,
-    achived_level: i32,
-
+    achived_level:    i32,
     // Frontlines
 
     // Random Battles

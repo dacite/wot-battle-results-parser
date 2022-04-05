@@ -58,4 +58,11 @@ impl BattleResultsManager {
         }
         None
     }
+
+    pub fn get_extra_fields(&self, field_type: FieldType, checksum: i32) -> Option<&'static [Field]> {
+        if let Some(checksum_info) = self.checksum_manager.get(checksum, field_type) {
+            return checksum_info.arena_type.get_collection();
+        }
+        None
+    }
 }

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
+
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
@@ -18,7 +19,9 @@ pub enum WotValue {
 }
 
 impl Default for WotValue {
-    fn default() -> Self { WotValue::None }
+    fn default() -> Self {
+        WotValue::None
+    }
 }
 
 impl WotValue {
@@ -27,7 +30,7 @@ impl WotValue {
             Self::Int(i) => i.to_string(),
             Self::Text(s) => s.clone(),
             Self::OutOfBounds => panic!("Incorrect usage: OutOfBounds Value"),
-            _ => panic!("Incorrect usage")
+            _ => panic!("Incorrect usage"),
         }
     }
 }

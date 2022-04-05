@@ -94,6 +94,7 @@ fn base_32_decode(input: &PathBuf) -> Result<String> {
 
 /// Convert battle to json and write to file
 pub fn write_battle(battle: Battle, path: &str) {
+    println!("{}", &path);
     match serde_json::to_vec_pretty(&battle) {
         // JSON conversion successful
         Ok(buf) => {

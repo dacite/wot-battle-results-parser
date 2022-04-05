@@ -1,43 +1,43 @@
-mod wot_value;
-mod common;
-mod account_self;
-mod player_info;
 mod account_all;
-mod vehicle_self;
+mod account_self;
+mod common;
+mod player_info;
 mod vehicle_all;
+mod vehicle_self;
+mod wot_value;
 
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
-pub use crate::wot_value::WotValue;
-pub use crate::common::Common;
-pub use crate::account_self::AccountSelf;
-pub use crate::player_info::PlayerInfo;
+use serde::{Deserialize, Serialize};
+
 pub use crate::account_all::AccountAll;
+pub use crate::account_self::AccountSelf;
+pub use crate::common::Common;
+pub use crate::player_info::PlayerInfo;
 pub use crate::vehicle_all::VehicleAll;
 pub use crate::vehicle_self::VehicleSelf;
+pub use crate::wot_value::WotValue;
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Battle {
     pub arena_unique_id: String,
-    pub common: Common,
-    pub player_info: HashMap<String, PlayerInfo>,
-    pub account_all: HashMap<String, AccountAll>,
-    pub vehicle_all: HashMap<String, VehicleAll>,
-    pub vehicle_self: HashMap<String, VehicleSelf>,
-    pub account_self: HashMap<String, AccountSelf>
+    pub common:          Common,
+    pub player_info:     HashMap<String, PlayerInfo>,
+    pub account_all:     HashMap<String, AccountAll>,
+    pub vehicle_all:     HashMap<String, VehicleAll>,
+    pub vehicle_self:    HashMap<String, VehicleSelf>,
+    pub account_self:    HashMap<String, AccountSelf>,
 }
 
 // To be removed
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct BattleCSV {
     #[serde(flatten)]
-    players: HashMap<String, PlayerCSV>
+    players: HashMap<String, PlayerCSV>,
 }
 
-
 // To be removed
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct PlayerCSV {
     pub arena_unique_id: String,
 
@@ -48,18 +48,18 @@ struct PlayerCSV {
 
     #[serde(flatten)]
     pub player_info: PlayerInfo,
-    
+
     #[serde(flatten)]
     pub account_all: AccountAll,
-    
+
     #[serde(flatten)]
     pub vehicle_all: VehicleAll,
-    
+
     #[serde(flatten)]
     pub vehicle_self: Option<VehicleSelf>,
-    
+
     #[serde(flatten)]
-    pub account_self: Option<AccountSelf>
+    pub account_self: Option<AccountSelf>,
 }
 
 impl Battle {
@@ -99,9 +99,7 @@ impl Battle {
             players.insert(player.0.clone(), player_csv);
         }
 
-        BattleCSV {
-            players
-        }
+        BattleCSV { players }
     }
 }
 

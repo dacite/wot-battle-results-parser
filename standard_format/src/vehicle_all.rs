@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
+use macros::FieldAccess;
+use serde::{Deserialize, Serialize};
 
 use crate::FieldAccess;
-use macros::FieldAccess;
 use crate::WotValue;
 #[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
 pub struct VehicleAll {
@@ -81,7 +81,6 @@ pub struct VehicleAll {
 
     // Steel Hunter?
     achived_level: i32,
-
     // Frontlines
 
     // Random Battles
@@ -90,5 +89,3 @@ pub struct VehicleAll {
 
     // Ranked Battles
 }
-
-
