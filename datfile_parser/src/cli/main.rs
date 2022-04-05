@@ -42,6 +42,7 @@ fn main() {
             let battle = parse_datfile(path_object, &parser).unwrap();
             let output_file_name = format!("{}.json", &battle.arena_unique_id);
 
+            std::fs::create_dir_all(&cli.out_dir).unwrap();
             let output_path = format!("{}/{}", &cli.out_dir, &output_file_name);
             write_battle(battle, &output_path);
 
