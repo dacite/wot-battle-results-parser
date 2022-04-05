@@ -1,28 +1,61 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::FieldAccess;
-use crate::WotValue;
-use macros::FieldAccess;
 
-#[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of `AccountAll` that always occur in the battle results
 pub struct AccountAll {
-    // Common
     avatar_damage_dealt: i32,
-    avatar_kills: i32,
-    avatar_damaged: i32,
-    total_damaged: i32,
+    avatar_kills:        i32,
+    avatar_damaged:      i32,
+    total_damaged:       i32,
     fairplay_violations: serde_json::Value,
-    badges: serde_json::Value,
-    player_rank: i32,
+    badges:              serde_json::Value,
+    player_rank:         i32,
 
-    // Steel Hunter?
-    // bp_chapter: WotValue,
-    // base_points_diff: WotValue,
-    // bp_non_chapter_points_diff: WotValue,
-    // sum_points: WotValue,
-    // has_battle_pass: WotValue,
+    #[serde(flatten)]
+    extra_fields: AccountAllExtra,
+}
 
-    // Frontlines
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of type `AccountAll` that only occurs in Random Battles
+struct Random {
+    bp_chapter:                 i32,
+    base_points_diff:           i32,
+    bp_non_chapter_points_diff: i32,
+    sum_points:                 i32,
+    has_battle_pass:            bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of type `AccountAll` that only occurs in Ranked Battles
+struct Ranked {
+    prev_acc_rank:              serde_json::Value,
+    bp_chapter:                 i32,
+    base_points_diff:           i32,
+    bp_non_chapter_points_diff: i32,
+    sum_points:                 i32,
+    has_battle_pass:            bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of type `AccountAll` that only occurs in Steel Hunter Gamemode
+/// battles
+struct SteelHunter {
+    bp_chapter:                 i32,
+    base_points_diff:           i32,
+    bp_non_chapter_points_diff: i32,
+    sum_points:                 i32,
+    has_battle_pass:            bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of type `AccountAll` that only occurs in Frontline battles
+struct Frontline {
     credits_after_shell_costs: i32,
     uncharged_shell_costs: i32,
     prev_meta_level: serde_json::Value,
@@ -33,28 +66,20 @@ pub struct AccountAll {
     booster_fl_xp: i32,
     booster_fl_xp_factor100: i32,
     fl_xp_replay: String,
-    // bp_chapter: WotValue,
-    // base_points_diff: WotValue,
-    // bp_non_chapter_points_diff: WotValue,
-    // sum_points: WotValue,
-    // has_battle_pass: WotValue,
-
-    // Random Battles
     bp_chapter: i32,
     base_points_diff: i32,
     bp_non_chapter_points_diff: i32,
     sum_points: i32,
     has_battle_pass: bool,
-
-    // Maps Training (Recon Mode?)
-
-    // Ranked Battles
-    prev_acc_rank: serde_json::Value,
-    // bp_chapter: WotValue,
-    // base_points_diff: WotValue,
-    // bp_non_chapter_points_diff: WotValue,
-    // sum_points: WotValue,
-    // has_battle_pass: WotValue,
 }
 
-
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+/// This enum is only used so that serde can work its magic parsing `AccountAll`
+/// from different gamemodes
+enum AccountAllExtra {
+    Random(Random),
+    Ranked(Ranked),
+    SteelHunter(SteelHunter),
+    Frontline(Frontline),
+}
