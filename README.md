@@ -30,7 +30,7 @@ If you do not specify an output directory, it will output to the same directory 
 ### Build From Source
 If you are familiar with the rust ecosystem you can build the executable like this:
 ```
-cargo build --bin wot_datfile_parser_cli
+cargo build --release --bin wot_datfile_parser_cli
 ```
 
 ## Examples
@@ -45,6 +45,8 @@ Output files of `wot_datfile_parser_cli` can be found [here](datfile_parser/exam
 Backwards compatibility is not guaranteed for the Datfile parser. This is not very important anyway since these files don't persist indefintely like `.wotreplay` files do.
 
 ## Credits
+ - https://github.com/StranikS-Scan/WorldOfTanks-Decompiled
+    - Makes it really easy to track changes in updates!
  - https://github.com/Phalynx/WoT-Replay-To-JSON
  - https://github.com/evido/wotreplay-parser
  - Contributors to [vbAddict Wiki](https://web.archive.org/web/20180407110623/http://wiki.vbaddict.net/pages/WoT_Developer_Wiki)
