@@ -51,6 +51,7 @@ pub struct AccountSelf {
     crystal: i32,
     player_rank: i32,
     gold_bank_gain: i32,
+    replay_url: String,
 
     // Steel Hunter?
     max_achieved_br_title: serde_json::Value,

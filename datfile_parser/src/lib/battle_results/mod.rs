@@ -19,6 +19,7 @@ impl Default for BattleResultsManager {
     }
 }
 impl BattleResultsManager {
+    // TODO: Too much to change when a new gamemode is added
     pub fn new() -> Self {
         let mut fields_collection = HashMap::new();
 
@@ -28,6 +29,7 @@ impl BattleResultsManager {
         fields_collection.insert(ArenaBonusType::BattleRoyaleSolo,Collection::new(ArenaBonusType::BattleRoyaleSolo),);
         fields_collection.insert(ArenaBonusType::MapsTraining,Collection::new(ArenaBonusType::MapsTraining),);
         fields_collection.insert(ArenaBonusType::EpicBattle,Collection::new(ArenaBonusType::EpicBattle),);
+        fields_collection.insert(ArenaBonusType::Rts,Collection::new(ArenaBonusType::Rts),);
         fields_collection.insert(ArenaBonusType::Unknown,Collection::new(ArenaBonusType::Unknown),);
         
         fields_collection.iter_mut().for_each(|item| {

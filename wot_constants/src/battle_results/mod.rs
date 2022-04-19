@@ -6,7 +6,7 @@ use unpickler::PickleValue;
 
 use crate::ArenaBonusType;
 
-pub use battle_result_fields::{RANDOM_ARENA, RANKED, FRONTLINE, BATTLE_ROYALE, MAPS_TRAINING, ALL_TYPES};
+pub use battle_result_fields::{RANDOM_ARENA, RANKED, FRONTLINE, BATTLE_ROYALE, MAPS_TRAINING, RTS, ALL_TYPES, };
 
 #[derive(Clone)]
 /// A data structure that holds information about a field found in battle results.
@@ -102,6 +102,9 @@ impl ArenaBonusType {
             ArenaBonusType::BattleRoyaleSolo => Some(BATTLE_ROYALE),
             ArenaBonusType::BattleRoyaleSquad => Some(BATTLE_ROYALE),
             ArenaBonusType::MapsTraining => Some(MAPS_TRAINING),
+            ArenaBonusType::Rts => Some(RTS),
+            ArenaBonusType::Rts1x1 => Some(RTS),
+            ArenaBonusType::RtsBootcamp => Some(RTS),
             _ => None
         }
     }

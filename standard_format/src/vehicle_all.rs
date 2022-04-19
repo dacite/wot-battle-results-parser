@@ -67,6 +67,7 @@ pub struct VehicleAll {
     destructibles_num_destroyed: i32,
     destructibles_damage_dealt: i32,
     destructibles_hits: i32,
+    destructible_deaths: serde_json::Value,
     num_defended: i32,
     type_comp_descr: i32,
     account_dbid: u64,
