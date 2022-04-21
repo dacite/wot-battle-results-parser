@@ -52,10 +52,6 @@ impl FieldCollection {
         Some((fields_list, checksum_info.version))
     }
 
-    pub fn get_checksum_info(&self, checksum: i32) -> Option<&ChecksumInfo> {
-        self.checksums.get(&checksum)
-    }
-
     pub fn add_fields_list(&mut self, fields: Vec<Field>, arena_type: ArenaBonusType) {
         let fields_list_index = self.fields_list.len();
         for version in 0..MAX_VERSION {
