@@ -2,12 +2,11 @@ mod battle_result_fields;
 
 use std::collections::BTreeMap;
 
-pub use battle_result_fields::{
-    ALL_TYPES, BATTLE_ROYALE, FRONTLINE, MAPS_TRAINING, RANDOM_ARENA, RANKED,
-};
+pub use battle_result_fields::{ALL_TYPES, BATTLE_ROYALE, FRONTLINE, MAPS_TRAINING, RANDOM_ARENA, RANKED, RTS};
 use unpickler::PickleValue;
 
 use crate::ArenaBonusType;
+
 
 #[derive(Clone)]
 /// A data structure that holds information about a field found in battle
@@ -26,7 +25,8 @@ pub struct Field {
     /// A relative number that tells us when this field was introduced
     pub version: usize,
 
-    /// A relative number that tells us the last version before the field was removed
+    /// A relative number that tells us the last version before the field was
+    /// removed
     pub max_version: usize,
 
     /// The context where this field occurs. Ex: damageDealt is found for the
@@ -126,6 +126,9 @@ impl ArenaBonusType {
             ArenaBonusType::BattleRoyaleSolo => Some(BATTLE_ROYALE),
             ArenaBonusType::BattleRoyaleSquad => Some(BATTLE_ROYALE),
             ArenaBonusType::MapsTraining => Some(MAPS_TRAINING),
+            ArenaBonusType::Rts => Some(RTS),
+            ArenaBonusType::Rts1x1 => Some(RTS),
+            ArenaBonusType::RtsBootcamp => Some(RTS),
             _ => None,
         }
     }

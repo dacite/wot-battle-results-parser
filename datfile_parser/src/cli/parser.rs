@@ -113,4 +113,3 @@ pub fn write_battle(battle: Battle, path: &str) {
     }
 }
 
-

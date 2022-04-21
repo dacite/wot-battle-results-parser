@@ -1,9 +1,9 @@
-use std::{path::Path, fs};
+use std::{fs, path::Path};
 
+use anyhow::{Context, Result};
 use log::info;
 use standard_format::Battle;
 use wot_datfile_parser::DatFileParser;
-use anyhow::{Result, Context};
 
 #[cfg(test)]
 mod tests {
@@ -17,7 +17,7 @@ mod tests {
         let parser = DatFileParser::new();
         let mut battles = super::parse_dir(Path::new("input_files/test"), &parser).unwrap();
         battles.append(&mut super::parse_dir(Path::new("input_files/other"), &parser).unwrap());
-
+        battles.append(&mut super::parse_dir(Path::new("input_files/WOT_1_16_1"), &parser).unwrap());
         battles.into_iter().for_each(|battle| match battle {
             Ok(battle) => {
                 assert!(serde_json::to_string_pretty(&battle).is_ok());

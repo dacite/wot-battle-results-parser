@@ -78,6 +78,9 @@ pub struct AccountSelf {
     player_rank:    i32,
     gold_bank_gain: i32,
 
+    #[serde(rename = "replayURL")]
+    replay_url: String,
+
     #[serde(flatten)]
     extra_fields: AccountSelfExtra,
 }

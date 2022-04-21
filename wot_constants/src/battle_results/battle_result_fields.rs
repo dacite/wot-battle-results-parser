@@ -74,6 +74,26 @@ pub const RANKED: &[Field] = &[
 ];
 
 
+pub const RTS: &[Field] = &[
+    Field { name: "teamXP", default: FieldDefault::Int(0), combined_string: "teamXP<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "isCommander", default: FieldDefault::Bool(false), combined_string: "isCommander<type 'bool'>False<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rtsVehicles", default: FieldDefault::List, combined_string: "rtsVehicles<type 'list'>[]<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rts1x7TokensGain", default: FieldDefault::Int(0), combined_string: "rts1x7TokensGain<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rts1x1TokensGain", default: FieldDefault::Int(0), combined_string: "rts1x1TokensGain<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rts1x7TokensWithdraw", default: FieldDefault::Int(0), combined_string: "rts1x7TokensWithdraw<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rts1x1TokensWithdraw", default: FieldDefault::Int(0), combined_string: "rts1x1TokensWithdraw<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "supplyDamageDealt", default: FieldDefault::Int(0), combined_string: "supplyDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "damageReceivedFromSupply", default: FieldDefault::Int(0), combined_string: "damageReceivedFromSupply<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "rtsEventPoints", default: FieldDefault::Int(0), combined_string: "rtsEventPoints<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "rtsLeaderPoints", default: FieldDefault::Int(0), combined_string: "rtsLeaderPoints<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "spottedSupplies", default: FieldDefault::Int(0), combined_string: "spottedSupplies<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "damagedSupplies", default: FieldDefault::Set, combined_string: "damagedSupplies<type 'set'>set([])<type 'NoneType'>joinSets", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "killedSupplies", default: FieldDefault::Int(0), combined_string: "killedSupplies<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "damagedTanks", default: FieldDefault::Set, combined_string: "damagedTanks<type 'set'>set([])<type 'NoneType'>joinSets", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "rtsOrdersCount", default: FieldDefault::Int(0), combined_string: "rtsOrdersCount<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::Server },
+];
+
+
 pub const ALL_TYPES: &[Field] = &[
     Field { name: "health", default: FieldDefault::Int(0), combined_string: "health<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "maxHealth", default: FieldDefault::Int(0), combined_string: "maxHealth<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
@@ -136,6 +156,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "destructiblesNumDestroyed", default: FieldDefault::Int(0), combined_string: "destructiblesNumDestroyed<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "destructiblesDamageDealt", default: FieldDefault::Int(0), combined_string: "destructiblesDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "destructiblesHits", default: FieldDefault::Int(0), combined_string: "destructiblesHits<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "destructibleDeaths", default: FieldDefault::List, combined_string: "destructibleDeaths<type 'list'>[]<type 'NoneType'>extend", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "numDefended", default: FieldDefault::Int(0), combined_string: "numDefended<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "accountDBID", default: FieldDefault::Int(0), combined_string: "accountDBID<type 'int'>0<type 'NoneType'>any", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "typeCompDescr", default: FieldDefault::Int(0), combined_string: "typeCompDescr<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
@@ -456,4 +477,5 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "setupsIndexes", default: FieldDefault::Dict, combined_string: "setupsIndexes<type 'dict'>{}<type 'NoneType'>any", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "startAmmo", default: FieldDefault::List, combined_string: "startAmmo<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "initialVehicleAmmo", default: FieldDefault::List, combined_string: "initialVehicleAmmo<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
+    Field { name: "replayURL", default: FieldDefault::Str, combined_string: "replayURL<type 'str'><type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
 ];

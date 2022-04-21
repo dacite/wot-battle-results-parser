@@ -35,4 +35,9 @@ pub enum ArenaBonusType {
     WeekendBrawl         = 36,
     Mapbox               = 37,
     MapsTraining         = 38,
+
+    /// `Rts` is the Art of Strategy Gameode
+    Rts                  = 39,
+    Rts1x1               = 40,
+    RtsBootcamp          = 41,
 }

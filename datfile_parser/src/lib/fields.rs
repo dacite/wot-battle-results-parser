@@ -7,7 +7,7 @@ use wot_constants::{
 
 pub const CRC32: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
 
-pub const MAX_VERSION: usize = 3;
+pub const MAX_VERSION: usize = 4;
 
 #[derive(Debug)]
 pub struct ChecksumInfo {

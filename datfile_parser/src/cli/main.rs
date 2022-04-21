@@ -1,7 +1,7 @@
 mod parser;
 
 
-use std::{path::Path, fs};
+use std::{fs, path::Path};
 
 use clap::{ArgGroup, Parser};
 use parser::{parse_datfile, parse_from_wot_data_folder, write_battle};
@@ -41,7 +41,11 @@ fn main() {
     let parser = DatFileParser::new();
     let cli = Cli::parse();
 
-    let Cli { file, cache_folder, out_dir } = cli;
+    let Cli {
+        file,
+        cache_folder,
+        out_dir,
+    } = cli;
 
     match (file, cache_folder) {
         // User specifies to parse a single dat file
@@ -51,8 +55,9 @@ fn main() {
 
             fs::create_dir_all(&out_dir).unwrap();
             let output_file_name = format!("{}.json", &battle.arena_unique_id);
-            let output_path = format!("{}/{}", &out_dir, &output_file_name);
 
+            std::fs::create_dir_all(&out_dir).unwrap();
+            let output_path = format!("{}/{}", &out_dir, &output_file_name);
             write_battle(battle, &output_path);
         }
         (_, cache_folder) => {
