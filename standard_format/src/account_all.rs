@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Fields of `AccountAll` that always occur in the battle results
@@ -74,6 +73,14 @@ struct Frontline {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// We have this empty struct so that serde can match a variant of
+/// `AccountSelf` enum when there are no extra fields. This is because some
+/// gamemodes like clan wars do not match any of the other extra fields struct
+/// so its empty
+struct Other {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 /// This enum is only used so that serde can work its magic parsing `AccountAll`
 /// from different gamemodes
@@ -82,4 +89,5 @@ enum AccountAllExtra {
     Ranked(Ranked),
     SteelHunter(SteelHunter),
     Frontline(Frontline),
+    Other(Other),
 }

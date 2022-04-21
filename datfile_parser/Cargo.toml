@@ -16,6 +16,7 @@ path = "src/cli/main.rs"
 
 [dev-dependencies]
 criterion = "0.3.5"
+env_logger = "0.8.4"
 
 [[bench]]
 name = "benchmark"
@@ -27,9 +28,17 @@ wot_constants = { path = "../wot_constants"}
 anyhow = "1.0.52"
 serde_json = "1.0.74"
 serde-pickle = "1.1.0"
+serde = { version = "1.0.135", features = ["derive"] }
 crc = "2.1.0"
 standard_format = { path = '../standard_format'}
 clap = { version = "3.1.0", features= ["derive"]}
 base32 = "0.4.0"
 directories = "4.0.1"
 rand = "0.8.5"
+serde_with = { version = "1.12.0", features = ["hex"]}
+hex = { version = "0.4.3", features = ["serde"] }
+byteorder = "1.4.3"
+nom = { version = "7.1.1", features = ["alloc"] }
+thiserror = "1.0.30"
+log = "0.4.16"
+env_logger = "0.8.4"

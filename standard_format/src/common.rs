@@ -1,11 +1,14 @@
-use macros::FieldAccess;
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
-use crate::FieldAccess;
-use crate::WotValue;
-#[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// General battle result fields for a battle
 pub struct Common {
-    arena_type_id:          i32,
+    #[serde(rename = "arenaTypeID")]
+    arena_type_id: i32,
+
     arena_create_time:      i32,
     winner_team:            i32,
     finish_reason:          i32,
@@ -21,7 +24,8 @@ pub struct Common {
     common_num_defended:    i32,
     common_num_captured:    i32,
 
-    #[custom_parser = "parse_account_comp_descr"]
+    // #[custom_parser = "parse_account_comp_descr"]
+    // #[serde_as(as = "DisplayFromStr")]
     account_comp_descr: serde_json::Value,
 
     team_health: serde_json::Value,

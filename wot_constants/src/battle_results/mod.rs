@@ -26,7 +26,7 @@ pub struct Field {
     /// A relative number that tells us when this field was introduced
     pub version: usize,
 
-    /// A relative number that tells us when the field was removed
+    /// A relative number that tells us the last version before the field was removed
     pub max_version: usize,
 
     /// The context where this field occurs. Ex: damageDealt is found for the

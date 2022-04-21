@@ -1,22 +1,32 @@
-use macros::FieldAccess;
 use serde::{Deserialize, Serialize};
 
-use crate::FieldAccess;
-use crate::WotValue;
-#[derive(FieldAccess, Default, Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of `VehicleAll` that always occur in the battle results
 pub struct VehicleAll {
-    // Common
-    health: i32,
+    health:     i32,
     max_health: i32,
-    credits: i32,
-    xp: i32,
+    credits:    i32,
+    xp:         i32,
+
+    #[serde(rename = "xp/attack")]
     xp_attack: i32,
+
+    #[serde(rename = "xp/assist")]
     xp_assist: i32,
+
+    #[serde(rename = "xp/other")]
     xp_other: i32,
-    xp_penalty: i32,
+
+    xp_penalty:          i32,
     achievement_credits: i32,
+
+    #[serde(rename = "achievementXP")]
     achievement_xp: i32,
+
+    #[serde(rename = "achievementFreeXP")]
     achievement_free_xp: i32,
+
     shots: i32,
     direct_hits: i32,
     direct_enemy_hits: i32,
@@ -50,42 +60,64 @@ pub struct VehicleAll {
     dropped_capture_points: i32,
     mileage: i32,
     life_time: i32,
+
+    #[serde(rename = "killerID")]
     killer_id: i32,
-    achievements: serde_json::Value,
-    in_battle_achievements: serde_json::Value,
-    potential_damage_received: i32,
-    rollouts_count: i32,
-    death_count: i32,
-    flag_actions: serde_json::Value,
-    solo_flag_capture: i32,
-    flag_capture: i32,
-    win_points: i32,
-    resource_absorbed: i32,
-    stop_respawn: bool,
-    num_recovered: i32,
-    vehicle_num_captured: i32,
+
+    achievements:                serde_json::Value,
+    in_battle_achievements:      serde_json::Value,
+    potential_damage_received:   i32,
+    rollouts_count:              i32,
+    death_count:                 i32,
+    flag_actions:                serde_json::Value,
+    solo_flag_capture:           i32,
+    flag_capture:                i32,
+    win_points:                  i32,
+    resource_absorbed:           i32,
+    stop_respawn:                bool,
+    num_recovered:               i32,
+    vehicle_num_captured:        i32,
     destructibles_num_destroyed: i32,
-    destructibles_damage_dealt: i32,
-    destructibles_hits: i32,
-    num_defended: i32,
-    type_comp_descr: i32,
+    destructibles_damage_dealt:  i32,
+    destructibles_hits:          i32,
+    num_defended:                i32,
+    type_comp_descr:             i32,
+
+    #[serde(rename = "accountDBID")]
     account_dbid: u64,
-    index: i32,
+
+    index:        i32,
     death_reason: i32,
-    team: i32,
-    kills: i32,
-    spotted: i32,
-    damaged: i32,
-    damaged_hp: i32,
-    stunned: i32,
+    team:         i32,
+    kills:        i32,
+    spotted:      i32,
+    damaged:      i32,
+    damaged_hp:   i32,
+    stunned:      i32,
 
-    // Steel Hunter?
+    #[serde(flatten)]
+    extra_fields: VehicleAllExtra,
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of type `VehicleAll` that only occurs in Random Battles.
+/// We have this empty struct so that serde can match a variant of
+/// `VehicleAllExtra` enum when there are no extra fields. This is the case for
+/// all gamemodes except steel hunter.
+struct Random {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of type `VehicleAll` that only occurs in Steel Hunter Gamemode
+struct SteelHunter {
     achived_level: i32,
-    // Frontlines
+}
 
-    // Random Battles
-
-    // Maps Training (Recon Mode?)
-
-    // Ranked Battles
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+/// This enum is only used so that serde can work its magic parsing
+/// `VehicleSelf` from different gamemodes
+enum VehicleAllExtra {
+    SteelHunter(SteelHunter),
+    Random(Random),
 }

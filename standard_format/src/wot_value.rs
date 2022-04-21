@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use serde::{Deserialize, Serialize};
 
+#[serde_with::serde_as]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum WotValue {
@@ -10,10 +11,15 @@ pub enum WotValue {
     Int(i64),
     Uint(u64),
     Float(f64),
+
+    #[serde(with = "serde_bytes")]
+    Bytes(Vec<u8>),
+
     Text(String),
     Collection(Vec<WotValue>),
     NamedCollection(HashMap<String, WotValue>),
     NamedIntCollection(HashMap<i64, WotValue>),
+    NamedByteCollection(HashMap<Vec<u8>, WotValue>),
     OutOfBounds,
     NotAllowed,
 }
@@ -21,16 +27,5 @@ pub enum WotValue {
 impl Default for WotValue {
     fn default() -> Self {
         WotValue::None
-    }
-}
-
-impl WotValue {
-    pub fn as_string(&self) -> String {
-        match self {
-            Self::Int(i) => i.to_string(),
-            Self::Text(s) => s.clone(),
-            Self::OutOfBounds => panic!("Incorrect usage: OutOfBounds Value"),
-            _ => panic!("Incorrect usage"),
-        }
     }
 }

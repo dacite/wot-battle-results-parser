@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
+/// Fields of `AccountSelf` that always occur in the battle results
 pub struct AccountSelf {
     avatar_damage_dealt: i32,
 
@@ -76,6 +77,9 @@ pub struct AccountSelf {
     crystal:        i32,
     player_rank:    i32,
     gold_bank_gain: i32,
+
+    #[serde(flatten)]
+    extra_fields: AccountSelfExtra,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -150,17 +154,38 @@ struct Frontline {
 #[serde(rename_all = "camelCase")]
 /// Fields of type `AccountSelf` that only occurs in Maps Training battles
 struct MapsTraining {
-    scenario_progress:    serde_json::Value,
+    scenario_progress: serde_json::Value,
+
+    #[serde(rename = "mt_progressImproved")]
     mt_progress_improved: i32,
-    mt_map_complete:      i32,
+
+    #[serde(rename = "mt_mapComplete")]
+    mt_map_complete: i32,
 }
 
-impl AccountSelf {
-    pub fn parse_pm2_progress(&mut self, _item: serde_pickle::Value) -> serde_json::Value {
-        serde_json::Value::Null
-    }
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// We have this empty struct so that serde can match a variant of
+/// `AccountSelf` enum when there are no extra fields. This is because some
+/// gamemodes like clan wars do not match any of the other extra fields struct
+/// so its empty
+struct Other {}
 
+impl AccountSelf {
     pub fn get_account_dbid(&self) -> i64 {
         self.account_dbid
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+/// This enum is only used so that serde can work its magic parsing
+/// `AccountSelf` from different gamemodes
+enum AccountSelfExtra {
+    Random(Random),
+    Ranked(Ranked),
+    SteelHunter(SteelHunter),
+    Frontline(Frontline),
+    MapsTraining(MapsTraining),
+    Other(Other),
 }
