@@ -1,11 +1,10 @@
-use byteorder::{LittleEndian, ReadBytesExt};
-use crypto::blowfish::Blowfish;
-use crypto::symmetriccipher::BlockDecryptor;
-
-use miniz_oxide::inflate::decompress_to_vec_zlib;
 use std::io::{Cursor, Seek, SeekFrom};
 
 use anyhow::{anyhow, Result};
+use byteorder::{LittleEndian, ReadBytesExt};
+use crypto::blowfish::Blowfish;
+use crypto::symmetriccipher::BlockDecryptor;
+use miniz_oxide::inflate::decompress_to_vec_zlib;
 pub mod packet_stream;
 
 /// A tuple of :
@@ -61,8 +60,7 @@ fn seperate_binary(seekable: &mut Cursor<&[u8]>) -> Result<Vec<u8>> {
     let mut decrypted = decrypt_remaining_slice(seekable)?;
     xor_decrypted(&mut decrypted);
 
-    let decompressed =
-        decompress_to_vec_zlib(&decrypted).map_err(|_| anyhow!("decompression failure"))?;
+    let decompressed = decompress_to_vec_zlib(&decrypted).map_err(|_| anyhow!("decompression failure"))?;
 
     Ok(decompressed)
 }

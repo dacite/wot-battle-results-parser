@@ -1,16 +1,18 @@
-/// A macro that generates getters and setters for different structs (common, account_all etc.)
-/// inside the `standard_format` crate
+/// A macro that generates getters and setters for different structs (common,
+/// account_all etc.) inside the `standard_format` crate
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-
 use syn::{Attribute, Data, DataStruct, Fields, Lit, Meta, MetaNameValue};
 
 pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
     let struct_name = &ast.ident;
     let fields = match &ast.data {
-        Data::Struct(DataStruct { fields: Fields::Named(fields), .. }) => &fields.named,
+        Data::Struct(DataStruct {
+            fields: Fields::Named(fields),
+            ..
+        }) => &fields.named,
         _ => panic!("expected a struct with named fields"),
     };
 
@@ -97,8 +99,7 @@ fn get_value(attr: &Attribute) -> syn::Ident {
 
     match attr.parse_meta().unwrap() {
         Meta::NameValue(MetaNameValue {
-            lit: Lit::Str(lit_str),
-            ..
+            lit: Lit::Str(lit_str), ..
         }) => syn::Ident::new(&lit_str.value(), lit_str.span()),
         _ => {
             panic!("expected #[custom_parser = \"functionName\"]");

@@ -112,4 +112,3 @@ pub fn write_battle(battle: Battle, path: &str) {
         Err(e) => println!("Converting battle to JSON failed: {}", e.to_string()),
     }
 }
-
