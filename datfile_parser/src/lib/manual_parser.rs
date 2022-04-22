@@ -28,7 +28,7 @@ pub fn pickle_val_to_json(pickle_value: PickleValue, field: &Field) -> Result<JS
 
 // There are some pickle values that are not supported by JSON (PickleValue do
 // not implement serde::Serialize). However, most of these are not needed by us
-// or can we converted easily. Therefore, we convert pickle value to this
+// or can be converted easily. Therefore, we convert pickle value to this
 // intermediate type (WotValue) before converting to JSON
 fn pickle_to_wotvalue_to_json(pickle: PickleValue) -> Result<JSONValue> {
     let wot_value: WotValue = serde_pickle::from_value(pickle.clone()).map_err(|e| {

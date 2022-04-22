@@ -1,15 +1,18 @@
 pub mod error;
 mod fields;
 mod manual_parser;
+mod utils;
+
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Context, Result};
 use fields::{gen_collection, FieldCollection};
-use manual_parser::pickle_val_to_json;
+
 use serde_json::Value as JSONValue;
 use standard_format::{AccountAll, AccountSelf, Battle, Common, PlayerInfo, VehicleAll, VehicleSelf};
 use unpickler::{HashablePickleValue, PickleValue};
-use wot_constants::battle_results::{Field, FieldType};
+use utils::try_variant;
+use wot_constants::battle_results::{Field};
 
 use crate::fields::matches_version;
 
@@ -57,7 +60,7 @@ impl DatFileParser {
         // Pickle dump @0 is AccountSelf of the "recording" player. We do not have
         // AccountSelf of other players unless we get their dat file
         let account_self: AccountSelf = serde_json::from_value(
-            self.parse_to_json_object(unpickler::access_list(&account_self_pickle)?, FieldType::AccountSelf)
+            self.value_list_to_json(unpickler::access_list(&account_self_pickle)?)
                 .unwrap(),
         )
         .unwrap();
@@ -71,7 +74,7 @@ impl DatFileParser {
         let item = dict.into_iter().next().context("Vehicle Self parse failed")?;
         let (_tank_id, vehicle_self_list) = self.extract_from_item(item)?;
         let vehicle_self: VehicleSelf =
-            serde_json::from_value(self.parse_to_json_object(vehicle_self_list, FieldType::VehicleSelf)?)?;
+            serde_json::from_value(self.value_list_to_json(vehicle_self_list)?)?;
 
         // Pickle dump@2 contains the following:
         // common attributes of the battle
@@ -100,37 +103,31 @@ impl DatFileParser {
     }
 
     fn parse_mixed_list(&self, wrapped_list3: &PickleValue) -> Result<MixedResult> {
-        let tuple = unpickler::access_tuple(wrapped_list3)?;
+        let mut tuple = unpickler::access_tuple(wrapped_list3)?.into_iter();
 
         let common: Common =
-            serde_json::from_value(self.parse_to_json_object(unpickler::access_list(&tuple[0])?, FieldType::Common)?)
+            serde_json::from_value(self.value_list_to_json(try_variant!(tuple.next().unwrap(), PickleValue::List)?)?)
                 .with_context(|| anyhow!("Common parse failed."))?;
-        let player_info_list = self.parse_player_info_list(&tuple[1])?;
-        let vehicle_all_list = self.parse_vehicle_all_list(&tuple[2])?;
-        let account_info_list = self.parse_all_account_info(&tuple[3])?;
+        let player_info_list = serde_json::from_value(self.pickle_to_json(tuple.next().unwrap())?)?;
+        let vehicle_all_list = serde_json::from_value(self.pickle_to_json(tuple.next().unwrap())?)?;
+        let account_info_list = serde_json::from_value(self.pickle_to_json(tuple.next().unwrap())?)?;
 
         Ok((common, player_info_list, vehicle_all_list, account_info_list))
     }
 
-    /// The data structure that contains player info is a dict
-    /// with wg_account_dbid as the key and an array(playerinfo) as the value
-    fn parse_player_info_list(&self, input: &PickleValue) -> Result<HashMap<String, PlayerInfo>> {
-        let dict = unpickler::access_dict(input)?;
 
-        let mut player_info_list = HashMap::with_capacity(dict.len());
-
-        for item in dict.into_iter() {
-            let (account_dbid, value_list) = self.extract_from_item(item)?;
-            let player_info: PlayerInfo =
-                serde_json::from_value(self.parse_to_json_object(value_list, FieldType::PlayerInfo)?)?;
-
-            player_info_list.insert(account_dbid, player_info);
+    fn pickle_to_json(&self, input: PickleValue) -> Result<JSONValue> {
+        let map = pickle_dict_to_hashmap(input)?;
+        
+        let mut json_map = serde_json::Map::new();
+        for (key, value) in map.into_iter() {
+            json_map.insert(key, self.value_list_to_json(value)?);
         }
 
-        Ok(player_info_list)
+        Ok(JSONValue::Object(json_map))
     }
 
-    fn parse_to_json_object(&self, value_list: Vec<PickleValue>, field_type: FieldType) -> Result<JSONValue> {
+    fn value_list_to_json(&self, value_list: Vec<PickleValue>) -> Result<JSONValue> {
         // Get checksum so that we can get the correct list of identifiers for the value
         // list
         let checksum = get_checksum(&value_list)?;
@@ -138,8 +135,7 @@ impl DatFileParser {
         // If we cannot find the correct the identifier list, we cannot parse the
         // datfile so we return with error
         let (iden_list, version) = self.collections.get_fields_list(checksum).ok_or(anyhow!(
-            "Value list for {:?} has unrecognized checksum({}). Format won't match",
-            field_type,
+            "Value list has unrecognized checksum({}). Format won't match",
             checksum
         ))?;
 
@@ -147,35 +143,10 @@ impl DatFileParser {
         // is the checksum) and fill the map
         let mut map = HashMap::new();
 
-        let mut value_list_iter = value_list.iter().skip(1);
+        let mut value_list_iter = value_list.into_iter().skip(1);
 
         for iden in iden_list.iter() {
-            if matches_version(version, iden) {
-                if let Some(value) = value_list_iter.next() {
-                    let value = to_default_if_none(iden, value.clone());
-                    let json_value = serde_pickle::from_value::<JSONValue>(value.clone()).unwrap_or_else(|_| {
-                        // If parse with serde fails, we try again with manual_parser
-                        match pickle_val_to_json(value.clone(), iden) {
-                            Ok(value) => value,
-
-                            // If we fail again, we give the field a default value and log error
-                            Err(err) => {
-                                // Log a warning
-                                println!(
-                                    "PickleValue to JSONValue failed for {}. {}",
-                                    &iden.name,
-                                    err.to_string()
-                                );
-                                // err.to_string(), value);
-                                iden.default.to_json_value()
-                            }
-                        }
-                    });
-                    map.insert(iden.name, json_value);
-                } else {
-                    panic!("UNEXPECTED");
-                }
-            } else {
+            if !matches_version(version, iden) {
                 log::info!(
                     "dat file(version: {}) do not have {}(version: {}, max_version: {}",
                     version,
@@ -184,49 +155,19 @@ impl DatFileParser {
                     iden.max_version
                 );
                 map.insert(iden.name, iden.default.to_json_value());
+                continue;
+            }
+            if let Some(value) = value_list_iter.next() {
+                map.insert(iden.name, parse_wotvalue_pickle_to_json(iden, value));
+            } else {
+                panic!("UNEXPECTED");
             }
         }
-        // TODO: We have a fallback plan for when the representation dont match the
-        // extra fields, but what about the common fields (the ones above^)?
-        // Possilbe Solution: We can add a `#[serde(default)]` for that field.
 
         Ok(serde_json::to_value(map)?)
     }
 
-    /// The data structure that contains account info is a dict
-    /// with wg_account_dbid as the key and an array(playerinfo) as the value
-    fn parse_all_account_info(&self, input: &PickleValue) -> Result<HashMap<String, AccountAll>> {
-        let dict = unpickler::access_dict(input)?;
-
-        let mut account_info_list = HashMap::with_capacity(dict.len());
-
-        for item in dict.into_iter() {
-            let (account_dbid, value_list) = self.extract_from_item(item)?;
-            let account_all_json = self.parse_to_json_object(value_list.clone(), FieldType::AccountAll)?;
-            let account_all = serde_json::from_value(account_all_json)?;
-
-            account_info_list.insert(account_dbid, account_all);
-        }
-        Ok(account_info_list)
-    }
-
-    /// The data structure that contains player info is a dict
-    /// with wg_account_dbid as the key and an array(playerinfo) as the value
-    fn parse_vehicle_all_list(&self, input: &PickleValue) -> Result<HashMap<String, VehicleAll>> {
-        let dict = unpickler::access_dict(input)?;
-
-        let mut vehicle_all_list = HashMap::with_capacity(dict.len());
-
-        for item in dict.into_iter() {
-            let (avatar_id, value_list) = self.extract_from_item(item)?;
-            let vehicle_all: VehicleAll =
-                serde_json::from_value(self.parse_to_json_object(value_list, FieldType::VehicleAll)?)?;
-
-            vehicle_all_list.insert(avatar_id, vehicle_all);
-        }
-        Ok(vehicle_all_list)
-    }
-
+    
     /// Return the following when given a hashmap item:
     /// - `key` This is either the account_dbid or the avatar_id
     /// - `value_list` This finally should be a Vec but might have to parsed
@@ -268,3 +209,65 @@ fn to_default_if_none(identifier: &Field, value: PickleValue) -> PickleValue {
         value
     }
 }
+
+fn parse_to_pickle_val_list(input: PickleValue) -> Result<Vec<PickleValue>> {
+    // Item can either be a list or a dict
+    // If dict we need to get the vec that is value of the first item in the dict
+    match input {
+        PickleValue::List(val_list) => Ok(val_list),
+        PickleValue::Dict(map) => {
+            let (_key, nested_value) = map
+                .into_iter()
+                .next()
+                .context("Expected map to have atleast one (key, value)")?;
+            let list = try_variant!(nested_value, PickleValue::List)?;
+
+            Ok(list)
+        }
+        _ => return Err(anyhow!("Value in (key,value) pair should be a list or dict")),
+    }
+}
+
+/// Convert a `PickleValue` that contains a field value(for ex. field value of
+/// `damageDealt` is of type `i32`) to JSON. Note that even if the parsing fails
+/// we get a JSON because it will be the default value for the field We make the
+/// distinction between `Ok` and `Err` based on whether the field value was
+/// parsed succesfully to JSON
+fn parse_wotvalue_pickle_to_json(identifier: &Field, input: PickleValue) -> JSONValue {
+    let value = to_default_if_none(identifier, input);
+
+    match serde_pickle::from_value(value.clone()) {
+        Ok(json_value) => json_value,
+
+        // Simple parsing did not work so we delegate to the more
+        // powerful manual parser
+        Err(_) => {
+            manual_parser::pickle_val_to_json(value, &identifier).unwrap_or_else(|e| {
+                // If manual parser was not able to get the job done, we log the problem and
+                // return a default value
+                log::warn!("Could not parse {}. {}", identifier.name, e.to_string());
+
+                identifier.default.to_json_value()
+            })
+        }
+    }
+}
+
+/// Try to convert a `PickleValue::Dict` to `HashMap<String, PickleValue>`.
+    /// Solves parsing the structure of the following field types (and only
+    /// them) `AccountAll`, `PlayerInfo`, `VehicleAll`
+    fn pickle_dict_to_hashmap(input: PickleValue) -> Result<HashMap<String, Vec<PickleValue>>> {
+        if let PickleValue::Dict(dict) = input {
+            let mut map = HashMap::new();
+            for (key, value) in dict.into_iter() {
+                let key = key.to_string();
+                let value = parse_to_pickle_val_list(value)?;
+
+                map.insert(key, value);
+            }
+
+            Ok(map)
+        } else {
+            Err(anyhow!("Expected a pickle dictionary"))
+        }
+    }

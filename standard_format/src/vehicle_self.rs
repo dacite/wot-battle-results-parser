@@ -376,7 +376,7 @@ pub struct VehicleSelf {
     marks_on_gun:        i32,
     moving_avg_damage:   i32,
     damage_rating:       i32,
-    battle_num:          serde_json::Value,
+    battle_num:          i32,
 
     // #[custom_parser = "parse_quests_progress"]
     quests_progress: serde_json::Value,
