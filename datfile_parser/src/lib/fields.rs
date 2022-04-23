@@ -24,7 +24,7 @@ pub struct FieldCollection {
 
 pub fn gen_collection() -> FieldCollection {
     use ArenaBonusType::*;
-    let arena_types = [EpicRandom, Ranked, EpicBattle, BattleRoyaleSolo, MapsTraining, Unknown];
+    let arena_types = [EpicRandom, Ranked, EpicBattle, BattleRoyaleSolo, MapsTraining, Rts1x1, Unknown];
     let mut fields_collection = FieldCollection::new();
 
     arena_types.into_iter().for_each(|arena_type| {
