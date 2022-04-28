@@ -11,3 +11,5 @@ Cargo.lock
 
 /.idea
 /datfile_parser/examples/other
+
+test.*
