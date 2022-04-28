@@ -84,7 +84,7 @@ pub struct VehicleSelf {
     num_defended:                i32,
 
     #[serde(rename = "accountDBID")]
-    account_dbid: u64,
+    account_dbid: i64,
 
     type_comp_descr: i32,
     index:           i32,
@@ -399,6 +399,10 @@ pub struct VehicleSelf {
 impl VehicleSelf {
     pub fn parse_bytes(&mut self, _item: serde_pickle::Value) -> serde_json::Value {
         serde_json::Value::Null
+    }
+
+    pub fn get_account_dbid(&self) -> i64 {
+        self.account_dbid
     }
 
     pub fn parse_c11n_progress(&mut self, _item: serde_pickle::Value) -> serde_json::Value {

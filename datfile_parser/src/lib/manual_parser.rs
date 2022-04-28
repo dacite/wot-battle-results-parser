@@ -13,14 +13,16 @@ use unpickler::HashablePickleValue;
 use unpickler::PickleValue;
 use wot_constants::battle_results::Field;
 
-pub fn pickle_val_to_json(pickle_value: PickleValue, field: &Field) -> Result<JSONValue> {
+use crate::utils::try_variant;
+
+pub fn pickle_val_to_json_manual(pickle_value: PickleValue, field: &Field) -> Result<JSONValue> {
     // Check the field name to see if there is a manual parser
     // If not, we use the 'catch all' manual parser for the field
     match field.name {
         "accountCompDescr" => parse_account_comp_descr(pickle_value),
 
         "xpReplay" | "creditsReplay" | "freeXPReplay" | "eventCoinReplay" | "goldReplay" | "tmenXPReplay"
-        | "bpcoinReplay" | "crystalReplay" => parse_value_replay(serde_pickle::from_value(pickle_value)?),
+        | "bpcoinReplay" | "crystalReplay" => parse_value_replay(pickle_value),
 
         _ => pickle_to_wotvalue_to_json(pickle_value),
     }
@@ -48,19 +50,6 @@ fn pickle_to_wotvalue_to_json(pickle: PickleValue) -> Result<JSONValue> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// A macro that tries to destructure `PickleValue` to the given variant,
-/// wrapped in a `Result`. Used to avoid using if let everywhere and have the
-/// entire code shift right. Once if let chains stablize, this is probably not
-/// needed.
-macro_rules! try_variant {
-    ($target: expr, $pattern: path) => {{
-        if let $pattern(value) = $target {
-            Ok(value)
-        } else {
-            Err(anyhow::anyhow!("Wrong variant. Expected: {}", stringify!($pattern)))
-        }
-    }};
-}
 
 #[serde_with::serde_as]
 #[derive(Debug, Serialize, Deserialize)]
@@ -108,8 +97,8 @@ fn parse_account_comp_descr(pickle_value: PickleValue) -> Result<JSONValue> {
     })
 }
 
-fn parse_value_replay(wot_value: WotValue) -> Result<JSONValue> {
-    let packed_value = try_variant!(wot_value, WotValue::Bytes)?;
+fn parse_value_replay(wot_value: PickleValue) -> Result<JSONValue> {
+    let packed_value = try_variant!(wot_value, PickleValue::Bytes)?;
     let (packed_value, size) = le_u16::<_, crate::error::NomErrorWrapper>(packed_value.as_bytes())?;
 
     let (rest, value_list) =

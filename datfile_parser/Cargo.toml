@@ -14,6 +14,10 @@ path = "src/lib/lib.rs"
 name = "wot_datfile_parser_cli"
 path = "src/cli/main.rs"
 
+[[bin]]
+name = "wot_datfile_parser_dev"
+path = "src/dev.rs"
+
 [dev-dependencies]
 criterion = "0.3.5"
 env_logger = "0.8.4"

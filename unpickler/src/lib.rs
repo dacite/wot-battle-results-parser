@@ -41,9 +41,9 @@ pub fn access_i64(x: &PickleValue) -> Result<i64> {
     };
 }
 
-pub fn access_bytes(x: &PickleValue) -> Result<Vec<u8>> {
+pub fn access_bytes(x: &PickleValue) -> Result<&Vec<u8>> {
     return if let PickleValue::Bytes(value) = x {
-        Ok(value.clone())
+        Ok(value)
     } else {
         Err(anyhow!("Underlying PickleValue is not a bytes buffer"))
     };
