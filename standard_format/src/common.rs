@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+use crate::ArenaFieldsGetter;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -32,5 +36,21 @@ pub struct Common {
 impl Common {
     pub fn parse_account_comp_descr(&mut self, _item: serde_pickle::Value) -> serde_json::Value {
         serde_json::Value::Null
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CommonExtra;
+
+impl ArenaFieldsGetter for Common {
+    type EnumVariant = CommonExtra;
+
+    fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
+        HashMap::new()
+    }
+
+    // Always ok because there is no arena fields to validate here
+    fn validate_arena_fields(&self) -> anyhow::Result<()> {
+        Ok(())
     }
 }

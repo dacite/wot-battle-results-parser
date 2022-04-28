@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+use crate::ArenaFieldsGetter;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -392,8 +396,26 @@ pub struct VehicleSelf {
     #[serde(default)]
     setups_indexes: serde_json::Value,
 
+    /// Holds fields that only occur in certain gamemodes.
     #[serde(flatten)]
-    extra_fields: VehicleSelfExtra,
+    pub arena_fields: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+/// This enum is only used so that serde can work its magic parsing
+/// `VehicleSelf` from different gamemodes
+pub enum VehicleSelfExtra {
+    SteelHunter(SteelHunter),
+    ArtOfStrategy(ArtOfStrategy),
+}
+
+impl ArenaFieldsGetter for VehicleSelf {
+    type EnumVariant = VehicleSelfExtra;
+
+    fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
+        self.arena_fields.clone()
+    }
 }
 
 impl VehicleSelf {
@@ -419,27 +441,26 @@ impl VehicleSelf {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-/// Fields of type `VehicleSelf` that only occurs in Random Battles.
-/// We have this empty struct so that serde can match a variant of
-/// `VehicleSelf` enum when there are no extra fields. This is the case for
-/// all gamemodes except steel hunter.
-struct Random {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Fields of type `VehicleSelf` that only occurs in Steel Hunter Gamemode
-struct SteelHunter {
+pub struct SteelHunter {
     br_pos_in_battle: i32,
     achived_level:    i32,
 }
 
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(untagged)]
-/// This enum is only used so that serde can work its magic parsing
-/// `VehicleSelf` from different gamemodes
-enum VehicleSelfExtra {
-    SteelHunter(SteelHunter),
-    Random(Random),
+#[serde(rename_all = "camelCase")]
+/// Fields of type `VehicleSelf` that only occurs in Art of Strategy Gamemode
+pub struct ArtOfStrategy {
+    supply_damage_dealt:         i32,
+    damage_received_from_supply: i32,
+    rts_event_points:            i32,
+    rts_leader_points:           i32,
+    spotted_supplies:            i32,
+    damaged_supplies:            serde_json::Value,
+    killed_supplies:             i32,
+    damaged_tanks:               serde_json::Value,
 }

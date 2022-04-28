@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+use crate::ArenaFieldsGetter;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -17,4 +21,20 @@ pub struct PlayerInfo {
 
     team:     i32,
     igr_type: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PlayerInfoExtra;
+
+impl ArenaFieldsGetter for PlayerInfo {
+    type EnumVariant = PlayerInfoExtra;
+
+    fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
+        HashMap::new()
+    }
+
+    // Always ok because there is no arena fields to validate here
+    fn validate_arena_fields(&self) -> anyhow::Result<()> {
+        Ok(())
+    }
 }

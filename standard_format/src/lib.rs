@@ -8,6 +8,7 @@ mod wot_value;
 
 use std::collections::HashMap;
 
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 pub use crate::account_all::AccountAll;
@@ -27,4 +28,22 @@ pub struct Battle {
     pub vehicle_all:     HashMap<String, VehicleAll>,
     pub vehicle_self:    HashMap<String, VehicleSelf>,
     pub account_self:    HashMap<String, AccountSelf>,
+}
+
+pub trait ArenaFieldsGetter {
+    type EnumVariant: DeserializeOwned;
+    fn get_arena_fields(&self) -> HashMap<String, serde_json::Value>;
+
+    /// Check if there is any fields that are not arena/gamemode fields
+    fn validate_arena_fields(&self) -> anyhow::Result<()> {
+        let arena_fields = self.get_arena_fields();
+        if arena_fields.len() == 0 {
+            Ok(())
+        } else {
+            let arena_fields = serde_json::to_value(arena_fields)?;
+            let _arena_fields: Self::EnumVariant = serde_json::from_value(arena_fields)?;
+
+            Ok(())
+        }
+    }
 }

@@ -8,7 +8,7 @@ use serde::de::DeserializeOwned;
 use serde_json::from_value as from_json_value;
 use serde_json::Value as JSONValue;
 use serde_pickle::Value as PickleValue;
-use standard_format::{AccountSelf, AccountSelfExtra, Battle};
+use standard_format::{AccountSelf, ArenaFieldsGetter, Battle};
 use unpickler::decompress_and_load_pickle;
 use wot_constants::battle_results::Field;
 
@@ -50,7 +50,8 @@ struct DatfileFormat {
     player_info: HashMap<String, Vec<PickleValue>>,
 }
 
-/// A container to hold some nested output objects(ex: AccountAll, VehicleAll etc.)
+/// A container to hold some nested output objects(ex: AccountAll, VehicleAll
+/// etc.)
 struct ObjectList {
     common:      Vec<PickleValue>,
     account_all: HashMap<String, Vec<PickleValue>>,
@@ -69,10 +70,8 @@ impl<'a> Parser<'a> {
         // Parse the pickle objects to make a battle
         match self.parse_datfile_format(datfile_format) {
             Ok(battle) => {
-                // println!("Default: {:?}", &self.not_present);
-                // println!("Manual: {:?}", &self.manually_parsed);
-                // println!("Failed: {:?}", &self.failed);
                 self.result = Some(battle);
+
                 Ok(())
             }
             Err(e) => Err(e),
@@ -97,19 +96,10 @@ impl<'a> Parser<'a> {
     fn parse_datfile_format(&mut self, datfile_format: DatfileFormat) -> Result<Battle> {
         let arena_unique_id = datfile_format.arena_unique_id;
 
-        let common = self
-            .pickle_list_to_output_object(datfile_format.common)
-            .context("parsing common failed")?;
+        let common = self.pickle_list_to_output_object(datfile_format.common)?;
 
-        let account_self: AccountSelf = self
-            .pickle_list_to_output_object(datfile_format.account_self.clone())
-            .unwrap();
-        // println!("\n\n{:?}", &account_self.skipped_fields);
-        let account_self_extra: AccountSelfExtra =
-            serde_json::from_value(serde_json::to_value(account_self.skipped_fields.clone()).unwrap()).unwrap();
-        // println!("\n {:?}", account_self_extra);
+        let account_self: AccountSelf = self.pickle_list_to_output_object(datfile_format.account_self.clone())?;
         let account_self = HashMap::from([(account_self.get_account_dbid().to_string(), account_self)]);
-
 
         let vehicle_self = self.parse_list(datfile_format.vehicle_self)?;
         let player_info = self.parse_list(datfile_format.player_info)?;
@@ -129,7 +119,7 @@ impl<'a> Parser<'a> {
 
     fn parse_list<T>(&mut self, input: HashMap<String, Vec<PickleValue>>) -> Result<HashMap<String, T>>
     where
-        T: DeserializeOwned,
+        T: DeserializeOwned + ArenaFieldsGetter,
     {
         let mut output = HashMap::new();
         for (key, value) in input.into_iter() {
@@ -141,11 +131,22 @@ impl<'a> Parser<'a> {
 
     fn pickle_list_to_output_object<T>(&mut self, input: Vec<PickleValue>) -> Result<T>
     where
-        T: DeserializeOwned,
+        T: DeserializeOwned + ArenaFieldsGetter,
     {
         let json = self.pickle_list_to_json_object(input)?;
-        let output = from_json_value(json)?;
+        let output: T = from_json_value(json)?;
 
+        // At this point, there may be some fields that were not present in the output object (`T`). This is parsed as
+        // arena fields because these fields are only common to a specific gamemode. Nevertheless, we try to
+        // serialize these fields to one of the `extra` enums to make sure it is indeed the gamemode specific
+        // fields If there are fields that are clearly not part of a specific gamemode then that's an error and
+        // should be parsed as one of the member of the `T`
+        output.validate_arena_fields().map_err(|err| {
+            anyhow!(
+                "unknown fields found. standard format might be out of date. {}",
+                err.to_string()
+            )
+        })?;
         Ok(output)
     }
 

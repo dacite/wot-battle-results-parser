@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+use crate::ArenaFieldsGetter;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -80,6 +84,7 @@ pub struct VehicleAll {
     destructibles_num_destroyed: i32,
     destructibles_damage_dealt:  i32,
     destructibles_hits:          i32,
+    destructible_deaths:         serde_json::Value,
     num_defended:                i32,
     type_comp_descr:             i32,
 
@@ -95,29 +100,45 @@ pub struct VehicleAll {
     damaged_hp:   i32,
     stunned:      i32,
 
+    /// Holds fields that only occur in certain gamemodes.
     #[serde(flatten)]
-    extra_fields: VehicleAllExtra,
-}
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-/// Fields of type `VehicleAll` that only occurs in Random Battles.
-/// We have this empty struct so that serde can match a variant of
-/// `VehicleAllExtra` enum when there are no extra fields. This is the case for
-/// all gamemodes except steel hunter.
-struct Random {}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-/// Fields of type `VehicleAll` that only occurs in Steel Hunter Gamemode
-struct SteelHunter {
-    achived_level: i32,
+    pub arena_fields: HashMap<String, serde_json::Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 /// This enum is only used so that serde can work its magic parsing
-/// `VehicleSelf` from different gamemodes
-enum VehicleAllExtra {
+/// `VehicleAll` from different gamemodes
+pub enum VehicleAllExtra {
     SteelHunter(SteelHunter),
-    Random(Random),
+    ArtOfStrategy(ArtOfStrategy),
+}
+
+impl ArenaFieldsGetter for VehicleAll {
+    type EnumVariant = VehicleAllExtra;
+
+    fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
+        self.arena_fields.clone()
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of type `VehicleAll` that only occurs in Steel Hunter Gamemode
+pub struct SteelHunter {
+    achived_level: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+/// Fields of type `VehicleAll` that only occurs in Art of Strategy Gamemode
+pub struct ArtOfStrategy {
+    supply_damage_dealt:         i32,
+    damage_received_from_supply: i32,
+    rts_event_points:            i32,
+    rts_leader_points:           i32,
+    spotted_supplies:            i32,
+    damaged_supplies:            serde_json::Value,
+    killed_supplies:             i32,
+    damaged_tanks:               serde_json::Value,
 }

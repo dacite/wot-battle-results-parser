@@ -1,4 +1,8 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
+use crate::ArenaFieldsGetter;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -12,14 +16,36 @@ pub struct AccountAll {
     badges:              serde_json::Value,
     player_rank:         i32,
 
+    /// Holds fields that only occur in certain gamemodes.
+    /// Structs found below like `Random`, `Ranked` are some examples
     #[serde(flatten)]
-    extra_fields: AccountAllExtra,
+    pub arena_fields: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+/// This enum is only used so that serde can work its magic parsing `AccountAll`
+/// from different gamemodes
+pub enum AccountAllExtra {
+    Random(Random),
+    Ranked(Ranked),
+    SteelHunter(SteelHunter),
+    Frontline(Frontline),
+    // Other(Other),
+}
+
+impl ArenaFieldsGetter for AccountAll {
+    type EnumVariant = AccountAllExtra;
+
+    fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
+        self.arena_fields.clone()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Fields of type `AccountAll` that only occurs in Random Battles
-struct Random {
+pub struct Random {
     bp_chapter:                 i32,
     base_points_diff:           i32,
     bp_non_chapter_points_diff: i32,
@@ -30,7 +56,7 @@ struct Random {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Fields of type `AccountAll` that only occurs in Ranked Battles
-struct Ranked {
+pub struct Ranked {
     prev_acc_rank:              serde_json::Value,
     bp_chapter:                 i32,
     base_points_diff:           i32,
@@ -43,7 +69,7 @@ struct Ranked {
 #[serde(rename_all = "camelCase")]
 /// Fields of type `AccountAll` that only occurs in Steel Hunter Gamemode
 /// battles
-struct SteelHunter {
+pub struct SteelHunter {
     bp_chapter:                 i32,
     base_points_diff:           i32,
     bp_non_chapter_points_diff: i32,
@@ -54,7 +80,7 @@ struct SteelHunter {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Fields of type `AccountAll` that only occurs in Frontline battles
-struct Frontline {
+pub struct Frontline {
     credits_after_shell_costs: i32,
     uncharged_shell_costs: i32,
     prev_meta_level: serde_json::Value,
@@ -70,24 +96,4 @@ struct Frontline {
     bp_non_chapter_points_diff: i32,
     sum_points: i32,
     has_battle_pass: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
-/// We have this empty struct so that serde can match a variant of
-/// `AccountSelf` enum when there are no extra fields. This is because some
-/// gamemodes like clan wars do not match any of the other extra fields struct
-/// so its empty
-struct Other {}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(untagged)]
-/// This enum is only used so that serde can work its magic parsing `AccountAll`
-/// from different gamemodes
-enum AccountAllExtra {
-    Random(Random),
-    Ranked(Ranked),
-    SteelHunter(SteelHunter),
-    Frontline(Frontline),
-    Other(Other),
 }
