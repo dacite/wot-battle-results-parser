@@ -12,16 +12,16 @@ pub enum WotValue {
     Uint(u64),
     Float(f64),
 
+    // Note: The `Text` MUST BE above `Bytes` or player names will be parsed as HEX strings
+    Text(String),
+
     #[serde(with = "serde_bytes")]
     Bytes(Vec<u8>),
 
-    Text(String),
     Collection(Vec<WotValue>),
     NamedCollection(HashMap<String, WotValue>),
     NamedIntCollection(HashMap<i64, WotValue>),
     NamedByteCollection(HashMap<Vec<u8>, WotValue>),
-    OutOfBounds,
-    NotAllowed,
 }
 
 impl Default for WotValue {
