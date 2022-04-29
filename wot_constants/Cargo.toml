@@ -6,7 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde-pickle = "1.1.0"
-crc = "2.1.0"
-standard_format = { path = '../standard_format'}
 unpickler = { path = "../unpickler" }
+serde_json = "1.0.74"

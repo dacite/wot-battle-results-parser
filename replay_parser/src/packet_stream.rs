@@ -1,20 +1,18 @@
-use std::io::{Cursor, SeekFrom, Seek, Read};
+use std::io::{Cursor, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
 pub const METADATA_SIZE: u64 = 12;
 
 pub struct Packet<'a> {
-    inner: &'a [u8]
+    inner: &'a [u8],
 }
 
 impl<'a> Packet<'a> {
     pub fn new(data: &'a [u8]) -> Self {
-        Self {
-            inner: &data,
-        }
+        Self { inner: &data }
     }
-    
+
     pub fn get_type(&self) -> u32 {
         let mut chunk = self.inner[4..8].as_ref().clone();
         chunk.read_u32::<LittleEndian>().unwrap()
@@ -46,13 +44,15 @@ impl<'a> Packet<'a> {
 
     pub fn get_subtype(&self) -> Option<u32> {
         if self.get_payload_ref().len() >= 8 {
-            let mut chunk = self.inner[METADATA_SIZE as usize + 4..METADATA_SIZE as usize + 8].as_ref().clone();
+            let mut chunk = self.inner[METADATA_SIZE as usize + 4..METADATA_SIZE as usize + 8]
+                .as_ref()
+                .clone();
             Some(chunk.read_u32::<LittleEndian>().unwrap())
         } else {
             None
         }
     }
-} 
+}
 
 
 pub struct PacketStream<'a> {
@@ -62,7 +62,7 @@ pub struct PacketStream<'a> {
 impl<'a> PacketStream<'a> {
     pub fn new(inner: &'a [u8]) -> Self {
         Self {
-            inner: Cursor::new(inner)
+            inner: Cursor::new(inner),
         }
     }
 
@@ -75,7 +75,7 @@ impl<'a> Iterator for PacketStream<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let current_position = self.inner.position() as usize;
-        if current_position == self.inner.get_ref().len(){
+        if current_position == self.inner.get_ref().len() {
             return None;
         }
 
@@ -84,7 +84,7 @@ impl<'a> Iterator for PacketStream<'a> {
                 // Advance cursor to the end of current packet
                 let packet_end_pos = SeekFrom::Current((payload_size + 8) as i64);
                 self.inner.seek(packet_end_pos).unwrap();
-                
+
                 //Return the slice that represents the packet that was just read
                 let packet_size = METADATA_SIZE as usize + payload_size as usize;
                 let packet_range = current_position..(current_position + packet_size);
@@ -110,7 +110,7 @@ impl<'a> std::fmt::Debug for Packet<'a> {
         let mut temp_store = Vec::new();
         for (i, byte) in displayed_payload.into_iter().enumerate() {
             temp_store.push(byte);
-            if (i + 1) % 4 == 0{
+            if (i + 1) % 4 == 0 {
                 temp_store.iter().rev().for_each(|x| {
                     payload_string.push_str(&format!("{:02X?}", x));
                 });
@@ -128,15 +128,15 @@ impl<'a> std::fmt::Debug for Packet<'a> {
         let size = format!("{}", &self.get_size());
         if f.sign_plus() {
             f.debug_struct(&packet_name)
-            .field("time", &time)
-            .field("size", &size)
-            .field("data", &payload_string)
-            .finish()
+                .field("time", &time)
+                .field("size", &size)
+                .field("data", &payload_string)
+                .finish()
         } else {
             f.debug_struct(&packet_name)
-            .field("time", &time)
-            .field("size", &size)
-            .finish()
+                .field("time", &time)
+                .field("size", &size)
+                .finish()
         }
     }
 }

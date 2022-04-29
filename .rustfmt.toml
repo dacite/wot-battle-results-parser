@@ -1,0 +1,12 @@
+wrap_comments = true
+group_imports = "StdExternalCrate"
+enum_discrim_align_threshold = 30
+struct_field_align_threshold = 20
+blank_lines_upper_bound = 2
+fn_args_layout = "Compressed"
+max_width = 120
+comment_width = 120
+reorder_impl_items = true
+ignore = [
+    "wot_constants/src/battle_results/battle_result_fields.rs"
+]
