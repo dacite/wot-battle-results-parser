@@ -43,6 +43,7 @@ pub fn gen_collection() -> FieldCollection {
             fields_collection.add_fields_list(field_list, arena_type);
         });
     });
+
     fields_collection
 }
 
@@ -123,9 +124,9 @@ pub fn matches_version(version: usize, field: &Field) -> bool {
     (field.version <= version) && (field.max_version > version || field.max_version == 0)
 }
 
-/// Check if a given field's type matches the type to match
+/// Check if a given field's type matches the type to match.
 /// We have a function for this because of the special cases `AccountAll` and
-/// `VehicleAll`
+/// `VehicleAll`. This is because `AccountAll` (for ex.) fields are also `AccountSelf` fields.
 fn matches_type(type_to_match: FieldType, field: &Field) -> bool {
     (field.field_type == type_to_match)
         || (field.field_type == FieldType::AccountAll && type_to_match == FieldType::AccountSelf)

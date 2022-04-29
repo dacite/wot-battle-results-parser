@@ -74,8 +74,12 @@ fn parse_account_comp_descr(pickle_value: PickleValue) -> Result<JSONValue> {
 
         // We expect list to be [[i64, Vec<u8>]]. The list should have exactly one
         // element and if it doesn't the parse should fail
-        let list = try_variant!(value, PickleValue::List)?;
-        let list_value = list.into_iter().next().context("AccountCompDescr parse failed")?;
+        let mut list_iter = try_variant!(value, PickleValue::List)?.into_iter();
+        let list_value = list_iter.next().context("AccountCompDescr parse failed")?;
+        ensure!(
+            list_iter.next().is_none(),
+            "accountCompDescr parse failed: expected one element but found more"
+        );
 
         // We expect tuple to be [i64, Vec<u8>]. tuple[0] is the i64 and tuple[1] is the
         // Vec<u8>

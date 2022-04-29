@@ -1,4 +1,4 @@
-use std::{
+pub use std::{
     collections::{HashMap, HashSet},
     rc::Rc,
 };
@@ -28,13 +28,13 @@ pub struct Parser<'a> {
     fields: Rc<&'a FieldCollection>,
 
     /// Fields that were not present for this particular datfile
-    not_present: HashSet<String>,
+    pub not_present: HashSet<String>,
 
     /// Fields that were not parsed automatically with serde
-    manually_parsed: HashSet<String>,
+    pub manually_parsed: HashSet<String>,
 
     /// Fields that were unable to parse even manually
-    failed: HashSet<String>,
+    pub failed: HashSet<String>,
 }
 
 /// The raw data structure from the datfile is not very easy to work with. So we
@@ -138,15 +138,16 @@ impl<'a> Parser<'a> {
 
         // At this point, there may be some fields that were not present in the output object (`T`). This is parsed as
         // arena fields because these fields are only common to a specific gamemode. Nevertheless, we try to
-        // serialize these fields to one of the `extra` enums to make sure it is indeed the gamemode specific
-        // fields If there are fields that are clearly not part of a specific gamemode then that's an error and
-        // should be parsed as one of the member of the `T`
+        // serialize these fields to one of the `extra` (For ex: AccountAllExtra, VehicleSelfExtra etc.) enums to make
+        // sure it is indeed the gamemode specific fields. If there are fields that are clearly not part of a
+        // specific gamemode then that's an error and should've been parsed as one of the member of the `T`
         output.validate_arena_fields().map_err(|err| {
             anyhow!(
                 "unknown fields found. standard format might be out of date. {}",
                 err.to_string()
             )
         })?;
+
         Ok(output)
     }
 
@@ -188,6 +189,7 @@ impl<'a> Parser<'a> {
             value_list_iter.next().is_none(),
             "value list not empty after populating fields"
         );
+
         Ok(serde_json::to_value(map)?)
     }
 
@@ -212,6 +214,7 @@ impl<'a> Parser<'a> {
                     // return a default value
                     log::warn!("Could not parse {}. {}", identifier.name, e.to_string());
                     self.failed.insert(identifier.name.to_owned());
+
                     identifier.default.to_json_value()
                 })
             }
@@ -272,6 +275,23 @@ fn parse_nested(input: PickleValue) -> Result<HashMap<String, Vec<PickleValue>>>
     Ok(output_map)
 }
 
+fn parse_multiple_pickle(multiple: PickleValue) -> Result<ObjectList> {
+    let mut tuple = try_variant!(multiple, PickleValue::Tuple)?.into_iter();
+    ensure!(tuple.len() == 4, "tuple do not contain expected num of items");
+
+    let common = try_variant!(tuple.next().unwrap(), PickleValue::List)?;
+    let player_info = to_rust_dict(tuple.next().unwrap())?;
+    let vehicle_all = to_rust_dict(tuple.next().unwrap())?;
+    let account_all = to_rust_dict(tuple.next().unwrap())?;
+
+    Ok(ObjectList {
+        common,
+        account_all,
+        vehicle_all,
+        player_info,
+    })
+}
+
 fn to_rust_dict(pickle_object: PickleValue) -> Result<HashMap<String, Vec<PickleValue>>> {
     let input_dict = try_variant!(pickle_object, PickleValue::Dict)?;
 
@@ -295,20 +315,4 @@ fn to_rust_dict(pickle_object: PickleValue) -> Result<HashMap<String, Vec<Pickle
             _ => return Err(anyhow!("to rust map found unexpected pickle object")),
         })
         .collect()
-}
-
-fn parse_multiple_pickle(multiple: PickleValue) -> Result<ObjectList> {
-    let mut tuple = try_variant!(multiple, PickleValue::Tuple)?.into_iter();
-
-    let common = try_variant!(tuple.next().unwrap(), PickleValue::List)?;
-    let player_info = to_rust_dict(tuple.next().unwrap())?;
-    let vehicle_all = to_rust_dict(tuple.next().unwrap())?;
-    let account_all = to_rust_dict(tuple.next().unwrap())?;
-
-    Ok(ObjectList {
-        common,
-        account_all,
-        vehicle_all,
-        player_info,
-    })
 }
