@@ -9,6 +9,7 @@ use anyhow::{Context, Result};
 /// wrapped in a `Result`. Used to avoid using if let everywhere and have the
 /// entire code shift right. Once if let chains stablize, this is probably not
 /// needed.
+#[macro_export]
 macro_rules! try_variant {
     ($target: expr, $pattern: path) => {{
         if let $pattern(value) = $target {
@@ -19,9 +20,8 @@ macro_rules! try_variant {
     }};
 }
 
-pub(crate) use try_variant;
 
-/// Parse a directory of .dat files (only direct childs of the directory)
+/// Get files in directory, given directory path (only direct childs of the directory)
 pub fn parse_dir(path: &Path) -> Result<Vec<DirEntry>> {
     let file_paths = fs::read_dir(path).with_context(|| format!("failed to read dir"))?;
 

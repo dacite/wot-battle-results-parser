@@ -6,5 +6,6 @@ members = [
     "unpickler",
     "standard_format",
     "macros",
-    "wot_constants"
+    "wot_constants",
+    "utils",
 ]

@@ -16,6 +16,7 @@ path = "src/main.rs"
 
 
 [dependencies]
+utils = { path = "../utils" }
 anyhow = "1.0.52"
 miniz_oxide = "0.4.4"
 byteorder = "1.4.3"

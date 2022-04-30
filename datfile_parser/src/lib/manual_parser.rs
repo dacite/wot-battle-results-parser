@@ -11,9 +11,8 @@ use serde_json::Value as JSONValue;
 use standard_format::WotValue;
 use unpickler::HashablePickleValue;
 use unpickler::PickleValue;
+use utils::try_variant;
 use wot_constants::battle_results::Field;
-
-use crate::utils::try_variant;
 
 pub fn pickle_val_to_json_manual(pickle_value: PickleValue, field: &Field) -> Result<JSONValue> {
     // Check the field name to see if there is a manual parser

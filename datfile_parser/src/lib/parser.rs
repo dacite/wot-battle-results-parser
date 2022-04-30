@@ -10,12 +10,12 @@ use serde_json::Value as JSONValue;
 use serde_pickle::Value as PickleValue;
 use standard_format::{AccountSelf, ArenaFieldsGetter, Battle};
 use unpickler::decompress_and_load_pickle;
+use utils::try_variant;
 use wot_constants::battle_results::Field;
 
 use crate::{
     fields::{matches_version, FieldCollection},
     get_checksum, manual_parser, to_default_if_none,
-    utils::try_variant,
 };
 
 /// An instantiation of a `Parser` is used to parse a single `.dat` file

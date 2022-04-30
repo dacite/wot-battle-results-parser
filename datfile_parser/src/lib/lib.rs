@@ -2,7 +2,6 @@ pub mod error;
 mod fields;
 mod manual_parser;
 mod parser;
-pub mod utils;
 
 use anyhow::{Context, Result};
 use fields::{gen_collection, FieldCollection};
