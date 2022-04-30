@@ -1,4 +1,4 @@
-use std::io::{Cursor};
+use std::io::Cursor;
 
 use byteorder::{ReadBytesExt, LE};
 
@@ -34,6 +34,10 @@ impl<'a> Packet<'a> {
         self.inner[METADATA_SIZE as usize..].to_vec()
     }
 
+    pub fn get_inner(&self) -> &[u8] {
+        self.inner
+    }
+
     pub fn get_seekable_vec(&self) -> Cursor<Vec<u8>> {
         Cursor::new(self.inner.to_vec())
     }
@@ -55,16 +59,13 @@ impl<'a> Packet<'a> {
 
 
 pub struct PacketStream<'a> {
-    inner: &'a [u8],
+    inner:    &'a [u8],
     position: usize,
 }
 
 impl<'a> PacketStream<'a> {
     pub fn new(inner: &'a [u8]) -> Self {
-        Self {
-            inner,
-            position: 0,
-        }
+        Self { inner, position: 0 }
     }
 
     pub fn reset(&mut self) {

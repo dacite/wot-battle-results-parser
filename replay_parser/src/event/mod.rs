@@ -2,13 +2,12 @@ pub mod battle_event;
 pub mod event_types;
 
 
+pub use battle_event::BattleEvent;
 use byteorder::{LittleEndian, ReadBytesExt};
 use enum_dispatch::enum_dispatch;
-
+pub use event_types::*;
 
 use crate::packet_stream::Packet;
-pub use event_types::*;
-pub use battle_event::BattleEvent;
 
 pub trait TargetableEvent {
     fn get_event_data(&self) -> &[u8];
@@ -34,4 +33,3 @@ pub trait ToPacket {
 pub trait PacketParser {
     fn parse(packet: &Packet) -> battle_event::BattleEvent;
 }
-

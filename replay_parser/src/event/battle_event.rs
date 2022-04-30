@@ -1,10 +1,8 @@
 use enum_as_inner::EnumAsInner;
 use enum_dispatch::enum_dispatch;
 
-use crate::packet_stream::{Packet};
-
-use super::{Unknown, PacketParser};
-
+use super::{PacketParser, Unknown};
+use crate::packet_stream::Packet;
 
 
 pub enum BattleEventId {
@@ -22,15 +20,7 @@ pub enum BattleEvent {
 impl BattleEvent {
     pub fn new(packet: &Packet) -> Self {
         match packet.get_type() {
-
             _ => Unknown::parse(packet),
         }
     }
 }
-
-
-
-
-
-
-

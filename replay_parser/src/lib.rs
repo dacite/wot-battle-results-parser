@@ -5,8 +5,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use crypto::blowfish::Blowfish;
 use crypto::symmetriccipher::BlockDecryptor;
 use miniz_oxide::inflate::decompress_to_vec_zlib;
-pub mod packet_stream;
 pub mod event;
+pub mod packet_stream;
 
 /// A tuple of :
 /// 1. `JSON Values`
