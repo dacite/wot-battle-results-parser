@@ -11,7 +11,7 @@ name = "wot_replay_parser"
 path = "src/lib.rs"
 
 [[bin]]
-name = "wot-replay-parser-cli"
+name = "wot_replay_parser"
 path = "src/main.rs"
 
 
@@ -30,3 +30,12 @@ macros = { path = "../macros"}
 getset = "0.1.2"
 time = "0.3.7"
 enum_dispatch = "0.3.8"
+nom = { version = "7.1.1", features = ["alloc"] }
+
+[dev-dependencies]
+criterion = "0.3.5"
+env_logger = "0.8.4"
+
+[[bench]]
+name = "benchmark"
+harness = false
