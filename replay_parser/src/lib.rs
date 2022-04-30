@@ -5,8 +5,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use crypto::blowfish::Blowfish;
 use crypto::symmetriccipher::BlockDecryptor;
 use miniz_oxide::inflate::decompress_to_vec_zlib;
+pub mod event;
 pub mod packet_stream;
-
 /// A tuple of :
 /// 1. `JSON Values`
 /// 2. `Binary buffer` (contains data used to play replay)
@@ -102,6 +102,7 @@ fn xor_decrypted(decrypted: &mut [u8]) {
     }
 }
 
+#[inline]
 fn get_padded_block(source_block: &[u8]) -> [u8; 8] {
     let mut padded_block = [0x00; 8];
     let block_size = source_block.len();

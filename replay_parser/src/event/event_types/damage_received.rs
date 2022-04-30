@@ -1,24 +1,28 @@
-use std::io::{Cursor, SeekFrom, Seek};
-use getset::Getters;
+use std::io::{Cursor, Seek, SeekFrom};
+
 use byteorder::{LittleEndian, ReadBytesExt};
+use getset::Getters;
 use macros::ToPacket;
 
-use crate::{packet_stream::{Packet, METADATA_SIZE}, event::{PacketParser, ToPacket, TargetableEvent, battle_event::BattleEvent, EventPrinter, BattleInfo}};
+use crate::{
+    event::{battle_event::BattleEvent, BattleInfo, EventPrinter, PacketParser, TargetableEvent, ToPacket},
+    packet_stream::{Packet, METADATA_SIZE},
+};
 
 
 /// `(EventSource(u32), Unknown(u32), x(f32), z(f32), y(f32), ...)`
 #[derive(derivative::Derivative, ToPacket, Getters, Clone)]
 #[derivative(Debug)]
 pub struct DamageReceived {
-    received_by: u32,
+    received_by:   u32,
     received_from: u32,
-    
+
     before: u16,
-    after: u16,
+    after:  u16,
 
     damage_type: u8,
 
-    #[derivative(Debug="ignore")]
+    #[derivative(Debug = "ignore")]
     inner: Cursor<Vec<u8>>,
 }
 
@@ -36,9 +40,14 @@ impl PacketParser for DamageReceived {
         let damage_type = inner.read_u8().unwrap();
 
         inner.set_position(0);
-        
+
         BattleEvent::DamageReceived(Self {
-            received_by, received_from, before, after, damage_type, inner
+            received_by,
+            received_from,
+            before,
+            after,
+            damage_type,
+            inner,
         })
     }
 }
@@ -57,9 +66,19 @@ impl EventPrinter for DamageReceived {
 
         if let Some(by) = received_by {
             if let Some(from) = received_from {
-                format!("{} took {} damage from {} and now has {} health {:+?}", by.clone(), damage, from.clone(), self.after, self.get_as_packet())
+                format!(
+                    "{} took {} damage from {} and now has {} health {:+?}",
+                    by.clone(),
+                    damage,
+                    from.clone(),
+                    self.after,
+                    self.get_as_packet()
+                )
             } else {
-                format!("Undecipherable Damage Received Event because 'from' cannot be identified {:+?}", self.get_as_packet())
+                format!(
+                    "Undecipherable Damage Received Event because 'from' cannot be identified {:+?}",
+                    self.get_as_packet()
+                )
             }
         } else {
             format!("Undecipherable Damage Received Event {:+?}", self.get_as_packet())

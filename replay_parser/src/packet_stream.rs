@@ -4,6 +4,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 pub const METADATA_SIZE: u64 = 12;
 
+/// Wraps a slice of 
 pub struct Packet<'a> {
     inner: &'a [u8],
 }
@@ -14,19 +15,19 @@ impl<'a> Packet<'a> {
     }
 
     pub fn get_type(&self) -> u32 {
-        let mut chunk = self.inner[4..8].as_ref().clone();
+        let mut chunk = &self.inner[4..8];
         chunk.read_u32::<LittleEndian>().unwrap()
     }
 
     pub fn get_time(&self) -> f32 {
-        let mut chunk = self.inner[8..].as_ref().clone();
+        let mut chunk = &self.inner[8..];
         chunk.read_f32::<LittleEndian>().unwrap()
     }
 
     /// Size is only the size of the payload
     /// The size of the entire packet is `(payload_size + metadata_size)`
     pub fn get_size(&self) -> u32 {
-        let mut chunk = self.inner[..4].as_ref().clone();
+        let mut chunk = &self.inner[..4];
         chunk.read_u32::<LittleEndian>().unwrap()
     }
 
@@ -44,13 +45,15 @@ impl<'a> Packet<'a> {
 
     pub fn get_subtype(&self) -> Option<u32> {
         if self.get_payload_ref().len() >= 8 {
-            let mut chunk = self.inner[METADATA_SIZE as usize + 4..METADATA_SIZE as usize + 8]
-                .as_ref()
-                .clone();
+            let mut chunk = &self.inner[METADATA_SIZE as usize + 4..METADATA_SIZE as usize + 8];
             Some(chunk.read_u32::<LittleEndian>().unwrap())
         } else {
             None
         }
+    }
+
+    pub fn get_data(&self) -> &[u8] {
+        self.inner
     }
 }
 
@@ -70,6 +73,7 @@ impl<'a> PacketStream<'a> {
         self.inner.set_position(0);
     }
 }
+
 impl<'a> Iterator for PacketStream<'a> {
     type Item = Packet<'a>;
 

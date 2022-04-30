@@ -1,19 +1,23 @@
-use std::io::{Cursor, SeekFrom, Seek};
-use getset::Getters;
+use std::io::{Cursor, Seek, SeekFrom};
+
 use byteorder::{LittleEndian, ReadBytesExt};
+use getset::Getters;
 use macros::ToPacket;
 
-use crate::{packet_stream::{Packet, METADATA_SIZE}, event::{PacketParser, ToPacket, TargetableEvent, battle_event::BattleEvent, EventPrinter, BattleInfo}};
+use crate::{
+    event::{battle_event::BattleEvent, BattleInfo, EventPrinter, PacketParser, TargetableEvent, ToPacket},
+    packet_stream::{Packet, METADATA_SIZE},
+};
 
 /// `(EventSource(u32), Unknown(u32), x(f32), z(f32), y(f32), ...)`
 #[derive(derivative::Derivative, ToPacket, Getters, Clone)]
 #[derivative(Debug)]
 pub struct PositionUpdateVariant {
-    one: u32,
-    two: u32,
+    one:   u32,
+    two:   u32,
     three: u32,
 
-    #[derivative(Debug="ignore")]
+    #[derivative(Debug = "ignore")]
     inner: Cursor<Vec<u8>>,
 }
 
@@ -27,10 +31,8 @@ impl PacketParser for PositionUpdateVariant {
         let three = inner.read_u32::<LittleEndian>().unwrap();
 
         inner.set_position(0);
-        
-        BattleEvent::PositionUpdateControl(Self {
-            one, two, three, inner
-        })
+
+        BattleEvent::PositionUpdateControl(Self { one, two, three, inner })
     }
 }
 
@@ -44,5 +46,4 @@ impl EventPrinter for PositionUpdateVariant {
     fn to_string(&self, _: &BattleInfo) -> String {
         format!("PUVariant")
     }
-
 }

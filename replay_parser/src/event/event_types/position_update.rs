@@ -1,11 +1,14 @@
-use std::io::{Cursor, SeekFrom, Seek};
-use getset::Getters;
+use std::io::{Cursor, Seek, SeekFrom};
+
 use byteorder::{LittleEndian, ReadBytesExt};
+use getset::Getters;
 use macros::ToPacket;
 
-use crate::{packet_stream::{Packet, METADATA_SIZE}, event::{PacketParser, ToPacket, TargetableEvent, battle_event::BattleEvent, EventPrinter, BattleInfo}};
-
 use super::PositionUpdateVariant;
+use crate::{
+    event::{battle_event::BattleEvent, BattleInfo, EventPrinter, PacketParser, TargetableEvent, ToPacket},
+    packet_stream::{Packet, METADATA_SIZE},
+};
 
 /// `(EventSource(u32), Unknown(u32), x(f32), z(f32), y(f32), ...)`
 #[derive(derivative::Derivative, ToPacket, Getters, Clone)]
@@ -15,7 +18,7 @@ pub struct PositionUpdate {
     y: f32,
     z: f32,
 
-    #[derivative(Debug="ignore")]
+    #[derivative(Debug = "ignore")]
     inner: Cursor<Vec<u8>>,
 }
 
@@ -36,10 +39,8 @@ impl PacketParser for PositionUpdate {
         let y = inner.read_f32::<LittleEndian>().unwrap();
 
         inner.set_position(0);
-        
-        BattleEvent::PositionUpdate(Self {
-            x, y, z, inner
-        })
+
+        BattleEvent::PositionUpdate(Self { x, y, z, inner })
     }
 }
 
@@ -52,9 +53,21 @@ impl TargetableEvent for PositionUpdate {
 impl EventPrinter for PositionUpdate {
     fn to_string(&self, battle_info: &BattleInfo) -> String {
         if let Some(player) = battle_info.get_player(self.get_event_source()) {
-            format!("Position Update [{}]: x: {}, y: {}, z: {}", player.clone(), self.x, self.y, self.z)
+            format!(
+                "Position Update [{}]: x: {}, y: {}, z: {}",
+                player.clone(),
+                self.x,
+                self.y,
+                self.z
+            )
         } else {
-            format!("Position Update [{}]: x: {}, y: {}, z: {}", self.get_event_source(), self.x, self.y, self.z)
+            format!(
+                "Position Update [{}]: x: {}, y: {}, z: {}",
+                self.get_event_source(),
+                self.x,
+                self.y,
+                self.z
+            )
         }
     }
 }

@@ -2,9 +2,8 @@ use std::io::{Cursor, Seek, SeekFrom};
 
 use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::packet_stream::PacketStream;
-
 use super::battle_event::BattleEvent;
+use crate::packet_stream::PacketStream;
 
 pub struct EventStream<'a> {
     inner: PacketStream<'a>,
