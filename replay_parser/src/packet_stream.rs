@@ -1,6 +1,6 @@
-use std::io::{Cursor, Seek, SeekFrom};
+use std::io::{Cursor};
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::{ReadBytesExt, LE};
 
 pub const METADATA_SIZE: u64 = 12;
 
@@ -14,20 +14,20 @@ impl<'a> Packet<'a> {
     }
 
     pub fn get_type(&self) -> u32 {
-        let mut chunk = self.inner[4..8].as_ref().clone();
-        chunk.read_u32::<LittleEndian>().unwrap()
+        let mut chunk = &self.inner[4..8];
+        chunk.read_u32::<LE>().unwrap()
     }
 
     pub fn get_time(&self) -> f32 {
-        let mut chunk = self.inner[8..].as_ref().clone();
-        chunk.read_f32::<LittleEndian>().unwrap()
+        let mut chunk = &self.inner[8..];
+        chunk.read_f32::<LE>().unwrap()
     }
 
     /// Size is only the size of the payload
     /// The size of the entire packet is `(payload_size + metadata_size)`
     pub fn get_size(&self) -> u32 {
-        let mut chunk = self.inner[..4].as_ref().clone();
-        chunk.read_u32::<LittleEndian>().unwrap()
+        let mut chunk = &self.inner[..4];
+        chunk.read_u32::<LE>().unwrap()
     }
 
     pub fn get_payload(&self) -> Vec<u8> {
@@ -44,10 +44,9 @@ impl<'a> Packet<'a> {
 
     pub fn get_subtype(&self) -> Option<u32> {
         if self.get_payload_ref().len() >= 8 {
-            let mut chunk = self.inner[METADATA_SIZE as usize + 4..METADATA_SIZE as usize + 8]
-                .as_ref()
-                .clone();
-            Some(chunk.read_u32::<LittleEndian>().unwrap())
+            let mut chunk = &self.inner[METADATA_SIZE as usize + 4..METADATA_SIZE as usize + 8];
+
+            Some(chunk.read_u32::<LE>().unwrap())
         } else {
             None
         }
@@ -56,42 +55,46 @@ impl<'a> Packet<'a> {
 
 
 pub struct PacketStream<'a> {
-    inner: Cursor<&'a [u8]>,
+    inner: &'a [u8],
+    position: usize,
 }
 
 impl<'a> PacketStream<'a> {
     pub fn new(inner: &'a [u8]) -> Self {
         Self {
-            inner: Cursor::new(inner),
+            inner,
+            position: 0,
         }
     }
 
     pub fn reset(&mut self) {
-        self.inner.set_position(0);
+        self.position = 0;
     }
 }
+
 impl<'a> Iterator for PacketStream<'a> {
     type Item = Packet<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let current_position = self.inner.position() as usize;
-        if current_position == self.inner.get_ref().len() {
+        let position = self.position;
+
+        if (position + 4) > self.inner.len() {
+            // TODO: Remove this panic or switch to the previous cursor impl since this
+            // impl is not faster and more likely to have errors
+            if position != self.inner.len() {
+                panic!("UNEXPECTED POSITION");
+            }
             return None;
         }
 
-        match self.inner.read_u32::<LittleEndian>() {
-            Ok(payload_size) => {
-                // Advance cursor to the end of current packet
-                let packet_end_pos = SeekFrom::Current((payload_size + 8) as i64);
-                self.inner.seek(packet_end_pos).unwrap();
+        let payload_size = self.inner[position..(position + 4)].try_into().unwrap();
+        let payload_size = u32::from_le_bytes(payload_size);
 
-                //Return the slice that represents the packet that was just read
-                let packet_size = METADATA_SIZE as usize + payload_size as usize;
-                let packet_range = current_position..(current_position + packet_size);
-                Some(Packet::new(&self.inner.get_ref()[packet_range]))
-            }
-            Err(_) => None,
-        }
+        let packet_size = METADATA_SIZE as usize + payload_size as usize;
+        let packet_range = position..(position + packet_size);
+
+        self.position += packet_size;
+        Some(Packet::new(&self.inner[packet_range]))
     }
 }
 
