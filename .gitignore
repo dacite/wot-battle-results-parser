@@ -13,3 +13,5 @@ Cargo.lock
 /datfile_parser/examples/other
 
 test.*
+all.hex
+result.hex
