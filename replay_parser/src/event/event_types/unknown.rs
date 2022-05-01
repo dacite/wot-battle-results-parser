@@ -1,25 +1,24 @@
-use std::io::Cursor;
-
+use anyhow::Result;
 use getset::Getters;
-use macros::ToPacket;
+use macros::PacketMetadata;
 
 use crate::{
-    event::{battle_event::BattleEvent, PacketParser, ToPacket},
-    packet_stream::Packet,
+    event::{battle_event::BattleEvent, PacketParser},
+    packet_stream::{Packet, PacketMetadata},
 };
 
-#[derive(derivative::Derivative, ToPacket, Getters, Clone)]
+#[derive(derivative::Derivative, PacketMetadata, Getters, Clone)]
 #[derivative(Debug)]
-pub struct Unknown {
+pub struct Unknown<'pkt> {
     #[derivative(Debug = "ignore")]
-    inner: Cursor<Vec<u8>>,
+    inner: &'pkt [u8],
 }
 
 
-impl PacketParser for Unknown {
-    fn parse(packet: &Packet) -> BattleEvent {
-        let inner = packet.get_seekable_vec();
+impl<'pkt> PacketParser<'pkt> for Unknown<'pkt> {
+    fn parse(packet_data: &'pkt Packet) -> Result<BattleEvent<'pkt>> {
+        let inner = packet_data.get_inner();
 
-        BattleEvent::Unimplemented(Self { inner })
+        Ok(BattleEvent::Unimplemented(Self { inner }))
     }
 }

@@ -1,7 +1,7 @@
 pub mod battle_event;
 pub mod event_types;
 
-
+use anyhow::Result;
 pub use battle_event::BattleEvent;
 use byteorder::{LittleEndian, ReadBytesExt};
 use enum_dispatch::enum_dispatch;
@@ -22,14 +22,8 @@ pub trait TargetableEvent {
     }
 }
 
-#[enum_dispatch]
-pub trait ToPacket {
-    fn get_all_data(&self) -> &[u8];
-    fn get_as_packet(&self) -> Packet {
-        Packet::new(self.get_all_data())
-    }
-}
 
-pub trait PacketParser {
-    fn parse(packet: &Packet) -> battle_event::BattleEvent;
+#[enum_dispatch]
+pub trait PacketParser<'a> {
+    fn parse(packet: &'a Packet) -> Result<BattleEvent<'a>>;
 }

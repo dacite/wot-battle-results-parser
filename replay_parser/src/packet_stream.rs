@@ -1,9 +1,13 @@
-use std::io::Cursor;
+
+
 
 use byteorder::{ReadBytesExt, LE};
+use macros::PacketMetadata;
 
-pub const METADATA_SIZE: u64 = 12;
+pub const METADATA_SIZE: usize = 12;
 
+
+#[derive(PacketMetadata)]
 pub struct Packet<'a> {
     inner: &'a [u8],
 }
@@ -12,51 +16,32 @@ impl<'a> Packet<'a> {
     pub fn new(data: &'a [u8]) -> Self {
         Self { inner: &data }
     }
+}
 
-    pub fn get_type(&self) -> u32 {
-        let mut chunk = &self.inner[4..8];
+pub trait PacketMetadata<'pkt> {
+    fn get_inner(&'pkt self) -> &'pkt [u8];
+
+    fn get_type(&'pkt self) -> u32 {
+        let mut chunk = &self.get_inner()[4..8];
         chunk.read_u32::<LE>().unwrap()
     }
 
-    pub fn get_time(&self) -> f32 {
-        let mut chunk = &self.inner[8..];
+    fn get_time(&'pkt self) -> f32 {
+        let mut chunk = &self.get_inner()[8..];
         chunk.read_f32::<LE>().unwrap()
     }
 
     /// Size is only the size of the payload
     /// The size of the entire packet is `(payload_size + metadata_size)`
-    pub fn get_size(&self) -> u32 {
-        let mut chunk = &self.inner[..4];
+    fn get_size(&'pkt self) -> u32 {
+        let mut chunk = &self.get_inner()[..4];
         chunk.read_u32::<LE>().unwrap()
     }
 
-    pub fn get_payload(&self) -> Vec<u8> {
-        self.inner[METADATA_SIZE as usize..].to_vec()
-    }
-
-    pub fn get_inner(&self) -> &[u8] {
-        self.inner
-    }
-
-    pub fn get_seekable_vec(&self) -> Cursor<Vec<u8>> {
-        Cursor::new(self.inner.to_vec())
-    }
-
-    pub fn get_payload_ref(&self) -> &[u8] {
-        &self.inner[METADATA_SIZE as usize..]
-    }
-
-    pub fn get_subtype(&self) -> Option<u32> {
-        if self.get_payload_ref().len() >= 8 {
-            let mut chunk = &self.inner[METADATA_SIZE as usize + 4..METADATA_SIZE as usize + 8];
-
-            Some(chunk.read_u32::<LE>().unwrap())
-        } else {
-            None
-        }
+    fn get_payload(&'pkt self) -> &'pkt [u8] {
+        &self.get_inner()[METADATA_SIZE..]
     }
 }
-
 
 pub struct PacketStream<'a> {
     inner:    &'a [u8],
@@ -99,7 +84,6 @@ impl<'a> Iterator for PacketStream<'a> {
     }
 }
 
-
 impl<'a> std::fmt::Debug for Packet<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let packet_name = format!("0x{:02X}", &self.get_type());
@@ -107,7 +91,7 @@ impl<'a> std::fmt::Debug for Packet<'a> {
         let displayed_payload = if self.get_size() <= 100 {
             self.get_payload()
         } else {
-            self.get_payload()[..100].to_vec()
+            &self.get_payload()[..100]
         };
 
         let mut payload_string = String::from("");
