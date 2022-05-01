@@ -10,7 +10,7 @@ pub fn field_access_macro_derive(input: TokenStream) -> TokenStream {
 }
 
 
-#[proc_macro_derive(ToPacket)]
+#[proc_macro_derive(PacketMetadata)]
 pub fn to_packet_macro_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     metadata_derive::imp_to_packet_macro(&ast)
