@@ -1,4 +1,5 @@
 // mod position_update;
+mod game_version;
 mod unknown;
 // mod chat;
 // mod position_update_control;
@@ -10,6 +11,7 @@ mod unknown;
 // pub use position_update::PositionUpdate;
 // pub use position_update_control::PositionUpdateVariant;
 // pub use chat::Chat;
+pub use game_version::GameVersion;
 pub use unknown::Unknown;
 // pub use arena_status::ArenaStatusUpdate;
 // pub use shot_fired::ShotFired;

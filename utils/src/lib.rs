@@ -29,3 +29,33 @@ pub fn parse_dir(path: &Path) -> Result<Vec<DirEntry>> {
         .filter_map(|entry| entry.ok().filter(|entry| entry.path().is_file()))
         .collect())
 }
+
+// TODO: Make its own file
+#[derive(thiserror::Error, Debug)]
+pub struct NomErrorWrapper {
+    pub kind:  nom::error::ErrorKind,
+    backtrace: Vec<nom::error::ErrorKind>,
+    _input:    Vec<u8>,
+}
+
+impl nom::error::ParseError<&[u8]> for NomErrorWrapper {
+    fn from_error_kind(input: &[u8], kind: nom::error::ErrorKind) -> Self {
+        Self {
+            kind:      kind,
+            backtrace: Vec::new(),
+            _input:    input.to_vec(),
+        }
+    }
+
+    fn append(input: &[u8], kind: nom::error::ErrorKind, mut other: Self) -> Self {
+        other.backtrace.push(Self::from_error_kind(input, kind).kind);
+
+        other
+    }
+}
+
+impl std::fmt::Display for NomErrorWrapper {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Nom error: {} error", self.kind.description())
+    }
+}
