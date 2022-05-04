@@ -43,6 +43,7 @@ pub trait PacketMetadata<'pkt> {
     }
 }
 
+#[derive(Clone)]
 pub struct PacketStream<'a> {
     inner:    &'a [u8],
     position: usize,
