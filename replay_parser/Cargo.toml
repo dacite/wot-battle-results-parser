@@ -14,6 +14,17 @@ path = "src/lib.rs"
 name = "wot_replay_parser"
 path = "src/main.rs"
 
+[[bin]]
+name = "one_replay"
+path = "src/one_replay.rs"
+
+[[bin]]
+name = "xml"
+path = "src/xml.rs"
+
+[[bin]]
+name = "event_printer"
+path = "src/event_printer.rs"
 
 [dependencies]
 utils = { path = "../utils" }
@@ -32,6 +43,8 @@ getset = "0.1.2"
 time = "0.3.7"
 enum_dispatch = "0.3.8"
 nom = { version = "7.1.1", features = ["alloc"] }
+roxmltree = "0.14.1"
+thiserror = "1.0.31"
 
 [dev-dependencies]
 criterion = "0.3.5"

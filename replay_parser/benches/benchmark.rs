@@ -2,7 +2,6 @@ use std::path::Path;
 
 use criterion::BenchmarkId;
 use criterion::{criterion_group, criterion_main, Criterion};
-use wot_replay_parser::event::BattleEvent;
 use wot_replay_parser::{parse, parse_json};
 
 
@@ -34,10 +33,10 @@ fn parse_entire_replay() {
 }
 
 fn parse_events(bin_stream: &[u8]) {
-    let stream = wot_replay_parser::packet_stream::PacketStream::new(bin_stream);
+    let stream = wot_replay_parser::PacketStream::new(bin_stream);
     let packets: Vec<_> = stream.into_iter().collect();
 
-    let _events: Vec<_> = packets.iter().map(|packet| BattleEvent::new(packet)).collect();
+    let _events: Vec<_> = packets.iter().map(|packet| wot_replay_parser::packet_parser::parse(packet)).collect();
 }
 
 pub fn criterion_benchmark_events(c: &mut Criterion) {
@@ -46,8 +45,8 @@ pub fn criterion_benchmark_events(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Event parsing overhead");
     group.sample_size(5000);
-    group.bench_with_input(BenchmarkId::new("input_example", "ok"), &result.1, |b, s| {
-        b.iter(|| parse_events(s));
+    group.bench_with_input(BenchmarkId::new("input_example", "ok"), &result.1, |bencher, input| {
+        bencher.iter(|| parse_events(input));
     });
     group.finish();
 }
