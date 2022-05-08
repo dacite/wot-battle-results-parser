@@ -1,45 +1,52 @@
 use std::io::{Cursor, Seek, SeekFrom};
 
-use anyhow::{anyhow, Result};
+use anyhow::anyhow;
 use byteorder::{LittleEndian, ReadBytesExt};
 use crypto::blowfish::Blowfish;
 use crypto::symmetriccipher::BlockDecryptor;
 use miniz_oxide::inflate::decompress_to_vec_zlib;
-pub mod event;
-pub mod packet_stream;
+mod error;
+pub mod packet_parser;
+pub use packet_parser::events;
+pub use packet_parser::PacketStream;
 
+mod battle_context;
+pub mod xml_handler;
+pub use battle_context::{get_replay_time, BattleContext};
+pub use error::Error;
+pub use error::Result;
 /// A tuple of :
 /// 1. `JSON Values`
 /// 2. `Binary buffer` (contains data used to play replay)
 type ReplayParseResult = (Vec<serde_json::Value>, Vec<u8>);
 
 /// Parse both the JSON portion and the binary portion
-pub fn parse(input: &[u8]) -> Result<ReplayParseResult> {
+pub fn parse(input: &[u8]) -> anyhow::Result<ReplayParseResult> {
     let mut seekable = Cursor::new(input);
 
     // Parse JSON Dump
     seekable.seek(SeekFrom::Start(4))?;
-    let json_dumps = seperate_json(&mut seekable)?;
+    let json_dumps = separate_json(&mut seekable)?;
 
     // Parse Binary Dump
     seekable.seek(SeekFrom::Current(8))?;
-    let binary_dump = seperate_binary(&mut seekable)?;
+    let binary_dump = separate_binary(&mut seekable)?;
 
     Ok((json_dumps, binary_dump))
 }
 
 /// Parse the JSON portion only
-pub fn parse_json(input: &[u8]) -> Result<Vec<serde_json::Value>> {
+pub fn parse_json(input: &[u8]) -> anyhow::Result<Vec<serde_json::Value>> {
     let mut seekable = Cursor::new(input);
 
     // Parse JSON Dump
     seekable.seek(SeekFrom::Start(4))?;
-    seperate_json(&mut seekable)
+    separate_json(&mut seekable)
 }
 
 
-/// Seperate the JSON dumps
-fn seperate_json(seekable: &mut Cursor<&[u8]>) -> Result<Vec<serde_json::Value>> {
+/// Separate the JSON dumps
+fn separate_json(seekable: &mut Cursor<&[u8]>) -> anyhow::Result<Vec<serde_json::Value>> {
     let mut parsed_json = Vec::new();
 
     let blocks_count = seekable.read_u32::<LittleEndian>()?;
@@ -57,7 +64,7 @@ fn seperate_json(seekable: &mut Cursor<&[u8]>) -> Result<Vec<serde_json::Value>>
     Ok(parsed_json)
 }
 
-fn seperate_binary(seekable: &mut Cursor<&[u8]>) -> Result<Vec<u8>> {
+fn separate_binary(seekable: &mut Cursor<&[u8]>) -> anyhow::Result<Vec<u8>> {
     let mut decrypted = decrypt_remaining_slice(seekable)?;
     xor_decrypted(&mut decrypted);
 
@@ -66,7 +73,7 @@ fn seperate_binary(seekable: &mut Cursor<&[u8]>) -> Result<Vec<u8>> {
     Ok(decompressed)
 }
 
-fn decrypt_remaining_slice(seekable: &mut Cursor<&[u8]>) -> Result<Vec<u8>> {
+fn decrypt_remaining_slice(seekable: &mut Cursor<&[u8]>) -> anyhow::Result<Vec<u8>> {
     // Grab encrypted buffer
     let current_seek_pos = seekable.position() as usize;
     let encrypted_buffer = &seekable.get_ref()[current_seek_pos..];
@@ -74,7 +81,7 @@ fn decrypt_remaining_slice(seekable: &mut Cursor<&[u8]>) -> Result<Vec<u8>> {
     decrypt(encrypted_buffer)
 }
 
-fn decrypt(input_blocks: &[u8]) -> Result<Vec<u8>> {
+fn decrypt(input_blocks: &[u8]) -> anyhow::Result<Vec<u8>> {
     // Init blowfish cipher
     let mut wot_blowfish_key = [0; 16];
     hex::decode_to_slice("DE72BEA0DE04BEB1DEFEBEEFDEADBEEF", &mut wot_blowfish_key)?;

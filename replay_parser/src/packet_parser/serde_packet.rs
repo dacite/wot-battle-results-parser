@@ -1,7 +1,7 @@
 use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::Deserialize;
 
-use crate::ReplayParserError;
+use crate::Error;
 
 pub struct Deserializer<'de> {
     input: &'de [u8],
@@ -13,7 +13,7 @@ impl<'de> Deserializer<'de> {
     }
 }
 
-pub fn from_slice<'a, T>(s: &'a [u8]) -> Result<T, ReplayParserError>
+pub fn from_slice<'a, T>(s: &'a [u8]) -> Result<T, Error>
 where
     T: Deserialize<'a>,
 {
@@ -23,12 +23,12 @@ where
     if deserializer.input.is_empty() {
         Ok(t)
     } else {
-        Err(ReplayParserError::InvalidPacket)
+        Err(Error::InvalidPacket)
     }
 }
 
 impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
-    type Error = ReplayParserError;
+    type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
@@ -42,7 +42,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         V: Visitor<'de>,
     {
         use nom::number::complete::le_u8;
-        let (remaining, result) = le_u8::<_, ReplayParserError>(self.input)?;
+        let (remaining, result) = le_u8::<_, Error>(self.input)?;
         self.input = remaining;
         let result = match result {
             0 => false,
@@ -59,7 +59,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_i8;
 
-        let (remaining, result) = le_i8::<_, ReplayParserError>(self.input)?;
+        let (remaining, result) = le_i8::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_i8(result)
     }
@@ -226,11 +226,16 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         unimplemented!()
     }
 
-    fn deserialize_seq<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unimplemented!()
+        use nom::number::complete::le_u8;
+
+        let (remaining, len) = le_u8::<_, Error>(self.input)?;
+        self.input = remaining;
+
+        visitor.visit_seq(SequenceAccess::new(self, len as u16))
     }
 
     fn deserialize_tuple<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
@@ -255,12 +260,12 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_struct<V>(
-        self, _name: &'static str, _fields: &'static [&'static str], visitor: V,
+        self, _name: &'static str, fields: &'static [&'static str], visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        visitor.visit_seq(SequenceAccess::new(self))
+        visitor.visit_seq(SequenceAccess::new(self, fields.len() as u16))
     }
 
     fn deserialize_enum<V>(
@@ -288,22 +293,29 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
 }
 
 struct SequenceAccess<'a, 'de: 'a> {
-    de: &'a mut Deserializer<'de>,
+    de:   &'a mut Deserializer<'de>,
+    len:  u16,
+    curr: u16,
 }
 
 impl<'a, 'de> SequenceAccess<'a, 'de> {
-    fn new(de: &'a mut Deserializer<'de>) -> Self {
-        SequenceAccess { de }
+    fn new(de: &'a mut Deserializer<'de>, len: u16) -> Self {
+        SequenceAccess { de, len, curr: 0 }
     }
 }
 
 impl<'de, 'a> SeqAccess<'de> for SequenceAccess<'a, 'de> {
-    type Error = ReplayParserError;
+    type Error = Error;
 
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, ReplayParserError>
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Error>
     where
         T: DeserializeSeed<'de>,
     {
-        seed.deserialize(&mut *self.de).map(Some)
+        if self.curr == self.len {
+            Ok(None)
+        } else {
+            self.curr += 1;
+            seed.deserialize(&mut *self.de).map(Some)
+        }
     }
 }
