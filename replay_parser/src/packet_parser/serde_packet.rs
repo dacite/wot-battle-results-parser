@@ -13,11 +13,11 @@ impl<'de> Deserializer<'de> {
     }
 }
 
-pub fn from_slice<'a, T>(s: &'a [u8]) -> Result<T, Error>
+pub fn from_slice<'a, T>(input: &'a [u8]) -> Result<T, Error>
 where
     T: Deserialize<'a>,
 {
-    let mut deserializer = Deserializer::from_slice(s);
+    let mut deserializer = Deserializer::from_slice(input);
     let t = T::deserialize(&mut deserializer)?;
 
     if deserializer.input.is_empty() {
@@ -70,7 +70,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_i16;
 
-        let (remaining, result) = le_i16::<_, utils::NomErrorWrapper>(self.input)?;
+        let (remaining, result) = le_i16::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_i16(result)
     }
@@ -81,7 +81,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_i32;
 
-        let (remaining, result) = le_i32::<_, utils::NomErrorWrapper>(self.input).unwrap();
+        let (remaining, result) = le_i32::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_i32(result)
     }
@@ -92,7 +92,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_i64;
 
-        let (remaining, result) = le_i64::<_, utils::NomErrorWrapper>(self.input).unwrap();
+        let (remaining, result) = le_i64::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_i64(result)
     }
@@ -103,7 +103,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_u8;
 
-        let (remaining, result) = le_u8::<_, utils::NomErrorWrapper>(self.input).unwrap();
+        let (remaining, result) = le_u8::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_u8(result)
     }
@@ -114,7 +114,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_u16;
 
-        let (remaining, result) = le_u16::<_, utils::NomErrorWrapper>(self.input).unwrap();
+        let (remaining, result) = le_u16::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_u16(result)
     }
@@ -125,7 +125,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_u32;
 
-        let (remaining, result) = le_u32::<_, utils::NomErrorWrapper>(self.input).unwrap();
+        let (remaining, result) = le_u32::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_u32(result)
     }
@@ -136,7 +136,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_u64;
 
-        let (remaining, result) = le_u64::<_, utils::NomErrorWrapper>(self.input).unwrap();
+        let (remaining, result) = le_u64::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_u64(result)
     }
@@ -147,7 +147,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_f32;
 
-        let (remaining, result) = le_f32::<_, utils::NomErrorWrapper>(self.input).unwrap();
+        let (remaining, result) = le_f32::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_f32(result)
     }
@@ -158,7 +158,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_f64;
 
-        let (remaining, result) = le_f64::<_, utils::NomErrorWrapper>(self.input).unwrap();
+        let (remaining, result) = le_f64::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_f64(result)
     }

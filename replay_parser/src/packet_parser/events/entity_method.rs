@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::{AsPacket, BattleEvent, EventPrinter, PacketParser};
 use crate::{
     packet_parser::{serde_packet, Packet},
-    BattleContext, Result,
+    BattleContext, Error, Result,
 };
 
 #[derive(Debug, Clone, EventPrinter)]
@@ -83,13 +83,20 @@ impl EntityMethod {
     /// TODO: This is where the parsing gets difficult. For now, we keep match statement this way. However,
     /// the values are different depending on the replay version. To make this more general we will need
     /// to parse definition files or come up with another solution.
-    pub fn new(method_id: i32, method_data: &[u8]) -> Result<Self> {
+    pub fn new(id: i32, data: &[u8]) -> Result<Self> {
         use EntityMethod::*;
-        match method_id {
-            0 => Ok(ShotFired(serde_packet::from_slice(method_data)?)),
-            2 => Ok(HealthChanged(serde_packet::from_slice(method_data)?)),
+        match id {
+            0 => Ok(ShotFired(EntityMethod::parse_method("ShotFired", id, data)?)),
+            2 => Ok(HealthChanged(EntityMethod::parse_method("HealthChanged", id, data)?)),
             _ => Ok(Unknown),
         }
+    }
+
+    /// We move the parsing logic needed to create `EntityMethod` to its own function because with `map_err`
+    /// it gets messy. We only really need `data` to parse the method; the rest of the args are used for
+    /// decorating the error from `from_slice` with method information
+    fn parse_method<'de, T: Deserialize<'de>>(name: &str, id: i32, data: &'de [u8]) -> Result<T> {
+        serde_packet::from_slice(data).map_err(|err| Error::new_entity_method_err(data, id, name, err))
     }
 }
 
