@@ -49,6 +49,7 @@ fn get_player_list(json: &serde_json::Value) -> HashMap<i32, String> {
 
 fn get_battle_start_time(packet_stream: PacketStream) -> f32 {
     for packet in packet_stream.into_iter() {
+        let packet = packet.unwrap();
         if packet.get_type() == 0x16 {
             if packet.get_payload().read_u32::<LE>().unwrap() == 3 {
                 return packet.get_time();
@@ -63,5 +64,9 @@ pub fn get_replay_time(start_time: f64, current_time: f64) -> String {
 
     let actual_time = total_time - Duration::seconds_f64(current_time - start_time);
 
-    format!("{}:{}", actual_time.whole_minutes(), actual_time.whole_seconds() % 60)
+    format!(
+        "{}:{}",
+        actual_time.whole_minutes(),
+        actual_time.whole_seconds() % 60
+    )
 }

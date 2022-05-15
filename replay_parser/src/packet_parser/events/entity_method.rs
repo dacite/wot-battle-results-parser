@@ -1,8 +1,8 @@
-use macros::EventPrinter;
+use macros::{EventPrinter, Version};
 use nom::number::complete::le_i32;
 use serde::{Deserialize, Serialize};
 
-use super::{AsPacket, BattleEvent, EventPrinter, PacketParser};
+use super::{AsPacket, BattleEvent, EventPrinter, PacketParser, Version, VersionInfo};
 use crate::{
     packet_parser::{serde_packet, Packet},
     BattleContext, Error, Result,
@@ -18,7 +18,7 @@ pub struct EntityMethodEvent<'pkt> {
 
     /// The packet representation of the `EntityMethod`
     #[event_debug(ignore)]
-    inner: &'pkt Packet<'pkt>,
+    inner: Packet<'pkt>,
 
     /// Total size of the method arguments. i.e the size of the actual payload `(packet_payload =
     /// (payload_info_size + actual_payload_size))`
@@ -34,7 +34,7 @@ pub struct EntityMethodEvent<'pkt> {
 }
 
 impl<'pkt> PacketParser<'pkt> for EntityMethodEvent<'pkt> {
-    fn parse(packet: &'pkt Packet) -> Result<BattleEvent<'pkt>> {
+    fn parse(packet: Packet<'pkt>, version: [u16; 4]) -> Result<BattleEvent<'pkt>> {
         let data = packet.get_payload();
         let (remaining, entity_id) = le_i32::<_, crate::Error>(data)?;
         let (remaining, method_id) = le_i32::<_, crate::Error>(remaining)?;
@@ -42,10 +42,10 @@ impl<'pkt> PacketParser<'pkt> for EntityMethodEvent<'pkt> {
 
         let entity_method_event = EntityMethodEvent {
             entity_id,
-            inner: packet,
+            inner: packet.clone(),
             size,
             method: method_id,
-            event: EntityMethod::new(method_id, method_data)?,
+            event: EntityMethod::new(method_id, method_data, version)?,
         };
 
         Ok(BattleEvent::EntityMethod(entity_method_event))
@@ -54,7 +54,7 @@ impl<'pkt> PacketParser<'pkt> for EntityMethodEvent<'pkt> {
 
 impl<'pkt> AsPacket for EntityMethodEvent<'pkt> {
     fn as_packet(&self) -> &Packet {
-        self.inner
+        &self.inner
     }
 }
 
@@ -83,11 +83,11 @@ impl EntityMethod {
     /// TODO: This is where the parsing gets difficult. For now, we keep match statement this way. However,
     /// the values are different depending on the replay version. To make this more general we will need
     /// to parse definition files or come up with another solution.
-    pub fn new(id: i32, data: &[u8]) -> Result<Self> {
+    pub fn new(id: i32, data: &[u8], version: [u16; 4]) -> Result<Self> {
         use EntityMethod::*;
         match id {
-            0 => Ok(ShotFired(EntityMethod::parse_method("ShotFired", id, data)?)),
-            2 => Ok(HealthChanged(EntityMethod::parse_method("HealthChanged", id, data)?)),
+            0 => Ok(ShotFired(EntityMethod::parse_method(id, data, version)?)),
+            2 => Ok(HealthChanged(EntityMethod::parse_method(id, data, version)?)),
             _ => Ok(Unknown),
         }
     }
@@ -95,8 +95,11 @@ impl EntityMethod {
     /// We move the parsing logic needed to create `EntityMethod` to its own function because with `map_err`
     /// it gets messy. We only really need `data` to parse the method; the rest of the args are used for
     /// decorating the error from `from_slice` with method information
-    fn parse_method<'de, T: Deserialize<'de>>(name: &str, id: i32, data: &'de [u8]) -> Result<T> {
-        serde_packet::from_slice(data).map_err(|err| Error::new_entity_method_err(data, id, name, err))
+    fn parse_method<'de, T: Deserialize<'de> + Version>(
+        id: i32, data: &'de [u8], version: [u16; 4],
+    ) -> Result<T> {
+        serde_packet::from_slice(data, version)
+            .map_err(|err| Error::new_entity_method_err(data, id, T::name(), err))
     }
 }
 
@@ -131,16 +134,17 @@ pub struct ShowDamageFromShot {
 }
 
 /// A vehicle fires a shot
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Version)]
 pub struct ShowShooting {
     /// This value seems to be `1` most times. Perhaps, with a double-barrel tank it could different.
     burst_count: u8,
 
-    gun_index: u8, // TODO: This field is not present in older replays.
+    #[version([1, 6, 1, 0])]
+    gun_index: Option<u8>, // TODO: This field is not present in older replays.
 }
 
 /// TODO:
-#[derive(Serialize, Deserialize, Debug, Clone, EventPrinter)]
+#[derive(Serialize, Deserialize, Debug, Clone, EventPrinter, Version)]
 pub struct OnHealthChanged {
     new_health: i16,
     old_health: i16,
@@ -150,6 +154,7 @@ pub struct OnHealthChanged {
 
     attack_reason: u8,
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -179,16 +184,16 @@ mod tests {
         let packet_data = hex::decode("0E00000008000000AEE7C743302F8F0000000000020000000100").unwrap();
         let packet = Packet::new(&packet_data);
 
-        let event = EntityMethodEvent::parse(&packet).unwrap();
+        let event = EntityMethodEvent::parse(packet.clone(), [0, 0, 0, 0]).unwrap();
 
         let expected = BattleEvent::EntityMethod(EntityMethodEvent {
             entity_id: 9383728,
-            inner:     &packet,
+            inner:     packet,
             size:      2,
             method:    0,
             event:     EntityMethod::ShotFired(ShowShooting {
                 burst_count: 1,
-                gun_index:   0,
+                gun_index:   Some(0),
             }),
         });
 
@@ -197,14 +202,15 @@ mod tests {
 
     #[test]
     fn parses_on_health_changed() {
-        let packet_data = hex::decode("150000000800000048C19C433B2F8F000200000009000000680583083F2F8F0000").unwrap();
+        let packet_data =
+            hex::decode("150000000800000048C19C433B2F8F000200000009000000680583083F2F8F0000").unwrap();
         let packet = Packet::new(&packet_data);
 
-        let event = EntityMethodEvent::parse(&packet).unwrap();
+        let event = EntityMethodEvent::parse(packet.clone(), [0, 0, 0, 0]).unwrap();
 
         let expected = BattleEvent::EntityMethod(EntityMethodEvent {
             entity_id: 9383739,
-            inner:     &packet,
+            inner:     packet,
             size:      9,
             method:    2,
             event:     EntityMethod::HealthChanged(OnHealthChanged {

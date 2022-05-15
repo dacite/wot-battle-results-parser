@@ -9,18 +9,18 @@ use crate::{BattleContext, Result};
 /// Represents an event that we don't know how to parse yet.
 pub struct Unknown<'pkt> {
     #[derivative(Debug = "ignore")]
-    inner: &'pkt Packet<'pkt>,
+    inner: Packet<'pkt>,
 }
 
 impl<'pkt> PacketParser<'pkt> for Unknown<'pkt> {
-    fn parse(packet: &'pkt Packet) -> Result<BattleEvent<'pkt>> {
+    fn parse(packet: Packet<'pkt>, _version: [u16; 4]) -> Result<BattleEvent<'pkt>> {
         Ok(BattleEvent::Unimplemented(Self { inner: packet }))
     }
 }
 
 impl AsPacket for Unknown<'_> {
     fn as_packet(&self) -> &Packet {
-        self.inner
+        &self.inner
     }
 }
 

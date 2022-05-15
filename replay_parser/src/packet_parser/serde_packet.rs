@@ -1,23 +1,46 @@
 use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::Deserialize;
 
+use crate::events::{Version, VersionInfo};
 use crate::Error;
 
 pub struct Deserializer<'de> {
     input: &'de [u8],
+
+    /// The version the `Deserializer` expect the data format to be
+    de_version: [u16; 4],
+
+    /// Versions of each field. (only used when deserialzing to a struct)
+    version_info: VersionInfo,
+
+    /// Whether to skip deserialzing current item. This flag is set by `VersionedSeqAccess`.
+    /// When set, the current item is deserialized to `None` and the flag will be unset
+    skip: bool,
+
+    /// Name of struct we are deserialzing into. We use this to make sure we call the correct
+    /// visitor for children of this struct who are also structs
+    name: &'static str,
 }
 
 impl<'de> Deserializer<'de> {
-    pub fn from_slice(input: &'de [u8]) -> Self {
-        Deserializer { input }
+    pub fn from_slice(
+        input: &'de [u8], de_version: [u16; 4], version_info: VersionInfo, name: &'static str,
+    ) -> Self {
+        Deserializer {
+            input,
+            de_version,
+            version_info,
+            name,
+            skip: false,
+        }
     }
 }
 
-pub fn from_slice<'a, T>(input: &'a [u8]) -> Result<T, Error>
+pub fn from_slice<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, Error>
 where
-    T: Deserialize<'a>,
+    T: Deserialize<'a> + Version,
 {
-    let mut deserializer = Deserializer::from_slice(input);
+    let mut deserializer = Deserializer::from_slice(input, de_version, T::version(), T::name());
     let t = T::deserialize(&mut deserializer)?;
 
     if deserializer.input.is_empty() {
@@ -27,14 +50,17 @@ where
     }
 }
 
-impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
+
+impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     type Error = Error;
 
-    fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        visitor.visit_none()
+        Err(Error::SerdePacketError(
+            "Deserializer went to unsupported type".to_string(),
+        ))
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -198,11 +224,16 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         unimplemented!()
     }
 
-    fn deserialize_option<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unimplemented!()
+        if self.skip == true {
+            self.skip = false;
+            visitor.visit_none()
+        } else {
+            visitor.visit_some(self)
+        }
     }
 
     fn deserialize_unit<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
@@ -235,7 +266,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         let (remaining, len) = le_u8::<_, Error>(self.input)?;
         self.input = remaining;
 
-        visitor.visit_seq(SequenceAccess::new(self, len as u16))
+        visitor.visit_seq(SequenceAccess::new(self, len as usize))
     }
 
     fn deserialize_tuple<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
@@ -245,7 +276,9 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         unimplemented!()
     }
 
-    fn deserialize_tuple_struct<V>(self, _name: &'static str, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_tuple_struct<V>(
+        self, _name: &'static str, _len: usize, _visitor: V,
+    ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
@@ -260,12 +293,22 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_struct<V>(
-        self, _name: &'static str, fields: &'static [&'static str], visitor: V,
+        self, name: &'static str, fields: &'static [&'static str], visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        visitor.visit_seq(SequenceAccess::new(self, fields.len() as u16))
+        if name == self.name {
+            if let VersionInfo::Struct(version_info) = self.version_info {
+                assert!(version_info.len() == fields.len());
+                visitor.visit_seq(VersionedSeqAccess::new(self, fields.len(), &version_info))
+            } else {
+                panic!("Struct must always have version info of `Struct` variant")
+            }
+        } else {
+            // This is for children structs of the main struct. We do not support versioning for those
+            visitor.visit_seq(SequenceAccess::new(self, fields.len()))
+        }
     }
 
     fn deserialize_enum<V>(
@@ -294,12 +337,12 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
 
 struct SequenceAccess<'a, 'de: 'a> {
     de:   &'a mut Deserializer<'de>,
-    len:  u16,
-    curr: u16,
+    len:  usize,
+    curr: usize,
 }
 
 impl<'a, 'de> SequenceAccess<'a, 'de> {
-    fn new(de: &'a mut Deserializer<'de>, len: u16) -> Self {
+    fn new(de: &'a mut Deserializer<'de>, len: usize) -> Self {
         SequenceAccess { de, len, curr: 0 }
     }
 }
@@ -317,5 +360,63 @@ impl<'de, 'a> SeqAccess<'de> for SequenceAccess<'a, 'de> {
             self.curr += 1;
             seed.deserialize(&mut *self.de).map(Some)
         }
+    }
+}
+struct VersionedSeqAccess<'a, 'de: 'a> {
+    de:           &'a mut Deserializer<'de>,
+    version_info: &'static [VersionInfo],
+    len:          usize,
+    curr:         usize,
+}
+
+impl<'a, 'de> VersionedSeqAccess<'a, 'de> {
+    fn new(de: &'a mut Deserializer<'de>, len: usize, version_info: &'static [VersionInfo]) -> Self {
+        VersionedSeqAccess {
+            de,
+            len,
+            version_info,
+            curr: 0,
+        }
+    }
+}
+
+impl<'de, 'a> SeqAccess<'de> for VersionedSeqAccess<'a, 'de> {
+    type Error = Error;
+
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Error>
+    where
+        T: DeserializeSeed<'de>,
+    {
+        if self.curr == self.len {
+            Ok(None)
+        } else {
+            // Version Check
+            let version = &self.version_info[self.curr as usize];
+            self.de.version_info = version.clone();
+
+            if !is_correct_version(&self.de.de_version, &version) {
+                self.de.skip = true;
+            }
+
+            self.curr += 1;
+            seed.deserialize(&mut *self.de).map(Some)
+        }
+    }
+}
+
+fn is_correct_version(de_version: &[u16; 4], item_version: &VersionInfo) -> bool {
+    match item_version {
+        VersionInfo::Version(version) => {
+            if de_version == &[0, 0, 0, 0] {
+                return true;
+            }
+
+            if de_version < version {
+                false
+            } else {
+                true
+            }
+        }
+        _ => true,
     }
 }

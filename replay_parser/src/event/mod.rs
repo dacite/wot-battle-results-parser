@@ -23,7 +23,4 @@ pub trait TargetableEvent {
 }
 
 
-#[enum_dispatch]
-pub trait PacketParser<'a> {
-    fn parse(packet: &'a Packet) -> Result<BattleEvent<'a>>;
-}
+

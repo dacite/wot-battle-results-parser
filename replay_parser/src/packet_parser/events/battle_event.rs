@@ -3,7 +3,7 @@ use enum_dispatch::enum_dispatch;
 
 use super::*; // Import all event types
 use crate::packet_parser::Packet;
-use crate::{BattleContext, Result};
+use crate::{BattleContext, PacketStream, Result};
 
 
 /// This enum aims to represent all possible events that can occur in a battle. It's variant should map to
@@ -19,19 +19,29 @@ pub enum BattleEvent<'pkt> {
     EntityMethod(EntityMethodEvent<'pkt>),
 }
 
+impl BattleEvent<'_> {
+    pub fn is_unknown(&self) -> bool {
+        match self {
+            BattleEvent::Unimplemented(_) => true,
+            BattleEvent::GameVersion(_) => false,
+            BattleEvent::EntityMethod(em) => em.is_unknown(),
+        }
+    }
+}
+
 /// Parse packet to a Battle event.
-pub fn parse<'pkt>(packet: &'pkt Packet) -> Result<BattleEvent<'pkt>> {
+pub fn parse<'pkt>(packet: Packet<'pkt>, version: [u16; 4]) -> Result<BattleEvent<'pkt>> {
     match packet.get_type() {
-        0x18 => GameVersion::parse(packet),
-        0x08 => EntityMethodEvent::parse(packet),
-        _ => Unknown::parse(packet),
+        0x18 => GameVersion::parse(packet, version),
+        0x08 => EntityMethodEvent::parse(packet, version),
+        _ => Unknown::parse(packet, version),
     }
 }
 
 /// This trait is implemented by all events so that they can parse a packet to a BattleEvent
 #[enum_dispatch]
 pub trait PacketParser<'a> {
-    fn parse(packet: &'a Packet) -> Result<BattleEvent<'a>>;
+    fn parse(packet: Packet<'a>, version: [u16; 4]) -> Result<BattleEvent<'a>>;
 }
 
 /// Get the underlying packet representation of an event. Used to get the event's time, overall size or its
@@ -56,4 +66,47 @@ pub trait EventPrinter {
     fn to_debug_string(&self, context: &BattleContext) -> String
     where
         Self: std::fmt::Debug;
+}
+
+pub trait Version {
+    fn name() -> &'static str;
+    fn version() -> VersionInfo;
+}
+
+#[derive(Debug, Clone)]
+pub enum VersionInfo {
+    /// Present in all versions
+    All,
+
+    /// Present in this version
+    Version([u16; 4]),
+
+    /// Represent Versions of structs
+    Struct(&'static [VersionInfo]),
+}
+
+pub struct EventStream<'a> {
+    packet_stream: PacketStream<'a>,
+    version:       [u16; 4],
+}
+
+impl<'a> EventStream<'a> {
+    pub fn new(packet_stream: PacketStream<'a>, version: [u16; 4]) -> Self {
+        Self {
+            packet_stream,
+            version,
+        }
+    }
+}
+
+impl<'a> Iterator for EventStream<'a> {
+    type Item = crate::Result<BattleEvent<'a>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let packet = self.packet_stream.next()?;
+        match packet {
+            Ok(packet) => Some(parse(packet, self.version)),
+            Err(err) => Some(Err(err)),
+        }
+    }
 }

@@ -2,7 +2,7 @@ use thiserror::Error;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum Error {
     #[error("given packet's size did not match its expected size")]
     InvalidPacket,
@@ -54,6 +54,18 @@ impl From<nom::Err<Error>> for Error {
             nom::Err::Error(error) => error,
             nom::Err::Failure(error) => error,
         }
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(err: std::io::Error) -> Self {
+        Error::Other(err.to_string())
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        Error::Other(err.to_string())
     }
 }
 

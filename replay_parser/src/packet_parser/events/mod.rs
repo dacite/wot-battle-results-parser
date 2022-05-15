@@ -6,7 +6,10 @@ pub use battle_event::parse;
 pub use battle_event::AsPacket;
 pub use battle_event::BattleEvent;
 pub use battle_event::EventPrinter;
+pub use battle_event::EventStream;
 pub use battle_event::PacketParser;
+pub use battle_event::Version;
+pub use battle_event::VersionInfo;
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// Modules for different events

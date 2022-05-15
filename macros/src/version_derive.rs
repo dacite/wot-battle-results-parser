@@ -4,7 +4,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Attribute, Data, DataStruct, ExprArray, Fields, Ident, LitStr};
+use syn::{Attribute, Data, DataStruct, ExprArray, Fields};
 
 pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
     let struct_name = &ast.ident;

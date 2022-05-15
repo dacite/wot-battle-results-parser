@@ -107,7 +107,7 @@ impl<'a> std::fmt::Debug for Packet<'a> {
             1
         };
 
-        let packet_as_hex = (0..self.inner.len())
+        let _packet_as_hex = (0..self.inner.len())
             .step_by(chunk)
             .fold(String::new(), |acc, i| {
                 let len = if i + chunk > self.inner.len() {
