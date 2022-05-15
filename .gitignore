@@ -16,3 +16,6 @@ test.*
 all.hex
 result.hex
 scripts
+results
+results_json
+src/xml_hander

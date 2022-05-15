@@ -98,7 +98,8 @@ impl<'a> Parser<'a> {
 
         let common = self.pickle_list_to_output_object(datfile_format.common)?;
 
-        let account_self: AccountSelf = self.pickle_list_to_output_object(datfile_format.account_self.clone())?;
+        let account_self: AccountSelf =
+            self.pickle_list_to_output_object(datfile_format.account_self.clone())?;
         let account_self = HashMap::from([(account_self.get_account_dbid().to_string(), account_self)]);
 
         let vehicle_self = self.parse_list(datfile_format.vehicle_self)?;
@@ -136,11 +137,12 @@ impl<'a> Parser<'a> {
         let json = self.pickle_list_to_json_object(input)?;
         let output: T = from_json_value(json)?;
 
-        // At this point, there may be some fields that were not present in the output object (`T`). This is parsed as
-        // arena fields because these fields are only common to a specific gamemode. Nevertheless, we try to
-        // serialize these fields to one of the `extra` (For ex: AccountAllExtra, VehicleSelfExtra etc.) enums to make
-        // sure it is indeed the gamemode specific fields. If there are fields that are clearly not part of a
-        // specific gamemode then that's an error and should've been parsed as one of the member of the `T`
+        // At this point, there may be some fields that were not present in the output object (`T`). This is
+        // parsed as arena fields because these fields are only common to a specific gamemode.
+        // Nevertheless, we try to serialize these fields to one of the `extra` (For ex:
+        // AccountAllExtra, VehicleSelfExtra etc.) enums to make sure it is indeed the gamemode
+        // specific fields. If there are fields that are clearly not part of a specific gamemode then
+        // that's an error and should've been parsed as one of the member of the `T`
         output.validate_arena_fields().map_err(|err| {
             anyhow!(
                 "unknown fields found. standard format might be out of date. {}",

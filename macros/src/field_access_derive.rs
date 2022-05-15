@@ -99,7 +99,8 @@ fn get_value(attr: &Attribute) -> syn::Ident {
 
     match attr.parse_meta().unwrap() {
         Meta::NameValue(MetaNameValue {
-            lit: Lit::Str(lit_str), ..
+            lit: Lit::Str(lit_str),
+            ..
         }) => syn::Ident::new(&lit_str.value(), lit_str.span()),
         _ => {
             panic!("expected #[custom_parser = \"functionName\"]");

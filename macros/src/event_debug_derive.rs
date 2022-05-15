@@ -7,7 +7,11 @@ use quote::quote;
 use syn::{Attribute, Data, DataStruct, Fields, Ident};
 
 pub fn imp_event_debug_macro(ast: &syn::DeriveInput) -> TokenStream {
-    let has_lifetime = if ast.generics.lt_token.is_some() { true } else { false };
+    let has_lifetime = if ast.generics.lt_token.is_some() {
+        true
+    } else {
+        false
+    };
 
     let struct_name = &ast.ident;
     let fields = match &ast.data {
@@ -48,7 +52,7 @@ pub fn imp_event_debug_macro(ast: &syn::DeriveInput) -> TokenStream {
                 }
                 "as_player" => {
                     statements.push(quote! {
-                        format!("{} {:?} ", stringify!(#name), &context.entity_id_to_player(self.#name).unwrap_or(self.#name.to_string()))
+                        format!("{} {} ", stringify!(#name), &context.entity_id_to_player(self.#name).unwrap_or(self.#name.to_string()))
                     });
                 }
                 _ => panic!("Unknown value given to event_printer_macro"),

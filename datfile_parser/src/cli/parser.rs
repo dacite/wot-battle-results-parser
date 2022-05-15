@@ -81,7 +81,8 @@ pub fn parse_dir(path: &Path, parser: &DatFileParser) -> Result<Vec<Result<Battl
 /// Parse a single .dat file
 pub fn parse_datfile(path: &Path, parser: &DatFileParser) -> Result<Battle> {
     info!("Parsing {}", &path.to_string_lossy());
-    let file = std::fs::read(path).with_context(|| format!("Cannot read in file at {}", path.to_string_lossy()))?;
+    let file =
+        std::fs::read(path).with_context(|| format!("Cannot read in file at {}", path.to_string_lossy()))?;
 
     parser.parse(&file)
 }
@@ -93,7 +94,8 @@ fn base_32_decode(input: &PathBuf) -> Result<String> {
         .unwrap()
         .to_str()
         .ok_or_else(|| anyhow!("base 32 decode error for {}", input.to_string_lossy()))?;
-    let actual_name_buffer = base32::decode(base32::Alphabet::RFC4648 { padding: false }, &base_32_name).unwrap();
+    let actual_name_buffer =
+        base32::decode(base32::Alphabet::RFC4648 { padding: false }, &base_32_name).unwrap();
 
     Ok(String::from_utf8(actual_name_buffer)?
         .split(";")
