@@ -24,8 +24,8 @@ pub struct GameVersion<'pkt> {
     version: [&'pkt str; 4],
 }
 
-/// Match char that corresponds to a digit. Then take all char that are not digits. This second step is done to ensure
-/// the next call to match_digit with the same buffer will start on a digit char
+/// Match char that corresponds to a digit. Then take all char that are not digits. This second step is done
+/// to ensure the next call to match_digit with the same buffer will start on a digit char
 fn match_digit(s: &[u8]) -> IResult<&[u8], &str> {
     let (remaining, digit) = take_while(is_digit)(s)?;
     let (remaining, _) = take_till(is_digit)(remaining)?;

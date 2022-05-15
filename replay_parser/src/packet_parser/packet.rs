@@ -6,6 +6,7 @@ pub const METADATA_SIZE: usize = 12;
 
 /// A packet is simply a wrapper around a slice that represents that packet. We can also access its type,
 /// timestamp and payload size
+#[derive(Clone)]
 pub struct Packet<'a> {
     inner: &'a [u8],
 }
@@ -61,16 +62,16 @@ impl<'a> PacketStream<'a> {
 }
 
 impl<'a> Iterator for PacketStream<'a> {
-    type Item = Packet<'a>;
+    type Item = crate::Result<Packet<'a>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let position = self.position;
 
         if (position + 4) > self.inner.len() {
-            // TODO: Remove this panic or switch to the previous cursor impl since this
-            // TODO: impl is not faster and more likely to have errors
             if position != self.inner.len() {
-                panic!("UNEXPECTED POSITION");
+                return Some(Err(crate::Error::Other(
+                    "packet stream ended unexpectedly".to_string(),
+                )));
             }
             return None;
         }
@@ -81,8 +82,14 @@ impl<'a> Iterator for PacketStream<'a> {
         let packet_size = METADATA_SIZE as usize + payload_size as usize;
         let packet_range = position..(position + packet_size);
 
+        if (position + packet_size) > self.inner.len() {
+            return Some(Err(crate::Error::Other(
+                "packet has invalid payload size".to_string(),
+            )));
+        }
+
         self.position += packet_size;
-        Some(Packet::new(&self.inner[packet_range]))
+        Some(Ok(Packet::new(&self.inner[packet_range])))
     }
 }
 
@@ -100,18 +107,20 @@ impl<'a> std::fmt::Debug for Packet<'a> {
             1
         };
 
-        let packet_as_hex = (0..self.inner.len()).step_by(chunk).fold(String::new(), |acc, i| {
-            let len = if i + chunk > self.inner.len() {
-                self.inner.len()
-            } else {
-                i + chunk
-            };
-            if is_spaced {
-                format!("{} {}", acc, hex::encode_upper(&self.inner[i..len]))
-            } else {
-                format!("{}{}", acc, hex::encode_upper(&self.inner[i..len]))
-            }
-        });
+        let packet_as_hex = (0..self.inner.len())
+            .step_by(chunk)
+            .fold(String::new(), |acc, i| {
+                let len = if i + chunk > self.inner.len() {
+                    self.inner.len()
+                } else {
+                    i + chunk
+                };
+                if is_spaced {
+                    format!("{} {}", acc, hex::encode_upper(&self.inner[i..len]))
+                } else {
+                    format!("{}{}", acc, hex::encode_upper(&self.inner[i..len]))
+                }
+            });
 
         let payload_as_hex = (0..self.get_payload().len())
             .step_by(chunk)
@@ -134,12 +143,13 @@ impl<'a> std::fmt::Debug for Packet<'a> {
         let size = format!("{}", &self.get_size());
 
         if f.sign_plus() {
-            f.debug_struct(&packet_name).field("data", &packet_as_hex).finish()
+            f.debug_struct(&packet_name)
+                .field("data", &payload_as_hex)
+                .finish()
         } else {
             f.debug_struct(&packet_name)
                 .field("time", &time)
                 .field("size", &size)
-                .field("data", &payload_as_hex)
                 .finish()
         }
     }

@@ -15,14 +15,17 @@ macro_rules! try_variant {
         if let $pattern(value) = $target {
             Ok(value)
         } else {
-            Err(anyhow::anyhow!("Wrong variant. Expected: {}", stringify!($pattern)))
+            Err(anyhow::anyhow!(
+                "Wrong variant. Expected: {}",
+                stringify!($pattern)
+            ))
         }
     }};
 }
 
 
 /// Get files in directory, given directory path (only direct childs of the directory)
-pub fn parse_dir(path: &Path) -> Result<Vec<DirEntry>> {
+pub fn parse_dir<P: AsRef<Path>>(path: P) -> Result<Vec<DirEntry>> {
     let file_paths = fs::read_dir(path).with_context(|| format!("failed to read dir"))?;
 
     Ok(file_paths
