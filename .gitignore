@@ -18,4 +18,5 @@ result.hex
 scripts
 results
 results_json
-src/xml_hander
+results_known
+/replay_parser/definitions
