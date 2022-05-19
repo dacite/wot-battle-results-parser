@@ -1,21 +1,11 @@
 pub mod entity;
 mod types;
-use std::collections::HashMap;
-use wot_replay_parser::Result;
-pub use types::load_type_aliases;
-pub use types::TypeAlias;
+pub mod utils;
 
-pub struct DefinitionParser {
-    game_version: [u16; 4],
-    type_aliases: HashMap<String, TypeAlias>
+pub use types::TypeAliasLookup;
+
+
+pub trait Size {
+    /// Size in bytes of this structure
+    fn get_size(&self) -> u64;
 }
-
-impl DefinitionParser {
-    pub fn new(game_version: [u16; 4]) -> Result<Self> {
-        let type_aliases = load_type_aliases(game_version)?;
-
-        Ok(DefinitionParser { game_version, type_aliases })
-    }
-}
-
-

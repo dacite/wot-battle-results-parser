@@ -1,23 +1,20 @@
-use std::{collections::HashMap, path::Path};
+use std::collections::HashMap;
 
-use roxmltree::Node as XMLNode;
+use roxmltree::{Document, Node as XMLNode};
 use wot_replay_parser::Result;
 
-/// Represent an Aliased type found in the `alias.xml` file. These types are later used in the entity
-/// definition files. For ex. there is an aliased type with `type_name = SHOT_ID` and `ty = I32`(int32)
-#[derive(Debug, Clone)]
-pub struct TypeAlias {
-    type_name: String,
-    ty:        WotType,
-}
+use super::{utils, Size};
 
 
-/// Represents the actual type value of an aliased type.
+/// Type information for types found in the alias.xml and .def files.
 #[derive(Debug, Clone)]
 pub enum WotType {
     OpaqueType(OpaqueType),
     Array(Box<WotType>),
-    Dict(HashMap<String, WotType>),
+    FixedDict {
+        is_nullable: bool,
+        dict:        HashMap<String, WotType>,
+    },
 }
 
 
@@ -39,91 +36,110 @@ pub enum OpaqueType {
     String,
     Vector2,
     Vector3,
+    Vector4, // is this actually present in def files?
     Pickle,
     MailBox,
-    Alias(String),
+    UserType,
+    Alias(Box<WotType>),
 }
 
 
-/// Load type aliases found in `alias.xml` file of a particular version of the game
-pub fn load_type_aliases(version: [u16; 4]) -> Result<HashMap<String, TypeAlias>>{
-    let path = format!(
-        "replay_parser/definitions/{}/alias.xml",
-        version_as_string(version)
-    );
+#[derive(Debug)]
+pub struct TypeAliasLookup {
+    dict: HashMap<String, WotType>,
+}
 
-    let xml_string = read_xml(path).unwrap();
-    let document = roxmltree::Document::parse(&xml_string).unwrap();
+impl TypeAliasLookup {
+    pub fn load(version: [u16; 4]) -> Result<Self> {
+        let path = format!(
+            "replay_parser/definitions/{}/alias.xml",
+            utils::version_as_string(version)
+        );
 
-    let root = document.root().first_child().unwrap();
-    let mut alias_dict = HashMap::new();
-    for node in root.children().filter(XMLNode::is_element) {
-        let alias = parse_type_alias(&node).unwrap();
+        let xml_string = utils::read_xml(path)?;
+        let document = Document::parse(&xml_string).unwrap();
+        let root = document.root().first_child().unwrap();
 
-        if let Some(_) = alias_dict.insert(alias.type_name.clone(), alias) {
-            panic!("Overwrote type alias");
+        let mut type_alias_dict = TypeAliasLookup { dict: HashMap::new() };
+        for node in root.children().filter(XMLNode::is_element) {
+            type_alias_dict.parse_type_alias(&node).unwrap();
+        }
+
+        Ok(type_alias_dict)
+    }
+
+    fn parse_type_alias(&mut self, node: &XMLNode) -> Result<()> {
+        let type_name = node.tag_name().name().to_string();
+        let ty = node.text().unwrap();
+
+        if ty.contains("FIXED_DICT") {
+            let dict = self.parse_dict_type(&node);
+
+            let mut is_nullable = false;
+            if let Some(allow_none) = utils::select_child("AllowNone", node) {
+                if let Some(text) = allow_none.text() {
+                    is_nullable = text.contains("true");
+                }
+            }
+            if let Some(_) = self
+                .dict
+                .insert(type_name, WotType::FixedDict { is_nullable, dict })
+            {
+                panic!("Overwrote type alias");
+            }
+        } else {
+            if let Some(_) = self.dict.insert(type_name, self.parse_type(node)?) {
+                panic!("Overwrote type alias");
+            }
+        }
+
+        Ok(())
+    }
+
+    fn parse_dict_type(&mut self, node: &XMLNode) -> HashMap<String, WotType> {
+        let properties = utils::select_child("Properties", node).unwrap();
+        let dict = self.parse_properties(&properties).unwrap();
+
+        dict
+    }
+
+    fn parse_properties(&mut self, node: &XMLNode) -> Result<HashMap<String, WotType>> {
+        let mut dict = HashMap::new();
+
+        for child in node.children().filter(XMLNode::is_element) {
+            let name = child.tag_name().name().to_string();
+            let ty = utils::select_child("Type", &child).unwrap();
+
+            dict.insert(name, self.parse_type(&ty)?);
+        }
+
+        Ok(dict)
+    }
+
+    /// Parse nodes like `<Type>	ARRAY	  <of>	INT32	</of> </Type>`
+    pub fn parse_type(&self, node: &XMLNode) -> Result<WotType> {
+        let ty = node.text().unwrap().trim();
+
+        match ty {
+            "ARRAY" | "TUPLE" => {
+                let child_type = utils::select_child("of", node).unwrap();
+                let child_type = self.parse_type(&child_type)?;
+
+                Ok(WotType::Array(Box::new(child_type)))
+            }
+            _ => {
+                let type_as_text = node.text().unwrap();
+                let ty = type_from_str(type_as_text, &self)?;
+
+                Ok(WotType::OpaqueType(ty))
+            }
         }
     }
-
-    Ok(alias_dict)
 }
 
-fn parse_type_alias(node: &XMLNode) -> Result<TypeAlias> {
-    let type_name = node.tag_name().name().to_string();
-    let ty = node.text().unwrap();
-
-    if ty.contains("FIXED_DICT") {
-        let dict = parse_dict_type(&node);
-
-        Ok(TypeAlias {
-            type_name,
-            ty: WotType::Dict(dict),
-        })
-    } else {
-        Ok(TypeAlias {
-            type_name,
-            ty: parse_type(node)?,
-        })
-    }
-}
-
-fn parse_dict_type(node: &XMLNode) -> HashMap<String, WotType> {
-    let properties = select_child("Properties", node).unwrap();
-    let dict = parse_properties(&properties).unwrap();
-
-    dict
-}
-
-///
-fn parse_properties(node: &XMLNode) -> Result<HashMap<String, WotType>> {
-    let mut dict = HashMap::new();
-
-    for child in node.children().filter(XMLNode::is_element) {
-        let name = child.tag_name().name().to_string();
-        let ty = select_child("Type", &child).unwrap();
-
-        dict.insert(name, parse_type(&ty)?);
-    }
-
-    Ok(dict)
-}
-
-/// Parse nodes like `<Type>	ARRAY	  <of>	INT32	</of> </Type>`
-fn parse_type(node: &XMLNode) -> Result<WotType> {
-    let ty = node.text().unwrap().trim();
-
-    match ty {
-        "ARRAY" | "TUPLE" => {
-            let child_type = select_child("of", node).unwrap();
-
-            return Ok(WotType::Array(Box::new(parse_type(&child_type)?)));
-        }
-        _ => Ok(WotType::OpaqueType(type_from_str(node.text().unwrap())?)),
-    }
-}
-
-/// Convert a str representation of a type to the Type enum.
-fn type_from_str(s: &str) -> Result<OpaqueType> {
+/// Convert a str representation of a type to the Type enum. Utilizes a lookup table for getting the type
+/// information for aliased types
+fn type_from_str(s: &str, type_lookup: &TypeAliasLookup) -> Result<OpaqueType> {
     use OpaqueType::*;
 
     let s = s.trim();
@@ -144,27 +160,52 @@ fn type_from_str(s: &str) -> Result<OpaqueType> {
         "VECTOR3" => Ok(Vector3),
         "PYTHON" => Ok(Pickle),
         "MAILBOX" => Ok(MailBox),
-        _ => Ok(Alias(s.to_string())),
-    }
-}
-
-
-/// Often times, we expect a parent to have a particular child.
-fn select_child<'a, 'b>(tag_name: &'static str, parent: &'a XMLNode<'a, 'b>) -> Option<XMLNode<'a, 'b>> {
-    for child in parent.children().filter(XMLNode::is_element) {
-        if child.tag_name().name() == tag_name {
-            return Some(child);
+        "USER_TYPE" => Ok(UserType),
+        _ => {
+            if let Some(alias) = type_lookup.dict.get(s) {
+                Ok(Alias(Box::new(alias.clone())))
+            } else {
+                panic!("cannot find alias type: {}", s)
+            }
         }
     }
-
-    None
 }
 
-fn read_xml<P: AsRef<Path>>(path: P) -> Result<String> {
-    Ok(std::fs::read_to_string(path)?)
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Implementations of the trait `Size`
+//////////////////////////////////////////////////////////////////////////////////////////////
+///
+impl Size for WotType {
+    fn get_size(&self) -> u64 {
+        match self {
+            WotType::OpaqueType(ty) => ty.get_size(),
+            WotType::Array(_) => u16::MAX as u64,
+            WotType::FixedDict { is_nullable, dict } => {
+                if *is_nullable {
+                    u16::MAX as u64
+                } else {
+                    dict.values().fold(0, |acc, ty| acc + ty.get_size())
+                }
+            }
+        }
+    }
 }
 
-/// `[0, 9, 15, 0]` => `"0_9_15_0"`
-fn version_as_string(version: [u16; 4]) -> String {
-    version.map(|x| x.to_string()).join("_")
+impl Size for OpaqueType {
+    fn get_size(&self) -> u64 {
+        use OpaqueType::*;
+
+        match self {
+            U8 | I8 => 1,
+            U16 | I16 => 2,
+            F32 | U32 | I32 => 4,
+            F64 | U64 | I64 | Vector2 => 8,
+            Vector3 => 12,
+            Vector4 => 16,
+            String | Pickle | UserType => u16::MAX as u64,
+            MailBox => u16::MAX as u64, // this is 12 in bigworld docs
+            Alias(ty) => ty.get_size(),
+        }
+    }
 }
