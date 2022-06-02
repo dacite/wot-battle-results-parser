@@ -2,7 +2,9 @@ mod battle_result_fields;
 
 use std::collections::BTreeMap;
 
-pub use battle_result_fields::{ALL_TYPES, BATTLE_ROYALE, FRONTLINE, MAPS_TRAINING, RANDOM_ARENA, RANKED, RTS};
+pub use battle_result_fields::{
+    ALL_TYPES, BATTLE_ROYALE, FRONTLINE, MAPS_TRAINING, MAX_VERSION, RANDOM_ARENA, RANKED, RTS,
+};
 use unpickler::PickleValue;
 
 use crate::ArenaBonusType;

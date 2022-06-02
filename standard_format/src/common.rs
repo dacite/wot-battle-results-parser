@@ -43,7 +43,7 @@ impl Common {
 pub struct CommonExtra;
 
 impl ArenaFieldsGetter for Common {
-    type EnumVariant = CommonExtra;
+    type EnumType = CommonExtra;
 
     fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
         HashMap::new()

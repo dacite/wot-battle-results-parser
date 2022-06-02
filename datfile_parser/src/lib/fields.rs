@@ -1,13 +1,11 @@
 use std::collections::HashMap;
 
 use wot_constants::{
-    battle_results::{Field, FieldType, ALL_TYPES},
+    battle_results::{Field, FieldType, ALL_TYPES, MAX_VERSION},
     ArenaBonusType,
 };
 
 pub const CRC32: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
-
-pub const MAX_VERSION: usize = 4;
 
 #[derive(Debug)]
 pub struct ChecksumInfo {
@@ -119,8 +117,13 @@ fn filter_list_for_type(field_type: FieldType, field_list: &[Field]) -> Vec<Fiel
 }
 
 /// Check if a field is part of a specific vesion.
-/// If field has a max version of 0, it does not have a max version
+/// If field has a max version of 0, it does not have a max version.
+/// If field version is higher than `MAX_VERSION` it's a programmer error.
 pub fn matches_version(version: usize, field: &Field) -> bool {
+    if field.version >= MAX_VERSION {
+        panic!("field version is higher than MAX_VERSION. MAX_VERSION may not have been updated")
+    }
+
     (field.version <= version) && (field.max_version > version || field.max_version == 0)
 }
 

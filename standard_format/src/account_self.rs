@@ -106,7 +106,7 @@ pub enum AccountSelfExtra {
 }
 
 impl ArenaFieldsGetter for AccountSelf {
-    type EnumVariant = AccountSelfExtra;
+    type EnumType = AccountSelfExtra;
 
     fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
         self.arena_fields.clone()

@@ -1,5 +1,7 @@
 use super::{FieldDefault, Field, FieldType};
 
+pub const MAX_VERSION: usize = 5;
+
 pub const RANDOM_ARENA: &[Field] = &[
     Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "basePointsDiff", default: FieldDefault::Int(0), combined_string: "basePointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
@@ -20,6 +22,9 @@ pub const BATTLE_ROYALE: &[Field] = &[
     Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "sumPoints", default: FieldDefault::Int(0), combined_string: "sumPoints<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "hasBattlePass", default: FieldDefault::Bool(false), combined_string: "hasBattlePass<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
+    
+    // Packed Value: DictPackers.MergeDictPacker
+    Field { name: "currencies", default: FieldDefault::Dict, combined_string: "currencies<type 'dict'>{}<class 'DictPackers.MergeDictPacker'>joinByEachPacker", version: 4, max_version: 0, field_type: FieldType::VehicleSelf },
 ];
 
 
@@ -115,6 +120,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "piercingEnemyHits", default: FieldDefault::Int(0), combined_string: "piercingEnemyHits<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "damageDealt", default: FieldDefault::Int(0), combined_string: "damageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "sniperDamageDealt", default: FieldDefault::Int(0), combined_string: "sniperDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "artilleryFortEquipDamageDealt", default: FieldDefault::Int(0), combined_string: "artilleryFortEquipDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 4, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "equipmentDamageDealt", default: FieldDefault::Int(0), combined_string: "equipmentDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "damageAssistedRadio", default: FieldDefault::Int(0), combined_string: "damageAssistedRadio<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "damageAssistedTrack", default: FieldDefault::Int(0), combined_string: "damageAssistedTrack<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
@@ -478,4 +484,5 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "startAmmo", default: FieldDefault::List, combined_string: "startAmmo<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "initialVehicleAmmo", default: FieldDefault::List, combined_string: "initialVehicleAmmo<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "replayURL", default: FieldDefault::Str, combined_string: "replayURL<type 'str'><type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "currencies", default: FieldDefault::Dict, combined_string: "currencies<type 'dict'>{}<class 'DictPackers.MergeDictPacker'>joinByEachPacker", version: 4, max_version: 0, field_type: FieldType::VehicleSelf },
 ];

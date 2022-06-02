@@ -31,7 +31,7 @@ pub struct Battle {
 }
 
 pub trait ArenaFieldsGetter {
-    type EnumVariant: DeserializeOwned;
+    type EnumType: DeserializeOwned;
     fn get_arena_fields(&self) -> HashMap<String, serde_json::Value>;
 
     /// Check if there is any fields that are not arena/gamemode fields
@@ -41,7 +41,7 @@ pub trait ArenaFieldsGetter {
             Ok(())
         } else {
             let arena_fields = serde_json::to_value(arena_fields)?;
-            let _arena_fields: Self::EnumVariant = serde_json::from_value(arena_fields)?;
+            let _arena_fields: Self::EnumType = serde_json::from_value(arena_fields)?;
 
             Ok(())
         }

@@ -100,6 +100,9 @@ pub struct VehicleAll {
     damaged_hp:   i32,
     stunned:      i32,
 
+    #[serde(rename = "artilleryFortEquipDamageDealt")]
+    artillery_fort_equip_damage_dealt: i32,
+
     /// Holds fields that only occur in certain gamemodes.
     #[serde(flatten)]
     pub arena_fields: HashMap<String, serde_json::Value>,
@@ -115,7 +118,7 @@ pub enum VehicleAllExtra {
 }
 
 impl ArenaFieldsGetter for VehicleAll {
-    type EnumVariant = VehicleAllExtra;
+    type EnumType = VehicleAllExtra;
 
     fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
         self.arena_fields.clone()

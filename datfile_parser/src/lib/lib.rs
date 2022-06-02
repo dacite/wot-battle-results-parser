@@ -27,7 +27,7 @@ impl DatFileParser {
         let mut parser = Parser::new(&self.collections);
 
         parser.parse(input)?;
-        println!("{:?}", &parser.failed);
+        parser.print_parse_summary();
         Ok(parser.into_battle())
     }
 }

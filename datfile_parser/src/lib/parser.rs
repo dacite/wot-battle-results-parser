@@ -93,18 +93,44 @@ impl<'a> Parser<'a> {
         self.result.unwrap()
     }
 
-    fn parse_datfile_format(&mut self, datfile_format: DatfileFormat) -> Result<Battle> {
-        let arena_unique_id = datfile_format.arena_unique_id;
+    pub fn print_parse_summary(&self) {
+        if let Some(battle) = &self.result {
+            println!("Summary for {}", battle.arena_unique_id);
+            println!("Fields not present: {:?}", self.not_present);
+            println!("Fields manually parsed: {:?}", self.manually_parsed);
+            println!("Fields that failed to parse: {:?}", self.failed);
+        } else {
+            println!("No parse result to show summary");
+        }
 
-        let common = self.pickle_list_to_output_object(datfile_format.common)?;
+        println!();
+    }
 
-        let account_self: AccountSelf = self.pickle_list_to_output_object(datfile_format.account_self.clone())?;
+    fn parse_datfile_format(&mut self, datfile: DatfileFormat) -> Result<Battle> {
+        let arena_unique_id = datfile.arena_unique_id;
+
+        // TODO: More ergonomic way to include info about which object failed
+        let common = self
+            .pickle_list_to_output_object(datfile.common)
+            .map_err(|e| anyhow!("common failed: {}", e.to_string()))?;
+
+        let account_self: AccountSelf = self
+            .pickle_list_to_output_object(datfile.account_self.clone())
+            .map_err(|e| anyhow!("account self failed: {}", e.to_string()))?;
         let account_self = HashMap::from([(account_self.get_account_dbid().to_string(), account_self)]);
 
-        let vehicle_self = self.parse_list(datfile_format.vehicle_self)?;
-        let player_info = self.parse_list(datfile_format.player_info)?;
-        let account_all = self.parse_list(datfile_format.account_all)?;
-        let vehicle_all = self.parse_list(datfile_format.vehicle_all)?;
+        let vehicle_self = self
+            .parse_list(datfile.vehicle_self)
+            .map_err(|e| anyhow!("vehicle self failed: {}", e.to_string()))?;
+        let player_info = self
+            .parse_list(datfile.player_info)
+            .map_err(|e| anyhow!("player info failed: {}", e.to_string()))?;
+        let account_all = self
+            .parse_list(datfile.account_all)
+            .map_err(|e| anyhow!("account all failed: {}", e.to_string()))?;
+        let vehicle_all = self
+            .parse_list(datfile.vehicle_all)
+            .map_err(|e| anyhow!("vehicle_all failed: {}", e.to_string()))?;
 
         Ok(Battle {
             arena_unique_id,
@@ -315,4 +341,15 @@ fn to_rust_dict(pickle_object: PickleValue) -> Result<HashMap<String, Vec<Pickle
             _ => return Err(anyhow!("to rust map found unexpected pickle object")),
         })
         .collect()
+}
+
+impl<'a> std::fmt::Debug for Parser<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Parser")
+            .field("result", &self.result)
+            .field("not_present", &self.not_present)
+            .field("manually_parsed", &self.manually_parsed)
+            .field("failed", &self.failed)
+            .finish()
+    }
 }

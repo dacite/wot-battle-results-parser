@@ -15,9 +15,12 @@ mod tests {
     fn datfile_parser_test() {
         env_logger::builder().is_test(true).try_init().unwrap();
         let parser = DatFileParser::new();
+
         let mut battles = super::parse_dir(Path::new("input_files/test"), &parser).unwrap();
         battles.append(&mut super::parse_dir(Path::new("input_files/other"), &parser).unwrap());
-        battles.append(&mut super::parse_dir(Path::new("input_files/WOT_1_16_1"), &parser).unwrap());
+        battles.append(&mut super::parse_dir(Path::new("input_files/WOT_1_16_1_0"), &parser).unwrap());
+        battles.append(&mut super::parse_dir(Path::new("input_files/WOT_1_17_0_0"), &parser).unwrap());
+
         battles.into_iter().for_each(|battle| match battle {
             Ok(battle) => {
                 assert!(serde_json::to_string_pretty(&battle).is_ok());

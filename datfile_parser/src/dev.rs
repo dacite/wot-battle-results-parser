@@ -7,7 +7,8 @@ fn main() {
     env_logger::init();
     let parser = DatFileParser::new();
 
-    let mut datfiles = utils::parse_dir(Path::new("datfile_parser/input_files/WOT_1_16_1")).unwrap();
+    let mut datfiles = utils::parse_dir(Path::new("datfile_parser/input_files/WOT_1_17_0_0")).unwrap();
+    datfiles.append(&mut utils::parse_dir(Path::new("datfile_parser/input_files/WOT_1_16_1_0")).unwrap());
     datfiles.append(&mut utils::parse_dir(Path::new("datfile_parser/input_files/other")).unwrap());
     datfiles.append(&mut utils::parse_dir(Path::new("datfile_parser/input_files/test")).unwrap());
     datfiles.append(&mut utils::parse_dir(Path::new("datfile_parser/input_files")).unwrap());

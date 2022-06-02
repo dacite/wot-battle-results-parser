@@ -27,7 +27,7 @@ pub struct PlayerInfo {
 pub struct PlayerInfoExtra;
 
 impl ArenaFieldsGetter for PlayerInfo {
-    type EnumVariant = PlayerInfoExtra;
+    type EnumType = PlayerInfoExtra;
 
     fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
         HashMap::new()

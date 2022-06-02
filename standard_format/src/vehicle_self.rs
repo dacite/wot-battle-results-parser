@@ -393,6 +393,11 @@ pub struct VehicleSelf {
     original_credits_contribution_in_squad:  i32,
     original_credits_contribution_out_squad: serde_json::Value,
 
+    #[serde(rename = "artilleryFortEquipDamageDealt")]
+    artillery_fort_equip_damage_dealt: i32,
+
+    currencies: serde_json::Value,
+
     #[serde(default)]
     setups_indexes: serde_json::Value,
 
@@ -411,7 +416,7 @@ pub enum VehicleSelfExtra {
 }
 
 impl ArenaFieldsGetter for VehicleSelf {
-    type EnumVariant = VehicleSelfExtra;
+    type EnumType = VehicleSelfExtra;
 
     fn get_arena_fields(&self) -> HashMap<String, serde_json::Value> {
         self.arena_fields.clone()
@@ -448,6 +453,7 @@ impl VehicleSelf {
 pub struct SteelHunter {
     br_pos_in_battle: i32,
     achived_level:    i32,
+    currencies: serde_json::Value,
 }
 
 

@@ -13,3 +13,6 @@ Cargo.lock
 /datfile_parser/examples/other
 
 test.*
+
+/replay_parser/definitions
+results*
