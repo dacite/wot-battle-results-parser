@@ -21,6 +21,7 @@ path = "src/dev.rs"
 [dev-dependencies]
 criterion = "0.3.5"
 env_logger = "0.8.4"
+rand = "0.8.5"
 
 [[bench]]
 name = "benchmark"
@@ -39,7 +40,6 @@ standard_format = { path = '../standard_format'}
 clap = { version = "3.1.0", features= ["derive"]}
 base32 = "0.4.0"
 directories = "4.0.1"
-rand = "0.8.5"
 serde_with = { version = "1.12.0", features = ["hex"]}
 hex = { version = "0.4.3", features = ["serde"] }
 byteorder = "1.4.3"

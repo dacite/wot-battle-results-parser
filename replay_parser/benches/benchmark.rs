@@ -33,21 +33,23 @@ fn parse_entire_replay() {
 }
 
 fn parse_events(bin_stream: &[u8]) {
-    let stream = wot_replay_parser::PacketStream::new(bin_stream);
-    let packets: Vec<_> = stream.into_iter().collect();
-
-    let _events: Vec<_> = packets.iter().map(|packet| wot_replay_parser::packet_parser::parse(packet)).collect();
+    let parser = wot_replay_parser::ReplayParser::parse(bin_stream).unwrap();
+    let event_stream = parser.event_stream().unwrap();
+    let _events: Vec<_> = event_stream.into_iter().collect();
 }
 
 pub fn criterion_benchmark_events(c: &mut Criterion) {
     let file = std::fs::read("/home/dacite/Projects/wot-battle-results-parser/replay_parser/input_files/20220312_2330_uk-GB98_T95_FV4201_Chieftain_59_asia_great_wall.wotreplay").unwrap();
-    let result = parse(&file).unwrap();
 
     let mut group = c.benchmark_group("Event parsing overhead");
     group.sample_size(5000);
-    group.bench_with_input(BenchmarkId::new("input_example", "ok"), &result.1, |bencher, input| {
-        bencher.iter(|| parse_events(input));
-    });
+    group.bench_with_input(
+        BenchmarkId::new("input_example", "ok"),
+        &file,
+        |bencher, input| {
+            bencher.iter(|| parse_events(input));
+        },
+    );
     group.finish();
 }
 

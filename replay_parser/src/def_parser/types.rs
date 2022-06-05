@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use roxmltree::{Document, Node as XMLNode};
-use wot_replay_parser::Result;
 
-use super::{utils, Size};
+use super::utils::{self, get_definitions_root};
+use crate::Result;
 
 
 /// Type information for types found in the alias.xml and .def files.
@@ -49,12 +49,18 @@ pub struct TypeAliasLookup {
     dict: HashMap<String, WotType>,
 }
 
+impl Default for TypeAliasLookup {
+    fn default() -> Self {
+        Self {
+            dict: Default::default(),
+        }
+    }
+}
+
 impl TypeAliasLookup {
     pub fn load(version: [u16; 4]) -> Result<Self> {
-        let path = format!(
-            "replay_parser/definitions/{}/alias.xml",
-            utils::version_as_string(version)
-        );
+        let def_root = get_definitions_root();
+        let path = format!("{def_root}/{}/alias.xml", utils::version_as_string(version));
 
         let xml_string = utils::read_xml(path)?;
         let document = Document::parse(&xml_string).unwrap();
@@ -167,45 +173,6 @@ fn type_from_str(s: &str, type_lookup: &TypeAliasLookup) -> Result<OpaqueType> {
             } else {
                 panic!("cannot find alias type: {}", s)
             }
-        }
-    }
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-// Implementations of the trait `Size`
-//////////////////////////////////////////////////////////////////////////////////////////////
-///
-impl Size for WotType {
-    fn get_size(&self) -> u64 {
-        match self {
-            WotType::OpaqueType(ty) => ty.get_size(),
-            WotType::Array(_) => u16::MAX as u64,
-            WotType::FixedDict { is_nullable, dict } => {
-                if *is_nullable {
-                    u16::MAX as u64
-                } else {
-                    dict.values().fold(0, |acc, ty| acc + ty.get_size())
-                }
-            }
-        }
-    }
-}
-
-impl Size for OpaqueType {
-    fn get_size(&self) -> u64 {
-        use OpaqueType::*;
-
-        match self {
-            U8 | I8 => 1,
-            U16 | I16 => 2,
-            F32 | U32 | I32 => 4,
-            F64 | U64 | I64 | Vector2 => 8,
-            Vector3 => 12,
-            Vector4 => 16,
-            String | Pickle | UserType => u16::MAX as u64,
-            MailBox => u16::MAX as u64, // this is 12 in bigworld docs
-            Alias(ty) => ty.get_size(),
         }
     }
 }

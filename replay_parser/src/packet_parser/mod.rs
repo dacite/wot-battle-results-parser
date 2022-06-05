@@ -47,7 +47,6 @@ pub use serde_packet::from_slice;
 pub mod events;
 pub use events::parse;
 
-
 /// Contains `Packet`, and `PacketStream`. A light zero-copy wrapper for the binary data from
 /// `.wotreplay`. These are then used by the `events` module to parse into events that we can understand.
 mod packet;

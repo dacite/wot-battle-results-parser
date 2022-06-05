@@ -15,16 +15,12 @@ name = "wot_replay_parser"
 path = "src/main.rs"
 
 [[bin]]
-name = "one_replay"
-path = "src/one_replay.rs"
+name = "event_printer"
+path = "src/event_printer.rs"
 
 [[bin]]
 name = "xml"
 path = "src/xml.rs"
-
-[[bin]]
-name = "event_printer"
-path = "src/event_printer.rs"
 
 [dependencies]
 utils = { path = "../utils" }
@@ -35,16 +31,15 @@ rust-crypto = "0.2"
 hex = "0.4.3"
 serde_json = "1.0.68"
 serde = { version = "1.0.130", features = ["derive"] }
-enum-as-inner = "0.4.0"
-image = "0.24.1"
-derivative = "2.2.0"
 macros = { path = "../macros"}
-getset = "0.1.2"
 time = "0.3.7"
-enum_dispatch = "0.3.8"
 nom = { version = "7.1.1", features = ["alloc"] }
 roxmltree = "0.14.1"
 thiserror = "1.0.31"
+serde-pickle = "1.1.0"
+standard_format = { path = '../standard_format'}
+unpickler = { path = "../unpickler" }
+serde_bytes = "0.11.6"
 
 [dev-dependencies]
 criterion = "0.3.5"

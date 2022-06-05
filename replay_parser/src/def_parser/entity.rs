@@ -2,16 +2,16 @@ use std::rc::Rc;
 
 use roxmltree::Document;
 use roxmltree::Node as XMLNode;
-use wot_replay_parser::Error;
-use wot_replay_parser::Result;
 
 use super::types::WotType;
 use super::utils::{self, select_child};
 use super::{Size, TypeAliasLookup};
+use crate::Error;
+use crate::Result;
 
 #[derive(Debug)]
 pub struct Entity {
-    name:         String,
+    _name:        String,
     version:      [u16; 4],
     type_aliases: Rc<TypeAliasLookup>,
 
@@ -25,9 +25,9 @@ pub struct Entity {
 
 #[derive(Debug)]
 pub struct Property {
-    name: String,
-    ty:   WotType,
-    flag: String,
+    _name: String,
+    _ty:   WotType,
+    _flag: String,
 }
 
 #[derive(Debug, Clone)]
@@ -37,23 +37,20 @@ pub struct Method {
     variable_header_size: Option<u8>,
 }
 
-impl Size for Method {
-    fn get_size(&self) -> u64 {
-        let mut size = self.params.iter().fold(0, |acc, x| acc + x.get_size());
+impl Method {
+    pub fn get_params(&self) -> &[WotType] {
+        &self.params
+    }
 
-        if size >= u16::MAX as u64 {
-            size = u16::MAX as u64 + self.variable_header_size.unwrap_or(1) as u64;
-        } else {
-            size += self.variable_header_size.unwrap_or(1) as u64;
-        }
-
-        size
+    pub fn get_variable_header_size(&self) -> Option<u8> {
+        self.variable_header_size
     }
 }
+
 impl Entity {
     pub fn new(name: &str, version: [u16; 4], type_aliases: Rc<TypeAliasLookup>) -> Result<Self> {
         let mut entity = Entity {
-            name: name.to_string(),
+            _name: name.to_string(),
             version,
             type_aliases,
             _volatiles: Vec::new(),
@@ -63,22 +60,21 @@ impl Entity {
             base_methods: Vec::new(),
         };
         entity.from_def_file(get_def_file_path(version, name, false))?;
+        entity
+            .client_methods
+            .sort_by(|a, b| a.get_size().cmp(&b.get_size()));
 
-        for (i, method) in entity.client_methods.iter().enumerate() {
-            println!("{i} {:?}", &method.name);
-        }
-
-        let mut client_methods = entity.client_methods.clone();
-        client_methods.sort_by(|a, b| a.get_size().cmp(&b.get_size()));
-
-        for (i, method) in client_methods.iter().enumerate() {
-            println!("{i} size: {} {:?}", method.get_size(), &method.name);
-        }
         Ok(entity)
     }
 
+    pub fn find_method(&self, method_id: usize) -> Option<&str> {
+        let method = self.client_methods.get(method_id)?;
+
+        Some(&method.name)
+    }
+
     fn from_def_file(&mut self, path: String) -> Result<()> {
-        let xml_string = utils::read_xml(path)?;
+        let xml_string = utils::read_xml(path).map_err(|e| Error::DefinitionFileError(e.to_string()))?;
         let document = Document::parse(&xml_string).unwrap();
         let root = document.root().first_child().unwrap();
 
@@ -98,11 +94,13 @@ impl Entity {
 
         if let Some(cell_methods) = utils::select_child("CellMethods", &root) {
             let mut cell_methods = parse_methods(cell_methods, self.type_aliases.as_ref())?;
+
             self.cell_methods.append(&mut cell_methods);
         }
 
         if let Some(base_methods) = utils::select_child("BaseMethods", &root) {
             let mut base_methods = parse_methods(base_methods, self.type_aliases.as_ref())?;
+
             self.base_methods.append(&mut base_methods);
         }
 
@@ -132,9 +130,9 @@ fn parse_properties(entity: &mut Entity, node: XMLNode) -> Result<()> {
         let ty = select_child("Type", &child).unwrap();
 
         let property = Property {
-            name,
-            ty: entity.type_aliases.parse_type(&ty)?,
-            flag: flag.text().unwrap().trim().to_string(),
+            _name: name,
+            _ty:   entity.type_aliases.parse_type(&ty)?,
+            _flag: flag.text().unwrap().trim().to_string(),
         };
 
         entity.properties.push(property)
@@ -218,10 +216,11 @@ fn is_arg(node: &XMLNode) -> bool {
 /// `Avatar.def`
 fn get_def_file_path(version: [u16; 4], name: &str, is_interface: bool) -> String {
     let game_version = utils::version_as_string(version);
+    let def_dir = utils::get_definitions_root();
 
     if is_interface {
-        format!("replay_parser/definitions/{game_version}/interfaces/{name}.def").to_lowercase()
+        format!("{def_dir}/{game_version}/interfaces/{name}.def").to_lowercase()
     } else {
-        format!("replay_parser/definitions/{game_version}/{name}.def").to_lowercase()
+        format!("{def_dir}/{game_version}/{name}.def").to_lowercase()
     }
 }

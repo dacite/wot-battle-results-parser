@@ -1,3 +1,5 @@
+use nom::bytes::complete::take;
+use nom::number::complete::{le_u24, le_u8};
 use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::Deserialize;
 
@@ -50,6 +52,16 @@ where
     }
 }
 
+/// Does not check if the input was fully consumed
+pub fn from_slice_unchecked<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, Error>
+where
+    T: Deserialize<'a> + Version,
+{
+    let mut deserializer = Deserializer::from_slice(input, de_version, T::version(), T::name());
+    let t = T::deserialize(&mut deserializer)?;
+
+    Ok(t)
+}
 
 impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     type Error = Error;
@@ -67,7 +79,6 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        use nom::number::complete::le_u8;
         let (remaining, result) = le_u8::<_, Error>(self.input)?;
         self.input = remaining;
         let result = match result {
@@ -127,8 +138,6 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        use nom::number::complete::le_u8;
-
         let (remaining, result) = le_u8::<_, Error>(self.input)?;
         self.input = remaining;
         visitor.visit_u8(result)
@@ -173,7 +182,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_f32;
 
-        let (remaining, result) = le_f32::<_, Error>(self.input)?;
+        let (remaining, result) = le_f32(self.input)?;
         self.input = remaining;
         visitor.visit_f32(result)
     }
@@ -184,7 +193,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_f64;
 
-        let (remaining, result) = le_f64::<_, Error>(self.input)?;
+        let (remaining, result) = le_f64(self.input)?;
         self.input = remaining;
         visitor.visit_f64(result)
     }
@@ -203,18 +212,31 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         unimplemented!()
     }
 
-    fn deserialize_string<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_string<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unimplemented!()
+        let (remaining, len) = le_u8(self.input)?;
+        if (len as usize) > remaining.len() {
+            return Err(Error::SerdePacketError("Error deserializing string".to_string()));
+        }
+        let str_bytes = &remaining[..(len as usize)];
+
+        let str = std::str::from_utf8(str_bytes)
+            .map_err(|_| Error::SerdePacketError("Error deserializing string".to_string()))?;
+        self.input = &remaining[(len as usize)..];
+        visitor.visit_string(str.to_string())
     }
 
-    fn deserialize_bytes<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        unimplemented!()
+        let (remaining, bytes_array) = parse_byte_array(self.input)?;
+
+        self.input = remaining;
+
+        visitor.visit_borrowed_bytes(bytes_array)
     }
 
     fn deserialize_byte_buf<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
@@ -261,12 +283,17 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        use nom::number::complete::le_u8;
-
         let (remaining, len) = le_u8::<_, Error>(self.input)?;
-        self.input = remaining;
+        if len == u8::MAX {
+            // This is a packed int spanning 3 bytes
+            let (remaining, len) = le_u24::<_, Error>(remaining)?;
 
-        visitor.visit_seq(SequenceAccess::new(self, len as usize))
+            self.input = remaining;
+            visitor.visit_seq(SequenceAccess::new(self, len as usize))
+        } else {
+            self.input = remaining;
+            visitor.visit_seq(SequenceAccess::new(self, len as usize))
+        }
     }
 
     fn deserialize_tuple<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
@@ -418,5 +445,24 @@ fn is_correct_version(de_version: &[u16; 4], item_version: &VersionInfo) -> bool
             }
         }
         _ => true,
+    }
+}
+
+
+/// Return the remaining input and the byte_array that was parsed
+pub fn parse_byte_array(input: &[u8]) -> Result<(&[u8], &[u8]), Error> {
+    let (remaining, len) = le_u8(input)?;
+
+
+    if len == u8::MAX {
+        // This is a packed int spanning 3 bytes Ex: 0xFF080100
+        let (remaining, len) = le_u24(remaining)?;
+        let (remaining, bytes_array) = take(len)(remaining)?;
+
+        Ok((remaining, bytes_array))
+    } else {
+        let (remaining, bytes_array) = take(len)(remaining)?;
+
+        Ok((remaining, bytes_array))
     }
 }

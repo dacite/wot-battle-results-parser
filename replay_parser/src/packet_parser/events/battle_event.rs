@@ -1,55 +1,89 @@
-use enum_as_inner::EnumAsInner;
-use enum_dispatch::enum_dispatch;
-
-use super::*; // Import all event types
+use super::event_stream::{Context, UpdateContext}; // Import all event types
+use super::*;
 use crate::packet_parser::Packet;
-use crate::{BattleContext, PacketStream, Result};
+use crate::{BattleContext, Result};
 
+#[derive(Debug)]
+pub struct Event<'pkt> {
+    packet: Packet<'pkt>,
+    event:  BattleEvent,
+}
+
+impl<'pkt> Event<'pkt> {
+    pub fn new(packet: Packet<'pkt>, event: BattleEvent) -> Self {
+        Event { packet, event }
+    }
+
+    pub fn into_battle_event(self) -> BattleEvent {
+        self.event
+    }
+
+    pub fn event(&self) -> &BattleEvent {
+        &self.event
+    }
+
+    pub fn packet(&self) -> &Packet {
+        &self.packet
+    }
+
+    pub fn is_unknown(&self) -> bool {
+        self.event.is_unknown()
+    }
+}
 
 /// This enum aims to represent all possible events that can occur in a battle. It's variant should map to
 /// each packet type and is expected to always be that type. For ex., a `GameVersion` packet has type `0x18`
 /// and is a variant of this enum. It is always be expected to be this type across all replays. Note that some
 /// packet types like `0x08` may have children of its own. See `EntityMethodEvent` for more details.
-#[derive(Debug, EnumAsInner, Clone)]
-#[enum_dispatch(AsPacket, EventPrinter)]
+#[derive(Debug, Clone)]
 #[non_exhaustive]
-pub enum BattleEvent<'pkt> {
-    Unimplemented(Unknown<'pkt>),
-    GameVersion(GameVersion<'pkt>),
-    EntityMethod(EntityMethodEvent<'pkt>),
+pub enum BattleEvent {
+    Unimplemented,
+    GameVersion(GameVersion),
+    AvatarCreate(AvatarCreate),
+    EntityMethod(EntityMethodEvent),
 }
 
-impl BattleEvent<'_> {
+impl BattleEvent {
     pub fn is_unknown(&self) -> bool {
         match self {
-            BattleEvent::Unimplemented(_) => true,
-            BattleEvent::GameVersion(_) => false,
-            BattleEvent::EntityMethod(em) => em.is_unknown(),
+            BattleEvent::Unimplemented => true,
+            // BattleEvent::EntityMethod(em) => em.is_unknown(),
+            _ => false,
         }
     }
 }
 
-/// Parse packet to a Battle event.
-pub fn parse<'pkt>(packet: Packet<'pkt>, version: [u16; 4]) -> Result<BattleEvent<'pkt>> {
-    match packet.get_type() {
-        0x18 => GameVersion::parse(packet, version),
-        0x08 => EntityMethodEvent::parse(packet, version),
-        _ => Unknown::parse(packet, version),
+impl EventPrinter for BattleEvent {
+    fn to_debug_string(&self, context: &BattleContext) -> String
+    where
+        Self: std::fmt::Debug,
+    {
+        use BattleEvent::*;
+        match self {
+            Unimplemented => "Unimplemented".to_string(),
+            AvatarCreate(x) => x.to_debug_string(context),
+            GameVersion(x) => x.to_debug_string(context),
+            EntityMethod(x) => x.to_debug_string(context),
+        }
     }
 }
 
+impl UpdateContext for BattleEvent {
+    fn update_context(&self, context: &mut Context) {
+        match self {
+            BattleEvent::Unimplemented => {}
+            BattleEvent::GameVersion(_) => {}
+            BattleEvent::AvatarCreate(x) => x.update_context(context),
+            BattleEvent::EntityMethod(_) => {}
+        }
+    }
+}
 /// This trait is implemented by all events so that they can parse a packet to a BattleEvent
-#[enum_dispatch]
-pub trait PacketParser<'a> {
-    fn parse(packet: Packet<'a>, version: [u16; 4]) -> Result<BattleEvent<'a>>;
+pub trait PacketParser {
+    fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent>;
 }
 
-/// Get the underlying packet representation of an event. Used to get the event's time, overall size or its
-/// packet type
-#[enum_dispatch]
-pub trait AsPacket {
-    fn as_packet(&self) -> &Packet;
-}
 
 /// Used for debugging purposes. Instead of the `Debug` trait (we don't have to choose. It is available as
 /// well) because its useful for us to transform some values based on the `BattleContext`. For example, an
@@ -61,7 +95,6 @@ pub trait AsPacket {
 ///    that
 ///
 /// If no options, then `std::fmt::Debug` is called on that field
-#[enum_dispatch]
 pub trait EventPrinter {
     fn to_debug_string(&self, context: &BattleContext) -> String
     where
@@ -83,30 +116,4 @@ pub enum VersionInfo {
 
     /// Represent Versions of structs
     Struct(&'static [VersionInfo]),
-}
-
-pub struct EventStream<'a> {
-    packet_stream: PacketStream<'a>,
-    version:       [u16; 4],
-}
-
-impl<'a> EventStream<'a> {
-    pub fn new(packet_stream: PacketStream<'a>, version: [u16; 4]) -> Self {
-        Self {
-            packet_stream,
-            version,
-        }
-    }
-}
-
-impl<'a> Iterator for EventStream<'a> {
-    type Item = crate::Result<BattleEvent<'a>>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let packet = self.packet_stream.next()?;
-        match packet {
-            Ok(packet) => Some(parse(packet, self.version)),
-            Err(err) => Some(Err(err)),
-        }
-    }
 }

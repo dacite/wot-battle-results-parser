@@ -7,6 +7,15 @@ pub enum Error {
     #[error("given packet's size did not match its expected size")]
     InvalidPacket,
 
+    #[error("cannot read replay file")]
+    ReplayFileError,
+
+    #[error("error reading replay json: {0}")]
+    ReplayJsonError(String),
+
+    #[error("cannot find definitions: {0}")]
+    DefinitionFileError(String),
+
     /// Error when parsing with nom. Only holds information about what type of nom error.
     /// More info is added and this error will turn to one of the other variants and this error gets bubbled
     /// up
@@ -19,16 +28,18 @@ pub enum Error {
     #[error("serde packet error: {0}")]
     SerdePacketError(String),
 
-    #[error("entity method {method_name} ({method_id}) parse failed. given data: {}")]
+    #[error("entity method {method_name} parse failed: {root_cause}. given data: {method_data}")]
     EntityMethodError {
         method_data: String,
-        method_id:   i32,
         method_name: String,
         root_cause:  String,
     },
 
     #[error("other error: {0}")]
     Other(String),
+
+    #[error("i/o error: {0}")]
+    IoError(String),
 }
 
 impl Error {
@@ -37,10 +48,9 @@ impl Error {
     /// - `id` expected id of the method
     /// - `name` name of the method
     /// - `root_cause` the underlying factor that caused the parsing to fail
-    pub fn new_entity_method_err(data: &[u8], id: i32, name: &str, root_cause: Error) -> Self {
+    pub fn new_entity_method_err(data: &[u8], name: &str, root_cause: Error) -> Self {
         Self::EntityMethodError {
             method_data: hex::encode_upper(data),
-            method_id:   id,
             method_name: name.to_string(),
             root_cause:  root_cause.to_string(),
         }
@@ -59,13 +69,13 @@ impl From<nom::Err<Error>> for Error {
 
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
-        Error::Other(err.to_string())
+        Error::IoError(err.to_string())
     }
 }
 
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Self {
-        Error::Other(err.to_string())
+        Error::ReplayJsonError(err.to_string())
     }
 }
 

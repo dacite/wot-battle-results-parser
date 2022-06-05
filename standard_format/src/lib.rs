@@ -30,6 +30,7 @@ pub struct Battle {
     pub account_self:    HashMap<String, AccountSelf>,
 }
 
+/// TODO?????
 pub trait ArenaFieldsGetter {
     type EnumVariant: DeserializeOwned;
     fn get_arena_fields(&self) -> HashMap<String, serde_json::Value>;

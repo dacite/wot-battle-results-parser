@@ -11,7 +11,3 @@ serde-pickle = "1.1.0"
 anyhow = "1.0.52"
 miniz_oxide = "0.5.1"
 serde = { version = "1.0.135", features = ["derive"] }
-
-[dependencies.num]
-version = "0.3"
-features = ["serde"]
