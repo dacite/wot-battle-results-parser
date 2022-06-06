@@ -9,7 +9,9 @@ use nom::{
     number::complete::le_u32,
 };
 
-use crate::{BattleContext, Error, EventStream, PacketStream, ReplayParseResult, Result};
+use crate::{
+    json_parser::JsonParser, BattleContext, Error, EventStream, PacketStream, ReplayParseResult, Result,
+};
 /// Parse a wotreplay from file. Only deals with that wotreplay. If you need to parse multiple replays, create
 /// multiple instances of `ReplayParser`.
 /// ## Example 1 - Print Replay Events
@@ -142,6 +144,12 @@ impl ReplayParser {
 
     pub fn battle_context(&self) -> BattleContext {
         BattleContext::from(&self.json, &self.packets_buffer.as_ref().unwrap())
+    }
+}
+
+impl JsonParser for ReplayParser {
+    fn get_json(&self) -> &[serde_json::Value] {
+        self.get_json()
     }
 }
 

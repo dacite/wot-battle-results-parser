@@ -38,6 +38,9 @@ pub enum Error {
     #[error("other error: {0}")]
     Other(String),
 
+    #[error("json error: {0}")]
+    JsonKeyError(&'static str),
+
     #[error("i/o error: {0}")]
     IoError(String),
 }
