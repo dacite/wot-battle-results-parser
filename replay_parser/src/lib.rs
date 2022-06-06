@@ -1,7 +1,7 @@
 mod error;
 
 mod json_parser;
-pub use json_parser::JsonParser;
+pub use json_parser::{JsonParser, ReplaySummary};
 
 pub mod packet_parser;
 mod replay_parser;
