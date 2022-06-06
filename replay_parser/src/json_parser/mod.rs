@@ -3,7 +3,7 @@ use serde_json::Value as JsonValue;
 
 use crate::{Error, Result};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ReplaySummary {
     player_name:  String,
     tank_name:    String,
