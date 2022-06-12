@@ -1,15 +1,20 @@
-use serde::{Serialize, Deserialize};
+mod schemas;
+
+use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
 use crate::{Error, Result};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ReplaySummary {
-    player_name:  String,
-    tank_name:    String,
-    map_name:     String,
+    #[serde(flatten)]
+    summary: schemas::ReplayCommon,
+
     damage_dealt: Option<i64>,
     kills:        Option<i64>,
+    xp:           Option<i64>,
+    credits:      Option<i64>,
 }
 
 pub trait JsonParser {
@@ -47,31 +52,32 @@ pub trait JsonParser {
             .get(0)
             .ok_or(Error::JsonKeyError("no json in replay"))?;
 
-        let player_name = get_value(json, "/playerName")?.as_str().unwrap().to_string();
-        let tank_name = get_value(json, "/playerVehicle")?.as_str().unwrap().to_string();
-        let map_name = get_value(json, "/mapDisplayName")?.as_str().unwrap().to_string();
+        let summary = serde_json::from_value(json.clone()).unwrap();
 
-        let (damage_dealt, kills) = if let Some(vehicle_self_list) = self.get_vehicle_self() {
+        let (damage_dealt, kills, xp, credits) = if let Some(vehicle_self_list) = self.get_vehicle_self() {
             let mut damage_dealt = 0;
             let mut kills = 0;
-
+            let mut credits = 0;
+            let mut xp = 0;
             // In Some gamemodes you can use multiple vehicles so we add all them up in the summary
             for vehicle_self in vehicle_self_list {
                 damage_dealt += get_value(vehicle_self, "/damageDealt")?.as_i64().unwrap();
                 kills += get_value(vehicle_self, "/kills")?.as_i64().unwrap();
+                xp += get_value(vehicle_self, "/factualXP")?.as_i64().unwrap();
+                credits += get_value(vehicle_self, "/factualCredits")?.as_i64().unwrap();
             }
 
-            (Some(damage_dealt), Some(kills))
+            (Some(damage_dealt), Some(kills), Some(xp), Some(credits))
         } else {
-            (None, None)
+            (None, None, None, None)
         };
 
         Ok(ReplaySummary {
-            player_name,
-            tank_name,
-            map_name,
+            summary,
             damage_dealt,
             kills,
+            credits,
+            xp,
         })
     }
 }
