@@ -1,7 +1,7 @@
 # World of Tanks Battle Results Parser
 
 This project aims to parse World of Tanks battle results from two sources:
- - `.dat` files from World of Tanks cache folder
+ - `.dat` files from World of Tanks cache folder (only datfiles from random battles officially supported)
  - `.wotreplay` files from the game directory (Work in Progress)
 
 Currently, this project produces a binary (See releases) that parses `.dat` files only.
