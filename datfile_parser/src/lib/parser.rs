@@ -164,7 +164,6 @@ impl<'a> Parser<'a> {
             checksum
         ))?;
 
-
         // We skip the first element of the `value_list` because it is the checksum
         let mut value_list_iter = value_list.into_iter().skip(1);
 

@@ -441,7 +441,6 @@ impl VehicleSelf {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Fields of type `VehicleSelf` that only occurs in Steel Hunter Gamemode
@@ -449,7 +448,6 @@ pub struct SteelHunter {
     br_pos_in_battle: i32,
     achived_level:    i32,
 }
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

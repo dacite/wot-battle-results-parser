@@ -10,7 +10,6 @@ use standard_format::Battle;
 use unpickler::PickleValue;
 use wot_constants::battle_results::Field;
 
-
 pub struct DatFileParser {
     collections: FieldCollection,
 }

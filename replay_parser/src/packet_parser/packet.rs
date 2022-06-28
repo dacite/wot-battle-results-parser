@@ -1,8 +1,6 @@
 use byteorder::{ReadBytesExt, LE};
 
-
 pub const METADATA_SIZE: usize = 12;
-
 
 /// A packet is simply a wrapper around a slice that represents that packet. We can also access its type,
 /// timestamp and payload size

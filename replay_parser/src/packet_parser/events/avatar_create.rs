@@ -10,7 +10,6 @@ use crate::Result;
 // todo: how can this be inside macro (VersionInfo)
 use crate::{events::VersionInfo, packet_parser::serde_packet};
 
-
 #[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
 pub struct AvatarCreate {
     #[serde(skip)]

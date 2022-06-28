@@ -108,7 +108,6 @@ impl Entity {
     }
 }
 
-
 fn parse_interfaces(entity: &mut Entity, node: XMLNode) -> Result<()> {
     for child in node.children().filter(XMLNode::is_element) {
         if is_interface(&child) {
@@ -175,7 +174,6 @@ fn parse_method(node: XMLNode, type_alias_dict: &TypeAliasLookup) -> Result<Meth
         variable_header_size,
     })
 }
-
 
 fn is_interface(node: &XMLNode) -> bool {
     let tag_name = node.tag_name().name();

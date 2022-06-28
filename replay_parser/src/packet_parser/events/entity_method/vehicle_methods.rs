@@ -80,7 +80,6 @@ pub struct OnStaticCollision {
     destr_max_health: Option<u16>,
 }
 
-
 #[cfg(test)]
 mod tests {
 

@@ -23,7 +23,6 @@ macro_rules! try_variant {
     }};
 }
 
-
 /// Get files in directory, given directory path (only direct childs of the directory)
 pub fn parse_dir<P: AsRef<Path>>(path: P) -> Result<Vec<DirEntry>> {
     let file_paths = fs::read_dir(path).with_context(|| format!("failed to read dir"))?;

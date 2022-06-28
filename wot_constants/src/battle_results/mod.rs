@@ -9,7 +9,6 @@ use unpickler::PickleValue;
 
 use crate::ArenaBonusType;
 
-
 #[derive(Clone)]
 /// A data structure that holds information about a field found in battle
 /// results.

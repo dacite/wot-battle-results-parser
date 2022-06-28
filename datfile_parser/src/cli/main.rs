@@ -1,6 +1,5 @@
 mod parser;
 
-
 use std::{fs, path::Path};
 
 use clap::{ArgGroup, Parser};

@@ -60,7 +60,6 @@ pub trait UpdateContext {
     fn update_context(&self, context: &mut Context);
 }
 
-
 pub struct EventStream<'pkt> {
     packet_stream: PacketStream<'pkt>,
     _vehicle:      Entity,
@@ -90,7 +89,6 @@ pub fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent> {
         _ => Ok(BattleEvent::Unimplemented),
     }
 }
-
 
 impl<'pkt> Iterator for EventStream<'pkt> {
     type Item = Result<Event<'pkt>>;

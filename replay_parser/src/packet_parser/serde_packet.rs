@@ -448,11 +448,9 @@ fn is_correct_version(de_version: &[u16; 4], item_version: &VersionInfo) -> bool
     }
 }
 
-
 /// Return the remaining input and the byte_array that was parsed
 pub fn parse_byte_array(input: &[u8]) -> Result<(&[u8], &[u8]), Error> {
     let (remaining, len) = le_u8(input)?;
-
 
     if len == u8::MAX {
         // This is a packed int spanning 3 bytes Ex: 0xFF080100

@@ -84,7 +84,6 @@ pub trait PacketParser {
     fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent>;
 }
 
-
 /// Used for debugging purposes. Instead of the `Debug` trait (we don't have to choose. It is available as
 /// well) because its useful for us to transform some values based on the `BattleContext`. For example, an
 /// event may have an `attacker_id` attribute. We can transform that id to the actual player.

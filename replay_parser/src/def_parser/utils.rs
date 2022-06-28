@@ -4,7 +4,6 @@ use roxmltree::Node as XMLNode;
 
 use crate::{Error, Result};
 
-
 pub fn read_xml<'a, 'input, P: AsRef<Path>>(path: P) -> Result<String> {
     match std::fs::read_to_string(&path) {
         Ok(file) => Ok(file),

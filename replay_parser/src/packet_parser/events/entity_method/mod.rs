@@ -1,7 +1,6 @@
 mod update_arena;
 mod vehicle_methods;
 
-
 use macros::EventPrinter;
 use nom::number::complete::le_i32;
 use serde::{Deserialize, Serialize};
@@ -63,7 +62,6 @@ impl PacketParser for EntityMethodEvent {
         }
     }
 }
-
 
 impl EntityMethodEvent {
     /// Whether we understand the entity method
@@ -140,7 +138,6 @@ impl EventPrinter for EntityMethod {
         }
     }
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Vector3 {

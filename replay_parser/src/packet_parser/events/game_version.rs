@@ -8,7 +8,6 @@ use super::{event_stream::Context, BattleEvent, EventPrinter, PacketParser};
 use crate::Result;
 use crate::{packet_parser::Packet, Error};
 
-
 #[derive(Debug, Clone, EventPrinter)]
 pub struct GameVersion {
     /// Version of the game as described in the replay file

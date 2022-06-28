@@ -49,7 +49,6 @@ fn pickle_to_wotvalue_to_json(pickle: PickleValue) -> Result<JSONValue> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 #[serde_with::serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 struct AccountCompDescr {

@@ -5,7 +5,6 @@ use roxmltree::{Document, Node as XMLNode};
 use super::utils::{self, get_definitions_root};
 use crate::Result;
 
-
 /// Type information for types found in the alias.xml and .def files.
 #[derive(Debug, Clone)]
 pub enum WotType {
@@ -16,7 +15,6 @@ pub enum WotType {
         dict:        HashMap<String, WotType>,
     },
 }
-
 
 /// These types are `Opaque` in the sense that it's the only info we represent. In contrast, `WotType`
 /// represent dictionaries where it also tells us the types of the values in the dictionary. This is not
@@ -42,7 +40,6 @@ pub enum OpaqueType {
     UserType,
     Alias(Box<WotType>),
 }
-
 
 #[derive(Debug)]
 pub struct TypeAliasLookup {

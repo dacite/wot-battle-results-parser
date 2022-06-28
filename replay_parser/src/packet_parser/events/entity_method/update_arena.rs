@@ -5,7 +5,6 @@ use utils::try_variant;
 use crate::packet_parser::serde_packet;
 use crate::Result;
 
-
 #[derive(Debug, Clone)]
 pub struct UpdateArena {
     _update_type: u8,
@@ -23,7 +22,6 @@ impl UpdateArena {
         })
     }
 }
-
 
 fn parse_arena_data(update_type: u8, arena_data: &[u8]) -> Result<()> {
     if update_type == ArenaUpdate::VehicleList as u8 {

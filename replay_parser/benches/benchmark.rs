@@ -4,7 +4,6 @@ use criterion::BenchmarkId;
 use criterion::{criterion_group, criterion_main, Criterion};
 use wot_replay_parser::{parse, parse_json};
 
-
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("Replay: Parse JSON Only", |b| b.iter(parse_json_only));
     c.bench_function("Replay: Parse in Entirety", |b| b.iter(parse_entire_replay));
