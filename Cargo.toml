@@ -8,4 +8,5 @@ members = [
     "macros",
     "wot_constants",
     "utils",
+    "replay_db"
 ]

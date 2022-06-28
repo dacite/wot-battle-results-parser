@@ -1,0 +1,33 @@
+CREATE TABLE Details
+(
+    arenaUniqueID              TEXT NOT NULL,
+    attackerAvatarID           INT  NOT NULL,
+    receiverAvatarID           INT  NOT NULL,
+    attackerTypeCompDescr      INT  NOT NULL,
+    crits                      INT,
+    damageAssistedInspire      INT,
+    damageAssistedRadio        INT,
+    damageAssistedSmoke        INT,
+    damageAssistedStun         INT,
+    damageAssistedTrack        INT,
+    damageBlockedByArmor       INT,
+    damageDealt                INT,
+    damageReceived             INT,
+    deathReason                INT,
+    directEnemyHits            INT,
+    directHits                 INT,
+    explosionHits              INT,
+    fire                       INT,
+    noDamageDirectHitsReceived INT,
+    piercingEnemyHits          INT,
+    piercings                  INT,
+    rickochetsReceived         INT,
+    spotted                    INT,
+    stunDuration               INT,
+    stunNum                    INT,
+    targetKills                INT,
+
+    PRIMARY KEY (arenaUniqueID, attackerAvatarID, receiverAvatarID, attackerTypeCompDescr),
+    FOREIGN KEY (arenaUniqueID, attackerAvatarID, attackerTypeCompDescr) REFERENCES Vehicle (arenaUniqueID, avatarSessionID, typeCompDescr),
+    FOREIGN KEY (arenaUniqueID) REFERENCES Battle (arenaUniqueID)
+);
