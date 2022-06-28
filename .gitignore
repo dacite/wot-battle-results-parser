@@ -13,6 +13,11 @@ Cargo.lock
 /datfile_parser/examples/other
 
 test.*
-
+all.hex
+result.hex
+scripts
+results
+results_bin
+results_json
+results_known
 /replay_parser/definitions
-results*

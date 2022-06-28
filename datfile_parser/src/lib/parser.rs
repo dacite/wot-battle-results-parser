@@ -10,12 +10,12 @@ use serde_json::Value as JSONValue;
 use serde_pickle::Value as PickleValue;
 use standard_format::{AccountSelf, ArenaFieldsGetter, Battle};
 use unpickler::decompress_and_load_pickle;
+use utils::try_variant;
 use wot_constants::battle_results::Field;
 
 use crate::{
     fields::{matches_version, FieldCollection},
     get_checksum, manual_parser, to_default_if_none,
-    utils::try_variant,
 };
 
 /// An instantiation of a `Parser` is used to parse a single `.dat` file
@@ -162,11 +162,12 @@ impl<'a> Parser<'a> {
         let json = self.pickle_list_to_json_object(input)?;
         let output: T = from_json_value(json)?;
 
-        // At this point, there may be some fields that were not present in the output object (`T`). This is parsed as
-        // arena fields because these fields are only common to a specific gamemode. Nevertheless, we try to
-        // serialize these fields to one of the `extra` (For ex: AccountAllExtra, VehicleSelfExtra etc.) enums to make
-        // sure it is indeed the gamemode specific fields. If there are fields that are clearly not part of a
-        // specific gamemode then that's an error and should've been parsed as one of the member of the `T`
+        // At this point, there may be some fields that were not present in the output object (`T`). This is
+        // parsed as arena fields because these fields are only common to a specific gamemode.
+        // Nevertheless, we try to serialize these fields to one of the `extra` (For ex:
+        // AccountAllExtra, VehicleSelfExtra etc.) enums to make sure it is indeed the gamemode
+        // specific fields. If there are fields that are clearly not part of a specific gamemode then
+        // that's an error and should've been parsed as one of the member of the `T`
         output.validate_arena_fields().map_err(|err| {
             anyhow!(
                 "unknown fields found. standard format might be out of date. {}",
@@ -187,7 +188,6 @@ impl<'a> Parser<'a> {
             "Value list has unrecognized checksum({}). Identifier list won't match",
             checksum
         ))?;
-
 
         // We skip the first element of the `value_list` because it is the checksum
         let mut value_list_iter = value_list.into_iter().skip(1);

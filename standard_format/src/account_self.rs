@@ -91,7 +91,6 @@ pub struct AccountSelf {
     pub arena_fields: HashMap<String, serde_json::Value>,
 }
 
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 /// This enum is only used so that serde can work its magic parsing

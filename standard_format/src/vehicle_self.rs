@@ -446,16 +446,14 @@ impl VehicleSelf {
     }
 }
 
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 /// Fields of type `VehicleSelf` that only occurs in Steel Hunter Gamemode
 pub struct SteelHunter {
     br_pos_in_battle: i32,
     achived_level:    i32,
-    currencies: serde_json::Value,
+    currencies:       serde_json::Value,
 }
-
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

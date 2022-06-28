@@ -78,7 +78,14 @@ impl FieldCollection {
 
 pub fn generate_fields_list(arena_type: ArenaBonusType) -> Vec<Vec<Field>> {
     use FieldType::*;
-    let field_types = [Common, PlayerInfo, AccountAll, AccountSelf, VehicleAll, VehicleSelf];
+    let field_types = [
+        Common,
+        PlayerInfo,
+        AccountAll,
+        AccountSelf,
+        VehicleAll,
+        VehicleSelf,
+    ];
 
     let mut fields_list = Vec::new();
     field_types.into_iter().for_each(|field_type| {

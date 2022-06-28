@@ -11,9 +11,8 @@ use serde_json::Value as JSONValue;
 use standard_format::WotValue;
 use unpickler::HashablePickleValue;
 use unpickler::PickleValue;
+use utils::try_variant;
 use wot_constants::battle_results::Field;
-
-use crate::utils::try_variant;
 
 pub fn pickle_val_to_json_manual(pickle_value: PickleValue, field: &Field) -> Result<JSONValue> {
     // Check the field name to see if there is a manual parser
@@ -50,7 +49,6 @@ fn pickle_to_wotvalue_to_json(pickle: PickleValue) -> Result<JSONValue> {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
 #[serde_with::serde_as]
 #[derive(Debug, Serialize, Deserialize)]
 struct AccountCompDescr {
@@ -84,8 +82,12 @@ fn parse_account_comp_descr(pickle_value: PickleValue) -> Result<JSONValue> {
         // We expect tuple to be [i64, Vec<u8>]. tuple[0] is the i64 and tuple[1] is the
         // Vec<u8>
         let mut tuple = try_variant!(list_value, PickleValue::Tuple)?.into_iter();
-        let id = tuple.next().context("AccountCompDescr parse failed: expected id")?;
-        let val = tuple.next().context("AccountCompDescr parse failed: expected val")?;
+        let id = tuple
+            .next()
+            .context("AccountCompDescr parse failed: expected id")?;
+        let val = tuple
+            .next()
+            .context("AccountCompDescr parse failed: expected val")?;
 
         let account_comp_descr = AccountCompDescr {
             id:  try_variant!(id, PickleValue::I64)?,
@@ -106,7 +108,8 @@ fn parse_value_replay(wot_value: PickleValue) -> Result<JSONValue> {
     let (packed_value, size) = le_u16::<_, crate::error::NomErrorWrapper>(packed_value.as_bytes())?;
 
     let (rest, value_list) =
-        count::<_, _, crate::error::NomErrorWrapper, _>(le_u32, size as usize)(packed_value.as_bytes()).finish()?;
+        count::<_, _, crate::error::NomErrorWrapper, _>(le_u32, size as usize)(packed_value.as_bytes())
+            .finish()?;
     ensure!(rest.is_empty(), "Expected empty rest after parsing value replay");
     Ok(serde_json::to_value(value_list)?)
 }
