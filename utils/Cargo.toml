@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.52"
+serde = { version = "1.0.137", features = ["derive"] }
 nom = { version = "7.1.1", features = ["alloc"] }
 thiserror = "1.0.30"

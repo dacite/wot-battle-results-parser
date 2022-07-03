@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 
 [dependencies]
+utils = { path = "../utils" }
 macros = { path = "../macros"}
 anyhow = "1.0.58"
 dotenv = "0.15.0"

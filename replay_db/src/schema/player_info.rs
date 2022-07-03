@@ -14,7 +14,7 @@ pub struct PlayerInfo {
     #[serde(rename = "avatarSessionID", skip)]
     pub avatar_session_id: i32, // Primary key
 
-    #[serde(rename = "accountDBID", default)]
+    #[serde(rename = "accountDBID")]
     pub account_dbid: Option<i64>,
 
     /// After anonymizer patch, the `name` may contain the fake name.  
@@ -22,17 +22,19 @@ pub struct PlayerInfo {
 
     // pub badges: Vec<Vec<i32>>,
     pub clan_abbrev:                  String,
-    pub custom_role_slot_type_id:     i32,
-    pub fake_name:                    String,
+    pub custom_role_slot_type_id:     Option<i32>,
+    pub fake_name:                    Option<String>,
     pub forbid_in_battle_invitations: bool,
     pub igr_type:                     i32,
+    #[serde(deserialize_with="utils::bool_to_int")]
     pub is_alive:                     i32,
     pub is_god_mode_active:           Option<i32>,
+    #[serde(deserialize_with="utils::bool_to_int")]
     pub is_team_killer:               i32,
 
     /// `max_health` maybe differrent from the actual max (perhaps if the player switches to improved
     /// hardening equipment)
-    pub max_health: i32,
+    pub max_health: Option<i32>,
 
     // pub overridden_badge: i32,
     // pub ranked: Vec<i32>,
@@ -40,5 +42,5 @@ pub struct PlayerInfo {
 
     /// `vehicle_type` is simply the tank player had selected when joining the battle
     pub vehicle_type: String,
-    pub wtr:          i32,
+    pub wtr:          Option<i32>,
 }

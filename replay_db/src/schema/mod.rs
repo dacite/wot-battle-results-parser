@@ -10,18 +10,18 @@ pub use details::Details;
 pub use personal_vehicle::PersonalVehicle;
 pub use player_info::PlayerInfo;
 pub use replay_common::ReplayCommon;
-use sqlx::{Pool, QueryBuilder, Sqlite};
 pub use vehicle::Vehicle;
+
 pub const CRC32: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
 
 #[derive(Default, Debug)]
 pub struct Replay {
-    replay_id:        u32,
-    arena_unique_id:  Option<String>,
-    common:           ReplayCommon,
-    player_infos:     HashMap<i32, PlayerInfo>,
-    personal_vehicle: HashMap<i32, PersonalVehicle>,
-    vehicles:         HashMap<(i32, i32), Vehicle>,
+    pub replay_id:        u32,
+    pub arena_unique_id:  Option<String>,
+    pub common:           ReplayCommon,
+    pub player_infos:     HashMap<i32, PlayerInfo>,
+    pub personal_vehicle: HashMap<i32, PersonalVehicle>,
+    pub vehicles:         HashMap<(i32, i32), Vehicle>,
 }
 
 impl Replay {
@@ -144,6 +144,7 @@ impl Replay {
             let vehicle_list = vehicle_list.as_object().unwrap();
             self.personal_vehicle = vehicle_list
                 .into_iter()
+                // There is one child object called avatar that we dont need right now
                 .filter(|(type_comp_descr, _)| **type_comp_descr != "avatar")
                 .map(|(type_comp_descr, personal_vehicle)| {
                     let key = type_comp_descr.parse().unwrap();
@@ -180,18 +181,4 @@ fn read_player_vehicles(
 
         ((avatar_id, vehicle.type_comp_descr), vehicle)
     })
-}
-
-async fn insert_replay(replay: Replay, db_conn: &Pool<Sqlite>) {
-    let mut tx = db_conn.begin().await.unwrap();
-
-    let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(ReplayCommon::insert_query_start());
-    query_builder.push_values([replay.common], ReplayCommon::push_bindings);
-    query_builder.build().execute(&mut tx).await.unwrap();
-
-    let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(PlayerInfo::insert_query_start());
-    query_builder.push_values(replay.player_infos.into_values(), PlayerInfo::push_bindings);
-    query_builder.build().execute(&mut tx).await.unwrap();
-
-    tx.commit().await.unwrap();
 }

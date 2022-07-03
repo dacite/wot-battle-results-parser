@@ -27,3 +27,11 @@ pub struct ReplayCommon {
     #[serde(skip)]
     pub is_complete:             bool,
 }
+
+
+pub fn push_bindings<'args, 'qb, DB>(
+    mut b: sqlx::query_builder::Separated<'qb, 'args, DB, &'static str>, item: ReplayCommon,
+) where
+    DB: sqlx::Database,
+{
+}

@@ -16,14 +16,14 @@ pub struct PersonalVehicle {
     pub type_comp_descr: i32,
 
     #[serde(rename = "additionalXPFactor10")]
-    pub additional_xpfactor10: i32,
+    pub additional_xpfactor10: Option<i32>,
     pub aogas_factor10: i32,
-    pub applied_premium_credits_factor100: i32,
+    pub applied_premium_credits_factor100: Option<i32>,
     #[serde(rename = "appliedPremiumTmenXPFactor100")]
-    pub applied_premium_tmen_xpfactor100: i32,
+    pub applied_premium_tmen_xpfactor100: Option<i32>,
     #[serde(rename = "appliedPremiumXPFactor100")]
-    pub applied_premium_xpfactor100: i32,
-    pub auto_equip_boosters_cost: sqlx::types::Json<Vec<i32>>,
+    pub applied_premium_xpfactor100: Option<i32>,
+    pub auto_equip_boosters_cost: Option<sqlx::types::Json<Vec<i32>>>,
     pub auto_equip_cost: sqlx::types::Json<Vec<i32>>,
     pub auto_load_cost: sqlx::types::Json<Vec<i32>>,
     pub auto_repair_cost: i32,
@@ -42,13 +42,13 @@ pub struct PersonalVehicle {
     pub booster_xp: i32,
     #[serde(rename = "boosterXPFactor100")]
     pub booster_xpfactor100: i32,
-    pub bpcoin: i32,
+    pub bpcoin: Option<i32>,
     pub committed_suicide: bool,
     pub credits_contribution_in: i32,
     pub credits_contribution_out: i32,
     pub credits_penalty: i32,
     pub credits_to_draw: i32,
-    pub crystal: i32,
+    pub crystal: Option<i32>,
     #[serde(rename = "dailyXPFactor10")]
     pub daily_xpfactor10: i32,
     pub damage_before_team_was_damaged: i32,
@@ -56,11 +56,11 @@ pub struct PersonalVehicle {
     pub damaged_while_enemy_moving: i32,
     pub damaged_while_moving: i32,
     pub xp_by_tmen: sqlx::types::Json<Vec<Vec<i32>>>,
-    pub event_bpcoin: i32,
-    pub event_coin: i32,
+    pub event_bpcoin: Option<i32>,
+    pub event_coin: Option<i32>,
     pub event_credits: i32,
-    pub event_crystal: i32,
-    pub event_event_coin: i32,
+    pub event_crystal: Option<i32>,
+    pub event_event_coin: Option<i32>,
     #[serde(rename = "eventFreeXP")]
     pub event_free_xp: i32,
     pub event_gold: i32,
@@ -99,22 +99,22 @@ pub struct PersonalVehicle {
     pub order_xp: i32,
     #[serde(rename = "orderXPFactor100")]
     pub order_xpfactor100: i32,
-    pub original_bpcoin: i32,
+    pub original_bpcoin: Option<i32>,
     pub original_credits: i32,
     pub original_credits_contribution_in: i32,
-    pub original_credits_contribution_in_squad: i32,
+    pub original_credits_contribution_in_squad: Option<i32>,
     pub original_credits_contribution_out: i32,
-    pub original_credits_contribution_out_squad: i32,
+    pub original_credits_contribution_out_squad: Option<i32>,
     pub original_credits_penalty: i32,
-    pub original_credits_penalty_squad: i32,
-    pub original_credits_to_draw: i32,
-    pub original_credits_to_draw_squad: i32,
-    pub original_crystal: i32,
-    pub original_event_coin: i32,
+    pub original_credits_penalty_squad: Option<i32>,
+    pub original_credits_to_draw: Option<i32>,
+    pub original_credits_to_draw_squad: Option<i32>,
+    pub original_crystal: Option<i32>,
+    pub original_event_coin: Option<i32>,
     #[serde(rename = "originalFreeXP")]
     pub original_free_xp: i32,
     pub original_gold: i32,
-    pub original_prem_squad_credits: i32,
+    pub original_prem_squad_credits: Option<i32>,
     #[serde(rename = "originalTMenXP")]
     pub original_tmen_xp: i32,
     #[serde(rename = "originalXP")]
@@ -123,48 +123,48 @@ pub struct PersonalVehicle {
     pub original_xppenalty: i32,
     pub percent_from_second_best_damage: f32,
     pub percent_from_total_team_damage: f32,
-    pub piggy_bank: i32,
+    pub piggy_bank: Option<i32>,
     #[serde(rename = "playerRankXP")]
-    pub player_rank_xp: i32,
+    pub player_rank_xp: Option<i32>,
     #[serde(rename = "playerRankXPFactor100")]
-    pub player_rank_xpfactor100: i32,
-    pub prem_mask: i32,
-    pub prem_squad_credits: i32,
-    pub prem_squad_credits_factor100: i32,
-    pub premium_credits_factor100: i32,
-    pub premium_plus_credits_factor100: i32,
+    pub player_rank_xpfactor100: Option<i32>,
+    pub prem_mask: Option<i32>,
+    pub prem_squad_credits: Option<i32>,
+    pub prem_squad_credits_factor100: Option<i32>,
+    pub premium_credits_factor100: Option<i32>,
+    pub premium_plus_credits_factor100: Option<i32>,
     #[serde(rename = "premiumPlusTmenXPFactor100")]
-    pub premium_plus_tmen_xpfactor100: i32,
+    pub premium_plus_tmen_xpfactor100: Option<i32>,
     #[serde(rename = "premiumPlusXPFactor100")]
-    pub premium_plus_xpfactor100: i32,
+    pub premium_plus_xpfactor100: Option<i32>,
     #[serde(rename = "premiumTmenXPFactor100")]
-    pub premium_tmen_xpfactor100: i32,
+    pub premium_tmen_xpfactor100: Option<i32>,
     #[serde(rename = "premiumVehicleXP")]
     pub premium_vehicle_xp: i32,
     #[serde(rename = "premiumVehicleXPFactor100")]
-    pub premium_vehicle_xpfactor100: i32,
+    pub premium_vehicle_xpfactor100: Option<i32>,
     #[serde(rename = "premiumXPFactor100")]
-    pub premium_xpfactor100: i32,
+    pub premium_xpfactor100: Option<i32>,
     pub prev_mark_of_mastery: i32,
     #[serde(rename = "refSystemXPFactor10")]
     pub ref_system_xpfactor10: i32,
     #[serde(rename = "referral20Credits")]
-    pub referral20credits: i32,
+    pub referral20credits: Option<i32>,
     #[serde(rename = "referral20CreditsFactor100")]
-    pub referral20credits_factor100: i32,
+    pub referral20credits_factor100: Option<i32>,
     #[serde(rename = "referral20XP")]
-    pub referral20xp: i32,
+    pub referral20xp: Option<i32>,
     #[serde(rename = "referral20XPFactor100")]
-    pub referral20xpfactor100: i32,
+    pub referral20xpfactor100: Option<i32>,
     pub repair: i32,
     #[serde(rename = "squadXP")]
     pub squad_xp: i32,
     #[serde(rename = "squadXPFactor100")]
     pub squad_xpfactor100: i32,
-    pub subtotal_bpcoin: i32,
+    pub subtotal_bpcoin: Option<i32>,
     pub subtotal_credits: i32,
-    pub subtotal_crystal: i32,
-    pub subtotal_event_coin: i32,
+    pub subtotal_crystal: Option<i32>,
+    pub subtotal_event_coin: Option<i32>,
     #[serde(rename = "subtotalFreeXP")]
     pub subtotal_free_xp: i32,
     pub subtotal_gold: i32,
@@ -175,5 +175,5 @@ pub struct PersonalVehicle {
     #[serde(rename = "tmenXP")]
     pub tmen_xp: i32,
     pub veh_type_lock_time: i32,
-    pub win_alone_against_vehicle_count: i32,
+    pub win_alone_against_vehicle_count: Option<i32>,
 }

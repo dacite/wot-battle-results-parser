@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS PersonalVehicle
 (
     arenaUniqueID                       INT,
     accountDBID                         INT,
+    typeCompDescr                       INT,
     additionalXPFactor10                INT,
     aogasFactor10                       INT,
     appliedPremiumCreditsFactor100      INT,
@@ -123,6 +124,5 @@ CREATE TABLE IF NOT EXISTS PersonalVehicle
     vehTypeLockTime                     INT,
     winAloneAgainstVehicleCount         INT,
 
-    PRIMARY KEY (accountDBID, arenaUniqueID),
-    FOREIGN KEY (arenaUniqueID) REFERENCES Battle (arenaUniqueID)
+    PRIMARY KEY (accountDBID, arenaUniqueID, typeCompDescr)
 )

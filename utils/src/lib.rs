@@ -4,6 +4,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use serde::Deserializer;
 
 /// A macro that tries to destructure an Enum to the given variant,
 /// wrapped in a `Result`. Used to avoid using if let everywhere and have the
@@ -30,6 +31,25 @@ pub fn parse_dir<P: AsRef<Path>>(path: P) -> Result<Vec<DirEntry>> {
     Ok(file_paths
         .filter_map(|entry| entry.ok().filter(|entry| entry.path().is_file()))
         .collect())
+}
+
+#[derive(serde::Deserialize)]
+#[serde(untagged)]
+enum BoolableValue {
+    Bool(bool),
+    Int(i32)
+}
+
+/// WoT sometimes uses int and boolean interchangeably for the same field and we can't have that
+pub fn bool_to_int<'de, D>(de: D) -> Result<i32, D::Error> 
+where D: Deserializer<'de> 
+{
+    let val: BoolableValue  = serde::de::Deserialize::deserialize(de)?;
+    
+    match val {
+        BoolableValue::Bool(val) => Ok(val as i32),
+        BoolableValue::Int(val) => Ok(val)
+    }
 }
 
 // TODO: Make its own file
