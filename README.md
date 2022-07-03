@@ -37,7 +37,7 @@ cargo build --release --bin wot_datfile_parser_cli
 Output files of `wot_datfile_parser_cli` can be found [here](datfile_parser/examples)
 ## Supported Versions of World of Tanks
 ### Datfile parser
- - `1.15.0` - `1.16.1`
+ - `1.15.0` - `1.17.0`
 
 
 ## Backwards Compatibility
