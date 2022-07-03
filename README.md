@@ -45,6 +45,9 @@ Output files of `wot_datfile_parser_cli` can be found [here](datfile_parser/exam
 Backwards compatibility is not guaranteed for the Datfile parser. This is not very important anyway since these files don't persist indefintely like `.wotreplay` files do.
 
 ## Credits
+ - https://github.com/Monstrofil/replays_unpack
+    - Everything on `.def` files comes from here
+ - https://github.com/lkolbly/wows-replays
  - https://github.com/StranikS-Scan/WorldOfTanks-Decompiled
     - Makes it really easy to track changes in updates!
  - https://github.com/Phalynx/WoT-Replay-To-JSON
