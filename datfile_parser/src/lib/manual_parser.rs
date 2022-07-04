@@ -32,17 +32,16 @@ pub fn pickle_val_to_json_manual(pickle_value: PickleValue, field: &Field) -> Re
 // or can be converted easily. Therefore, we convert pickle value to this
 // intermediate type (WotValue) before converting to JSON
 fn pickle_to_wotvalue_to_json(pickle: PickleValue) -> Result<JSONValue> {
-    let wot_value: WotValue = serde_pickle::from_value(pickle.clone()).map_err(|e| {
+    let wot_value: WotValue = serde_pickle::from_value(pickle).map_err(|e| {
         return anyhow!("{}", e.to_string());
     })?;
 
-    let json_value;
-
-    if let WotValue::Bytes(bytes) = wot_value {
-        json_value = JSONValue::String(hex::encode_upper(bytes));
+    let json_value = if let WotValue::Bytes(bytes) = wot_value {
+        JSONValue::String(hex::encode_upper(bytes))
     } else {
-        json_value = serde_json::to_value(wot_value)?;
-    }
+        serde_json::to_value(wot_value)?
+    };
+
 
     Ok(json_value)
 }

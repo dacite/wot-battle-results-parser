@@ -38,7 +38,7 @@ pub trait ArenaFieldsGetter {
     /// Check if there is any fields that are not arena/gamemode fields
     fn validate_arena_fields(&self) -> anyhow::Result<()> {
         let arena_fields = self.get_arena_fields();
-        if arena_fields.len() == 0 {
+        if arena_fields.is_empty() {
             Ok(())
         } else {
             let arena_fields = serde_json::to_value(arena_fields)?;

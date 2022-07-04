@@ -65,7 +65,7 @@ where
 {
     let vec: &[u8] = de::Deserialize::deserialize(deserializer)?;
     let pickle =
-        serde_pickle::value_from_slice(&vec, serde_pickle::DeOptions::new().replace_unresolved_globals())
+        serde_pickle::value_from_slice(vec, serde_pickle::DeOptions::new().replace_unresolved_globals())
             .unwrap();
 
     let wot_value = serde_pickle::from_value(pickle).map_err(|e| serde::de::Error::custom(e.to_string()))?;

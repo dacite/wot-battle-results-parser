@@ -21,7 +21,7 @@ pub fn decompress_vec(compressed: &[u8]) -> Result<Vec<u8>> {
 
 pub fn decompress_and_load_pickle(val: &PickleValue) -> Result<PickleValue> {
     let compressed = access_bytes(val)?;
-    let decompressed = decompress_vec(&compressed)?;
+    let decompressed = decompress_vec(compressed)?;
     load_pickle(&decompressed)
 }
 

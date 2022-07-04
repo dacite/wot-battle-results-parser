@@ -7,11 +7,7 @@ use quote::quote;
 use syn::{Attribute, Data, DataStruct, ExprArray, Fields, Path};
 
 pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
-    let has_lifetime = if ast.generics.lt_token.is_some() {
-        true
-    } else {
-        false
-    };
+    let has_lifetime = ast.generics.lt_token.is_some();
 
     let struct_name = &ast.ident;
     let fields = match &ast.data {
@@ -67,21 +63,19 @@ pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
         }
     };
 
-    let gen;
-
-    if has_lifetime {
-        gen = quote! {
+    let gen = if has_lifetime {
+        quote! {
             impl Version for #struct_name<'_> {
                 #version
             }
-        };
+        }
     } else {
-        gen = quote! {
+        quote! {
             impl Version for #struct_name {
                 #version
             }
-        };
-    }
+        }
+    };
 
     gen.into()
 }
@@ -89,9 +83,9 @@ pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
 fn get_version_arg(attr: &Attribute) -> Option<ExprArray> {
     if attr.path.is_ident("version") {
         let arg: ExprArray = attr.parse_args().unwrap();
-        return Some(arg);
+        Some(arg)
     } else {
-        return None;
+        None
     }
 }
 
@@ -110,6 +104,6 @@ fn is_serde_skip(attr: &Attribute) -> bool {
             false
         }
     } else {
-        return false;
+        false
     }
 }

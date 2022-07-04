@@ -7,11 +7,7 @@ use quote::quote;
 use syn::{Attribute, Data, DataStruct, Fields, Ident};
 
 pub fn imp_event_debug_macro(ast: &syn::DeriveInput) -> TokenStream {
-    let has_lifetime = if ast.generics.lt_token.is_some() {
-        true
-    } else {
-        false
-    };
+    let has_lifetime = ast.generics.lt_token.is_some();
 
     let struct_name = &ast.ident;
     let fields = match &ast.data {
@@ -73,29 +69,29 @@ pub fn imp_event_debug_macro(ast: &syn::DeriveInput) -> TokenStream {
             }
     };
 
-    let gen;
-
-    if has_lifetime {
-        gen = quote! {
+    let gen = if has_lifetime {
+        quote! {
             impl EventPrinter for #struct_name<'_> {
                 #to_debug_string
             }
-        };
+        }
     } else {
-        gen = quote! {
+        quote! {
             impl EventPrinter for #struct_name {
                 #to_debug_string
             }
-        };
-    }
+        }
+    };
+
+
     gen.into()
 }
 
 fn get_event_debug_arg(attr: &Attribute) -> Option<String> {
     if attr.path.is_ident("event_debug") {
         let arg = attr.parse_args::<Ident>().unwrap();
-        return Some(arg.to_string());
+        Some(arg.to_string())
     } else {
-        return None;
+        None
     }
 }

@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
 use anyhow::{anyhow, Context, Result};
 use log::info;
@@ -12,22 +9,19 @@ use wot_datfile_parser::DatFileParser;
 pub fn parse_from_wot_data_folder(
     wot_cache_folder: Option<String>, parser: &DatFileParser, out_dir: &str,
 ) -> Result<()> {
-    let wot_data_folder_path;
-
-    // User specified the folder for the dat files
-    if let Some(path) = wot_cache_folder {
-        wot_data_folder_path = Path::new(&path).to_path_buf();
-    }
-    // Programs find the dat files automaticaly
-    else {
+    let wot_data_folder_path = if let Some(path) = wot_cache_folder {
+        // User specified the folder for the dat files
+        Path::new(&path).to_path_buf()
+    } else {
+        // Programs find the dat files automaticaly
         let path = directories::BaseDirs::new().unwrap();
-        wot_data_folder_path = path
-            .data_dir()
-            .join(Path::new("Wargaming.net/WorldOfTanks/battle_results"));
-    }
+        path.data_dir()
+            .join(Path::new("Wargaming.net/WorldOfTanks/battle_results"))
+    };
+
 
     let wot_data_folder =
-        fs::read_dir(&wot_data_folder_path).with_context(|| format!("Cannot read wot data folder path"))?;
+        fs::read_dir(&wot_data_folder_path).with_context(|| "Cannot read wot data folder path")?;
 
     for player_folder_result in wot_data_folder {
         if let Ok(player_folder) = player_folder_result {
@@ -57,7 +51,7 @@ pub fn parse_from_wot_data_folder(
 
 /// Parse a directory of .dat files (only direct childs of the directory)
 pub fn parse_dir(path: &Path, parser: &DatFileParser) -> Result<Vec<Result<Battle>>> {
-    let file_paths = fs::read_dir(path).with_context(|| format!("failed to read dir"))?;
+    let file_paths = fs::read_dir(path).with_context(|| "failed to read dir")?;
 
     let mut vec = Vec::new();
 
@@ -69,7 +63,7 @@ pub fn parse_dir(path: &Path, parser: &DatFileParser) -> Result<Vec<Result<Battl
                 }
             }
             Err(e) => {
-                println!("Failed to process DirEntry: {}", e.to_string());
+                println!("Failed to process DirEntry: {}", e);
                 continue;
             }
         }
@@ -88,17 +82,17 @@ pub fn parse_datfile(path: &Path, parser: &DatFileParser) -> Result<Battle> {
 }
 
 /// .dat files are organized under a folder where its name is encoded in base32.
-fn base_32_decode(input: &PathBuf) -> Result<String> {
+fn base_32_decode(input: &Path) -> Result<String> {
     let base_32_name = input
         .file_name()
         .unwrap()
         .to_str()
         .ok_or_else(|| anyhow!("base 32 decode error for {}", input.to_string_lossy()))?;
     let actual_name_buffer =
-        base32::decode(base32::Alphabet::RFC4648 { padding: false }, &base_32_name).unwrap();
+        base32::decode(base32::Alphabet::RFC4648 { padding: false }, base_32_name).unwrap();
 
     Ok(String::from_utf8(actual_name_buffer)?
-        .split(";")
+        .split(';')
         .next()
         .unwrap()
         .to_string())
@@ -109,8 +103,8 @@ pub fn write_battle(battle: Battle, path: &str) {
     match serde_json::to_vec_pretty(&battle) {
         // JSON conversion successful
         Ok(buf) => {
-            let _ = fs::write(path, buf).map_err(|e| println!("Failed to write file: {}", e.to_string()));
+            let _ = fs::write(path, buf).map_err(|e| println!("Failed to write file: {}", e));
         }
-        Err(e) => println!("Converting battle to JSON failed: {}", e.to_string()),
+        Err(e) => println!("Converting battle to JSON failed: {}", e),
     }
 }

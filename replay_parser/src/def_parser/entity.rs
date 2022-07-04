@@ -59,10 +59,8 @@ impl Entity {
             cell_methods: Vec::new(),
             base_methods: Vec::new(),
         };
-        entity.from_def_file(get_def_file_path(version, name, false))?;
-        entity
-            .client_methods
-            .sort_by(|a, b| a.get_size().cmp(&b.get_size()));
+        entity.parse_def_file(get_def_file_path(version, name, false))?;
+        entity.client_methods.sort_by_key(|a| a.get_size());
 
         Ok(entity)
     }
@@ -73,7 +71,7 @@ impl Entity {
         Some(&method.name)
     }
 
-    fn from_def_file(&mut self, path: String) -> Result<()> {
+    fn parse_def_file(&mut self, path: String) -> Result<()> {
         let xml_string = utils::read_xml(path).map_err(|e| Error::DefinitionFileError(e.to_string()))?;
         let document = Document::parse(&xml_string).unwrap();
         let root = document.root().first_child().unwrap();
@@ -113,7 +111,7 @@ fn parse_interfaces(entity: &mut Entity, node: XMLNode) -> Result<()> {
         if is_interface(&child) {
             let interface_path = get_def_file_path(entity.version, get_interface_name(&child), true);
 
-            entity.from_def_file(interface_path)?;
+            entity.parse_def_file(interface_path)?;
         } else {
             panic!("<Implements> may only contai <Interfaces>");
         }
@@ -196,7 +194,7 @@ fn parse_variable_header_size(node: &XMLNode) -> Result<u8> {
     Ok(header_size)
 }
 
-/// `<Interface>	TeamBase_Arena	</Interface>` => `TeamBase_Arena`
+/// `<Interface>    TeamBase_Arena  </Interface>` => `TeamBase_Arena`
 fn get_interface_name<'a>(node: &'a XMLNode) -> &'a str {
     node.text().unwrap().trim()
 }

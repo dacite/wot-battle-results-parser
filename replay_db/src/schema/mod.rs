@@ -10,6 +10,7 @@ pub use details::Details;
 pub use personal_vehicle::PersonalVehicle;
 pub use player_info::PlayerInfo;
 pub use replay_common::ReplayCommon;
+use serde_json::from_value as from_json_value;
 pub use vehicle::Vehicle;
 
 pub const CRC32: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
@@ -31,8 +32,10 @@ impl Replay {
         let json = parser.get_json();
         let replay_id = CRC32.checksum(path.as_bytes());
 
-        let mut replay = Replay::default();
-        replay.replay_id = replay_id;
+        let replay = Replay {
+            replay_id,
+            ..Replay::default()
+        };
 
         replay
             .parse_initial_info(json)
@@ -43,7 +46,7 @@ impl Replay {
     }
 
     fn parse_initial_info(mut self, json: &[serde_json::Value]) -> Self {
-        if json.len() <= 0 {
+        if json.is_empty() {
             // error case
         }
 
@@ -91,14 +94,13 @@ impl Replay {
 
             self.vehicles = vehicle_list
                 .into_iter()
-                .map(|(player_avatar_id, player_vehicles)| {
+                .flat_map(|(player_avatar_id, player_vehicles)| {
                     read_player_vehicles(
                         player_avatar_id.parse().unwrap(),
                         self.arena_unique_id.as_ref().unwrap().clone(),
                         player_vehicles.clone(),
                     )
                 })
-                .flatten()
                 .collect();
         } else {
             // Error
@@ -121,7 +123,7 @@ impl Replay {
         // TODO: Update isAlive
         let json = &json[1];
         for ((avatar_id, _type_comp_descr), player_vehicle) in &self.vehicles {
-            let player = self.player_infos.get_mut(&avatar_id).unwrap();
+            let player = self.player_infos.get_mut(avatar_id).unwrap();
 
             // patches before anonymizer doesn't have the `realName` field.
             let path = format!("/0/players/{}/realName", player_vehicle.account_dbid);
@@ -145,11 +147,10 @@ impl Replay {
             self.personal_vehicle = vehicle_list
                 .into_iter()
                 // There is one child object called avatar that we dont need right now
-                .filter(|(type_comp_descr, _)| **type_comp_descr != "avatar")
+                .filter(|(type_comp_descr, _)| *type_comp_descr != "avatar")
                 .map(|(type_comp_descr, personal_vehicle)| {
                     let key = type_comp_descr.parse().unwrap();
-                    let mut value: PersonalVehicle =
-                        serde_json::from_value(personal_vehicle.clone()).unwrap();
+                    let mut value: PersonalVehicle = from_json_value(personal_vehicle.clone()).unwrap();
                     value.arena_unique_id = self.arena_unique_id.clone().unwrap();
 
                     (key, value)
@@ -164,7 +165,7 @@ impl Replay {
 }
 
 /// A player may have multiple vehicles in a battle. We parse them and return an iterator of tuple containing
-/// `((avatarID, typeCompDescr), Vehicle)`.
+/// `((avatarID, typeCompDescr), Vehicle)`. This tuple later becomes an entry in a HashMap.
 ///
 /// - `avatarID: i32` identifes the player in that battle
 /// - `typeCompDescr: i32` identifies the vehicle
@@ -175,8 +176,12 @@ fn read_player_vehicles(
     let vehicle_list = json.as_array().unwrap().clone();
 
     vehicle_list.into_iter().map(move |value| {
-        let mut vehicle: Vehicle = serde_json::from_value(value.clone()).unwrap();
+        let mut vehicle: Vehicle = serde_json::from_value(value).unwrap();
+
+        // Only later patches has this field already set so we set manually
         vehicle.avatar_session_id = avatar_id;
+
+        // This is a manually added and set field for use with SQL databases
         vehicle.arena_unique_id = arena_id.clone();
 
         ((avatar_id, vehicle.type_comp_descr), vehicle)

@@ -25,7 +25,7 @@ pub struct Parser<'a> {
 
     /// Identifier manager. Identifier lists can be retrieved with a checksum
     /// value
-    fields: Rc<&'a FieldCollection>,
+    fields: &'a FieldCollection,
 
     /// Fields that were not present for this particular datfile
     pub not_present: HashSet<String>,
@@ -81,7 +81,7 @@ impl<'a> Parser<'a> {
     pub fn new(field_collection: &'a FieldCollection) -> Self {
         Self {
             result: None,
-            fields: Rc::new(field_collection),
+            fields: field_collection,
 
             not_present:     HashSet::new(),
             manually_parsed: HashSet::new(),
@@ -184,10 +184,12 @@ impl<'a> Parser<'a> {
 
         // If we cannot find the correct the identifier list, we cannot parse the
         // datfile so we return with error
-        let (iden_list, version) = self.fields.get_fields_list(checksum).ok_or(anyhow!(
-            "Value list has unrecognized checksum({}). Identifier list won't match",
-            checksum
-        ))?;
+        let (iden_list, version) = self.fields.get_fields_list(checksum).ok_or_else(|| {
+            anyhow!(
+                "Value list has unrecognized checksum({}). Identifier list won't match",
+                checksum
+            )
+        })?;
 
         // We skip the first element of the `value_list` because it is the checksum
         let mut value_list_iter = value_list.into_iter().skip(1);
@@ -235,7 +237,7 @@ impl<'a> Parser<'a> {
             Err(_) => {
                 self.manually_parsed.insert(identifier.name.to_owned());
 
-                manual_parser::pickle_val_to_json_manual(value, &identifier).unwrap_or_else(|e| {
+                manual_parser::pickle_val_to_json_manual(value, identifier).unwrap_or_else(|e| {
                     // If manual parser was not able to get the job done, we log the problem and
                     // return a default value
                     log::warn!("Could not parse {}. {}", identifier.name, e.to_string());
@@ -334,7 +336,7 @@ fn to_rust_dict(pickle_object: PickleValue) -> Result<HashMap<String, Vec<Pickle
                 );
 
                 Ok((
-                    format!("{} {}", key.to_string(), inner_key.to_string()),
+                    format!("{} {}", key, inner_key),
                     try_variant!(value, PickleValue::List)?,
                 ))
             }

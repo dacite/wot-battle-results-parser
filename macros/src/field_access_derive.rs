@@ -87,7 +87,7 @@ pub fn imp_field_access_macro(ast: &syn::DeriveInput) -> TokenStream {
 
 /// to lower case from snake case
 fn to_lower_case(x: &syn::Ident) -> String {
-    format!("{}", x).replace("_", "")
+    format!("{}", x).replace('_', "")
 }
 
 /// Get the value given to the attribute of the form:

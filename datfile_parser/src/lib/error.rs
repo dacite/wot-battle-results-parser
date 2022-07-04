@@ -10,9 +10,9 @@ pub struct NomErrorWrapper {
 impl nom::error::ParseError<&[u8]> for NomErrorWrapper {
     fn from_error_kind(input: &[u8], kind: nom::error::ErrorKind) -> Self {
         Self {
-            kind:      kind,
+            kind,
             backtrace: Vec::new(),
-            _input:    input.to_vec(),
+            _input: input.to_vec(),
         }
     }
 

@@ -250,7 +250,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        if self.skip == true {
+        if self.skip {
             self.skip = false;
             visitor.visit_none()
         } else {
@@ -328,7 +328,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         if name == self.name {
             if let VersionInfo::Struct(version_info) = self.version_info {
                 assert!(version_info.len() == fields.len());
-                visitor.visit_seq(VersionedSeqAccess::new(self, fields.len(), &version_info))
+                visitor.visit_seq(VersionedSeqAccess::new(self, fields.len(), version_info))
             } else {
                 panic!("Struct must always have version info of `Struct` variant")
             }
@@ -421,7 +421,7 @@ impl<'de, 'a> SeqAccess<'de> for VersionedSeqAccess<'a, 'de> {
             let version = &self.version_info[self.curr as usize];
             self.de.version_info = version.clone();
 
-            if !is_correct_version(&self.de.de_version, &version) {
+            if !is_correct_version(&self.de.de_version, version) {
                 self.de.skip = true;
             }
 
@@ -438,11 +438,7 @@ fn is_correct_version(de_version: &[u16; 4], item_version: &VersionInfo) -> bool
                 return true;
             }
 
-            if de_version < version {
-                false
-            } else {
-                true
-            }
+            de_version >= version
         }
         _ => true,
     }

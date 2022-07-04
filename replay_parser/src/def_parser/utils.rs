@@ -4,13 +4,13 @@ use roxmltree::Node as XMLNode;
 
 use crate::{Error, Result};
 
-pub fn read_xml<'a, 'input, P: AsRef<Path>>(path: P) -> Result<String> {
+pub fn read_xml<P: AsRef<Path>>(path: P) -> Result<String> {
     match std::fs::read_to_string(&path) {
         Ok(file) => Ok(file),
         Err(err) => Err(Error::DefinitionFileError(format!(
             "error reading {:?}. {}",
             path.as_ref(),
-            err.to_string()
+            err
         ))),
     }
 }
@@ -32,7 +32,7 @@ pub fn version_as_string(version: [u16; 4]) -> String {
 }
 
 pub fn version_string_as_arr(version: String) -> Option<[u16; 4]> {
-    let vec: Option<Vec<u16>> = version.split("_").map(|v| v.parse().ok()).collect();
+    let vec: Option<Vec<u16>> = version.split('_').map(|v| v.parse().ok()).collect();
 
     if let Some(vec) = vec {
         if vec.len() == 4 {
@@ -51,19 +51,13 @@ pub fn validate_version(version: [u16; 4]) -> Result<[u16; 4]> {
     let def_dir = get_definitions_root();
     let file_paths = std::fs::read_dir(def_dir).map_err(|e| Error::DefinitionFileError(e.to_string()))?;
 
-    let dir_names: Vec<_> = file_paths
-        .filter_map(|entry| {
-            entry
-                .ok()
-                .map(|entry| entry.file_name().to_string_lossy().into_owned())
-        })
-        .collect();
+    let dir_names = file_paths.filter_map(|entry| {
+        entry
+            .ok()
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+    });
 
-    let knwn_versions: Vec<_> = dir_names
-        .into_iter()
-        .map(|v| version_string_as_arr(v))
-        .flatten()
-        .collect();
+    let knwn_versions: Vec<_> = dir_names.into_iter().filter_map(version_string_as_arr).collect();
 
     let mut smallest_diff = [u16::MAX, u16::MAX, u16::MAX, u16::MAX];
     let mut best_candidate = version;
@@ -84,5 +78,5 @@ pub fn validate_version(version: [u16; 4]) -> Result<[u16; 4]> {
 }
 
 pub fn get_definitions_root() -> String {
-    std::env::var("DEF_DIR").unwrap_or("definitions".to_string())
+    std::env::var("DEF_DIR").unwrap_or_else(|_| "definitions".to_string())
 }

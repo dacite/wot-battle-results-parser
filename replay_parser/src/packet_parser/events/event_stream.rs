@@ -6,6 +6,7 @@ use crate::def_parser::{entity::Entity, TypeAliasLookup};
 use crate::packet_parser::Packet;
 use crate::{PacketStream, Result};
 
+#[derive(Default)]
 pub struct Context {
     entities:     HashMap<i32, Entity>,
     type_aliases: Rc<TypeAliasLookup>,
@@ -38,16 +39,6 @@ impl Context {
         let entity = self.entities.get(&entity_id)?;
 
         entity.find_method(method_id)
-    }
-}
-
-impl Default for Context {
-    fn default() -> Self {
-        Self {
-            entities:     HashMap::new(),
-            version:      [0, 0, 0, 0],
-            type_aliases: Default::default(),
-        }
     }
 }
 

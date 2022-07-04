@@ -41,18 +41,11 @@ pub enum OpaqueType {
     Alias(Box<WotType>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct TypeAliasLookup {
     dict: HashMap<String, WotType>,
 }
 
-impl Default for TypeAliasLookup {
-    fn default() -> Self {
-        Self {
-            dict: Default::default(),
-        }
-    }
-}
 
 impl TypeAliasLookup {
     pub fn load(version: [u16; 4]) -> Result<Self> {
@@ -76,7 +69,7 @@ impl TypeAliasLookup {
         let ty = node.text().unwrap();
 
         if ty.contains("FIXED_DICT") {
-            let dict = self.parse_dict_type(&node);
+            let dict = self.parse_dict_type(node);
 
             let mut is_nullable = false;
             if let Some(allow_none) = utils::select_child("AllowNone", node) {
@@ -84,16 +77,15 @@ impl TypeAliasLookup {
                     is_nullable = text.contains("true");
                 }
             }
-            if let Some(_) = self
+            if self
                 .dict
                 .insert(type_name, WotType::FixedDict { is_nullable, dict })
+                .is_some()
             {
                 panic!("Overwrote type alias");
             }
-        } else {
-            if let Some(_) = self.dict.insert(type_name, self.parse_type(node)?) {
-                panic!("Overwrote type alias");
-            }
+        } else if self.dict.insert(type_name, self.parse_type(node)?).is_some() {
+            panic!("Overwrote type alias");
         }
 
         Ok(())
@@ -101,9 +93,8 @@ impl TypeAliasLookup {
 
     fn parse_dict_type(&mut self, node: &XMLNode) -> HashMap<String, WotType> {
         let properties = utils::select_child("Properties", node).unwrap();
-        let dict = self.parse_properties(&properties).unwrap();
 
-        dict
+        self.parse_properties(&properties).unwrap()
     }
 
     fn parse_properties(&mut self, node: &XMLNode) -> Result<HashMap<String, WotType>> {
@@ -119,7 +110,7 @@ impl TypeAliasLookup {
         Ok(dict)
     }
 
-    /// Parse nodes like `<Type>	ARRAY	  <of>	INT32	</of> </Type>`
+    /// Parse nodes like `<Type>    ARRAY      <of> INT32    </of> </Type>`
     pub fn parse_type(&self, node: &XMLNode) -> Result<WotType> {
         let ty = node.text().unwrap().trim();
 
@@ -132,7 +123,7 @@ impl TypeAliasLookup {
             }
             _ => {
                 let type_as_text = node.text().unwrap();
-                let ty = type_from_str(type_as_text, &self)?;
+                let ty = type_from_str(type_as_text, self)?;
 
                 Ok(WotType::OpaqueType(ty))
             }

@@ -26,7 +26,7 @@ macro_rules! try_variant {
 
 /// Get files in directory, given directory path (only direct childs of the directory)
 pub fn parse_dir<P: AsRef<Path>>(path: P) -> Result<Vec<DirEntry>> {
-    let file_paths = fs::read_dir(path).with_context(|| format!("failed to read dir"))?;
+    let file_paths = fs::read_dir(path).with_context(|| "failed to read dir")?;
 
     Ok(file_paths
         .filter_map(|entry| entry.ok().filter(|entry| entry.path().is_file()))
@@ -37,47 +37,18 @@ pub fn parse_dir<P: AsRef<Path>>(path: P) -> Result<Vec<DirEntry>> {
 #[serde(untagged)]
 enum BoolableValue {
     Bool(bool),
-    Int(i32)
+    Int(i32),
 }
 
 /// WoT sometimes uses int and boolean interchangeably for the same field and we can't have that
-pub fn bool_to_int<'de, D>(de: D) -> Result<i32, D::Error> 
-where D: Deserializer<'de> 
+pub fn bool_to_int<'de, D>(de: D) -> Result<i32, D::Error>
+where
+    D: Deserializer<'de>,
 {
-    let val: BoolableValue  = serde::de::Deserialize::deserialize(de)?;
-    
+    let val: BoolableValue = serde::de::Deserialize::deserialize(de)?;
+
     match val {
         BoolableValue::Bool(val) => Ok(val as i32),
-        BoolableValue::Int(val) => Ok(val)
-    }
-}
-
-// TODO: Make its own file
-#[derive(thiserror::Error, Debug)]
-pub struct NomErrorWrapper {
-    pub kind:  nom::error::ErrorKind,
-    backtrace: Vec<nom::error::ErrorKind>,
-    _input:    Vec<u8>,
-}
-
-impl nom::error::ParseError<&[u8]> for NomErrorWrapper {
-    fn from_error_kind(input: &[u8], kind: nom::error::ErrorKind) -> Self {
-        Self {
-            kind:      kind,
-            backtrace: Vec::new(),
-            _input:    input.to_vec(),
-        }
-    }
-
-    fn append(input: &[u8], kind: nom::error::ErrorKind, mut other: Self) -> Self {
-        other.backtrace.push(Self::from_error_kind(input, kind).kind);
-
-        other
-    }
-}
-
-impl std::fmt::Display for NomErrorWrapper {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Nom error: {} error", self.kind.description())
+        BoolableValue::Int(val) => Ok(val),
     }
 }

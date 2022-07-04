@@ -26,10 +26,10 @@ pub struct PlayerInfo {
     pub fake_name:                    Option<String>,
     pub forbid_in_battle_invitations: bool,
     pub igr_type:                     i32,
-    #[serde(deserialize_with="utils::bool_to_int")]
+    #[serde(deserialize_with = "utils::bool_to_int")]
     pub is_alive:                     i32,
     pub is_god_mode_active:           Option<i32>,
-    #[serde(deserialize_with="utils::bool_to_int")]
+    #[serde(deserialize_with = "utils::bool_to_int")]
     pub is_team_killer:               i32,
 
     /// `max_health` maybe differrent from the actual max (perhaps if the player switches to improved

@@ -11,7 +11,7 @@ pub struct Packet<'a> {
 
 impl<'pkt> Packet<'pkt> {
     pub fn new(data: &'pkt [u8]) -> Self {
-        Self { inner: &data }
+        Self { inner: data }
     }
 
     pub fn get_type(&'pkt self) -> u32 {

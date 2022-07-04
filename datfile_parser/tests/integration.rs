@@ -35,7 +35,7 @@ mod tests {
 
 /// Parse a directory of .dat files (only direct childs of the directory)
 pub fn parse_dir(path: &Path, parser: &DatFileParser) -> Result<Vec<Result<Battle>>> {
-    let file_paths = fs::read_dir(path).with_context(|| format!("failed to read dir"))?;
+    let file_paths = fs::read_dir(path).with_context(|| "failed to read dir")?;
 
     let mut vec = Vec::new();
 
@@ -47,7 +47,7 @@ pub fn parse_dir(path: &Path, parser: &DatFileParser) -> Result<Vec<Result<Battl
                 }
             }
             Err(e) => {
-                println!("Failed to process DirEntry: {}", e.to_string());
+                println!("Failed to process DirEntry: {}", e);
                 continue;
             }
         }

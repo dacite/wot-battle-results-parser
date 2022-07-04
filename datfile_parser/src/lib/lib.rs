@@ -30,6 +30,12 @@ impl DatFileParser {
     }
 }
 
+impl Default for DatFileParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// The checksum describes the list of identifiers that are associated with that list of PickleValue. This
 /// prevents us from blindly assigning, for example `damageDealt` identifier to `PickleValue::I64(5433)`
 /// because `5433` looks like a `damageDealt` value. With checksum we can know for sure.

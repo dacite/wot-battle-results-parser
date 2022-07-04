@@ -66,17 +66,13 @@ impl PacketParser for EntityMethodEvent {
 impl EntityMethodEvent {
     /// Whether we understand the entity method
     pub fn is_unknown(&self) -> bool {
-        if let EntityMethod::Unknown(_) = self.event {
-            true
-        } else {
-            false
-        }
+        matches!(self.event, EntityMethod::Unknown(_))
     }
 }
 
-impl Into<EntityMethod> for EntityMethodEvent {
-    fn into(self) -> EntityMethod {
-        self.event
+impl From<EntityMethodEvent> for EntityMethod {
+    fn from(val: EntityMethodEvent) -> Self {
+        val.event
     }
 }
 

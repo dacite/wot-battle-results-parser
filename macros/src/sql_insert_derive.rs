@@ -77,6 +77,6 @@ fn serde_renamed(attr: &Attribute) -> Option<String> {
             None
         }
     } else {
-        return None;
+        None
     }
 }

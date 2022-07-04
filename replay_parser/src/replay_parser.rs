@@ -51,10 +51,8 @@ impl ReplayParser {
         let (json, packets_buffer) = parse(&data)?;
 
         // Raw JSON buffer to JSONValue from serde_json
-        let json: StdResult<Vec<_>, serde_json::Error> = json
-            .into_iter()
-            .map(|json_buf| serde_json::from_slice(json_buf))
-            .collect();
+        let json: StdResult<Vec<_>, serde_json::Error> =
+            json.into_iter().map(serde_json::from_slice).collect();
         let json = json?;
 
         Ok(ReplayParser {
@@ -71,7 +69,7 @@ impl ReplayParser {
         let mut data = Vec::new();
         input
             .read_to_end(&mut data)
-            .map_err(|err| Error::Other(format!("failed to read replay file: {}", err.to_string())))?;
+            .map_err(|err| Error::Other(format!("failed to read replay file: {}", err)))?;
 
         let json = parse_json_value(&data)?;
 
@@ -130,7 +128,7 @@ impl ReplayParser {
             ));
         }
 
-        Ok(PacketStream::new(&self.packets_buffer.as_ref().unwrap()))
+        Ok(PacketStream::new(self.packets_buffer.as_ref().unwrap()))
     }
 
     /// An iterator over the events in the replay. This is a layer of abstraction over `PacketStream`. Each
@@ -143,7 +141,7 @@ impl ReplayParser {
     }
 
     pub fn battle_context(&self) -> BattleContext {
-        BattleContext::from(&self.json, &self.packets_buffer.as_ref().unwrap())
+        BattleContext::from(&self.json, self.packets_buffer.as_ref().unwrap())
     }
 }
 
@@ -230,7 +228,7 @@ pub fn get_replay_version(json: &[serde_json::Value]) -> Option<[u16; 4]> {
     let version = version.replace("World\u{a0}of\u{a0}Tanks v.", "");
 
     // ["1.9.1.1", "#378"]
-    let version: Vec<_> = version.split(" ").collect();
+    let version: Vec<_> = version.split(' ').collect();
 
     // "1.9.1.1"
     let version = version.get(0)?;
@@ -238,7 +236,7 @@ pub fn get_replay_version(json: &[serde_json::Value]) -> Option<[u16; 4]> {
     let version = version.replace(", ", "."); // Some replays have ", " as delimiter
 
     let mut version_array = [0u16; 4];
-    for (i, substr) in version.split(".").enumerate() {
+    for (i, substr) in version.split('.').enumerate() {
         if i >= 4 {
             break;
         }
@@ -251,14 +249,14 @@ pub fn get_replay_version(json: &[serde_json::Value]) -> Option<[u16; 4]> {
 
 /// Return the JSON part and Binary part of the `.wotreplay` file as a tuple
 fn split_replay_data(input: &[u8]) -> Result<(Vec<&[u8]>, &[u8])> {
-    let (remaining, _magic_num) = take(4 as usize)(input)?;
+    let (remaining, _magic_num) = take(4_usize)(input)?;
 
     // Take JSON Slices
     let take_json_slice = length_data(le_u32);
     let (remaining, json_slices) = length_count(le_u32, take_json_slice)(remaining)?;
 
     // Take Binary Slice (the part that contains the packets)
-    let (binary_slice, _magic_num) = take(8 as usize)(remaining)?;
+    let (binary_slice, _magic_num) = take(8_usize)(remaining)?;
 
     Ok((json_slices, binary_slice))
 }

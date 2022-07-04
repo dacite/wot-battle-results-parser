@@ -46,11 +46,7 @@ pub enum BattleEvent {
 
 impl BattleEvent {
     pub fn is_unknown(&self) -> bool {
-        match self {
-            BattleEvent::Unimplemented => true,
-            // BattleEvent::EntityMethod(em) => em.is_unknown(),
-            _ => false,
-        }
+        matches!(self, BattleEvent::Unimplemented)
     }
 }
 
