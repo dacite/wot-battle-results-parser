@@ -143,6 +143,29 @@ impl ReplayParser {
     pub fn battle_context(&self) -> BattleContext {
         BattleContext::from(&self.json, self.packets_buffer.as_ref().unwrap())
     }
+
+    /// Bi-directional map from avatar_id to db_id
+    pub fn gen_id_bimap(&self) -> Result<bimap::BiHashMap<i32, i64>> {
+        let json = self.get_json().get(1).ok_or_else(|| Error::Other(String::from("Cannot generate bimap for incomplete replay")))?;
+
+        // TODO: Enfore DRY 
+        let vehicles = json.pointer("/0/vehicles")
+            .ok_or_else(|| Error::Other("JSON access error".into()))?
+            .as_object().ok_or_else(|| Error::Other("Unexpected JSON type".into()))?;
+
+        let mut map = bimap::BiHashMap::new();
+
+        for (avatar_id, vehicle) in vehicles {
+            let avatar_id = avatar_id.parse().unwrap();
+            let db_id = vehicle.pointer("/0/accountDBID")
+                .ok_or_else(|| Error::Other("JSON access error".into()))?
+                .as_i64().ok_or_else(|| Error::Other("Unexpected JSON type".into()))?;
+
+            map.insert(avatar_id, db_id);
+        }
+        
+        Ok(map)
+    }
 }
 
 impl JsonParser for ReplayParser {
