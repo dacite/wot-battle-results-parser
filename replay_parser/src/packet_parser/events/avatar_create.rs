@@ -13,23 +13,23 @@ use crate::{events::VersionInfo, packet_parser::serde_packet};
 #[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
 pub struct AvatarCreate {
     #[serde(skip)]
-    entity_id: i32,
+    pub entity_id: i32,
 
-    name: String,
+    pub name: String,
 
     #[version([1, 7, 0, 0])]
     session_id: Option<String>,
 
-    arena_unique_id:  u64,
-    arena_type_id:    i32,
-    arena_bonus_type: u8,
-    arena_gui_type:   u8,
+    pub arena_unique_id:  i64,
+    pub arena_type_id:    i32,
+    pub arena_bonus_type: u8,
+    pub arena_gui_type:   u8,
 
     #[serde(deserialize_with = "deserialize_pickle")]
-    arena_extra_data: WotValue, // Pickle
+    pub arena_extra_data: WotValue, // Pickle
 
-    weather_preset_id:  u8,
-    denunciations_left: i16, // Complaints left
+    pub weather_preset_id:  u8,
+    pub denunciations_left: i16, // Complaints left
 }
 
 impl PacketParser for AvatarCreate {
