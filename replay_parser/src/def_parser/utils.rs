@@ -2,7 +2,7 @@ use std::path::Path;
 
 use roxmltree::Node as XMLNode;
 
-use crate::{Error, Result};
+use crate::{Error, Result, VERSIONS};
 
 pub fn read_xml<P: AsRef<Path>>(path: P) -> Result<String> {
     match std::fs::read_to_string(&path) {
@@ -48,20 +48,9 @@ pub fn version_string_as_arr(version: String) -> Option<[u16; 4]> {
 /// Validate this version by checking if we have definition files for this version. If not return version
 /// closest to the input version
 pub fn validate_version(version: [u16; 4]) -> Result<[u16; 4]> {
-    let def_dir = get_definitions_root();
-    let file_paths = std::fs::read_dir(def_dir).map_err(|e| Error::XmlFileError(e.to_string()))?;
-
-    let dir_names = file_paths.filter_map(|entry| {
-        entry
-            .ok()
-            .map(|entry| entry.file_name().to_string_lossy().into_owned())
-    });
-
-    let knwn_versions: Vec<_> = dir_names.into_iter().filter_map(version_string_as_arr).collect();
-
     let mut smallest_diff = [u16::MAX, u16::MAX, u16::MAX, u16::MAX];
     let mut best_candidate = version;
-    for curr_version in knwn_versions {
+    for &curr_version in VERSIONS {
         let diff = [
             version[0].abs_diff(curr_version[0]),
             version[1].abs_diff(curr_version[1]),
