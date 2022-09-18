@@ -1,25 +1,22 @@
-use std::{collections::HashMap, rc::Rc};
+use std::collections::HashMap;
+
+use definition_parser::utils::validate_version;
 
 use super::battle_event::Event;
 use super::*;
-use crate::def_parser::{entity::Entity, TypeAliasLookup};
 use crate::{PacketStream, Result};
 
 #[derive(Default)]
 pub struct Context {
-    entities:     HashMap<i32, String>,
-    type_aliases: Rc<TypeAliasLookup>,
-    version:      [u16; 4],
+    entities: HashMap<i32, String>,
+    version:  [u16; 4],
 }
 
 impl Context {
     pub fn new(version: [u16; 4]) -> Result<Self> {
-        let type_aliases = TypeAliasLookup::load(version)?;
-        let type_aliases = Rc::new(type_aliases);
 
         Ok(Context {
             entities: HashMap::new(),
-            type_aliases,
             version,
         })
     }
@@ -58,18 +55,15 @@ pub trait UpdateContext {
 
 pub struct EventStream<'pkt> {
     packet_stream: PacketStream<'pkt>,
-    _vehicle:      Entity,
     context:       Context,
 }
 
 impl<'pkt> EventStream<'pkt> {
     pub fn new(packet_stream: PacketStream<'pkt>, version: [u16; 4]) -> Result<Self> {
-        let version = crate::def_parser::utils::validate_version(version)?;
+        let version = validate_version(version);
         let context = Context::new(version)?;
-        let vehicle = Entity::new("Vehicle", version, context.type_aliases.clone()).unwrap();
 
         Ok(EventStream {
-            _vehicle: vehicle,
             packet_stream,
             context,
         })
