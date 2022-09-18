@@ -20,4 +20,7 @@ results
 results_bin
 results_json
 results_known
+/replays
+definition_parser/definitions
 /replay_parser/definitions
+.env
