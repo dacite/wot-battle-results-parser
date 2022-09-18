@@ -3,8 +3,8 @@ use nom::number::complete::{le_u24, le_u8};
 use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::Deserialize;
 
-use crate::events::{Version, VersionInfo};
-use crate::Error;
+use crate::events::{PacketDeserializeError, Version, VersionInfo};
+
 
 pub struct Deserializer<'de> {
     input: &'de [u8],
@@ -38,22 +38,22 @@ impl<'de> Deserializer<'de> {
     }
 }
 
-pub fn from_slice<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, Error>
+pub fn from_slice<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, PacketDeserializeError>
 where
     T: Deserialize<'a> + Version,
 {
     let mut deserializer = Deserializer::from_slice(input, de_version, T::version(), T::name());
     let t = T::deserialize(&mut deserializer)?;
 
-    if deserializer.input.is_empty() {
-        Ok(t)
-    } else {
-        Err(Error::InvalidPacket)
+    if !deserializer.input.is_empty() {
+        return Err(PacketDeserializeError::UnconsumedInput);
     }
+
+    Ok(t)
 }
 
 /// Does not check if the input was fully consumed
-pub fn from_slice_unchecked<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, Error>
+pub fn from_slice_unchecked<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, PacketDeserializeError>
 where
     T: Deserialize<'a> + Version,
 {
@@ -64,22 +64,20 @@ where
 }
 
 impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
-    type Error = Error;
+    type Error = PacketDeserializeError;
 
     fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(Error::SerdePacketError(
-            "Deserializer went to unsupported type".to_string(),
-        ))
+        Err(PacketDeserializeError::IncorrectUsage)
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        let (remaining, result) = le_u8::<_, Error>(self.input)?;
+        let (remaining, result) = le_u8(self.input)?;
         self.input = remaining;
         let result = match result {
             0 => false,
@@ -96,7 +94,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_i8;
 
-        let (remaining, result) = le_i8::<_, Error>(self.input)?;
+        let (remaining, result) = le_i8(self.input)?;
         self.input = remaining;
         visitor.visit_i8(result)
     }
@@ -107,7 +105,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_i16;
 
-        let (remaining, result) = le_i16::<_, Error>(self.input)?;
+        let (remaining, result) = le_i16(self.input)?;
         self.input = remaining;
         visitor.visit_i16(result)
     }
@@ -118,7 +116,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_i32;
 
-        let (remaining, result) = le_i32::<_, Error>(self.input)?;
+        let (remaining, result) = le_i32(self.input)?;
         self.input = remaining;
         visitor.visit_i32(result)
     }
@@ -129,7 +127,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_i64;
 
-        let (remaining, result) = le_i64::<_, Error>(self.input)?;
+        let (remaining, result) = le_i64(self.input)?;
         self.input = remaining;
         visitor.visit_i64(result)
     }
@@ -138,7 +136,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        let (remaining, result) = le_u8::<_, Error>(self.input)?;
+        let (remaining, result) = le_u8(self.input)?;
         self.input = remaining;
         visitor.visit_u8(result)
     }
@@ -149,7 +147,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_u16;
 
-        let (remaining, result) = le_u16::<_, Error>(self.input)?;
+        let (remaining, result) = le_u16(self.input)?;
         self.input = remaining;
         visitor.visit_u16(result)
     }
@@ -160,7 +158,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_u32;
 
-        let (remaining, result) = le_u32::<_, Error>(self.input)?;
+        let (remaining, result) = le_u32(self.input)?;
         self.input = remaining;
         visitor.visit_u32(result)
     }
@@ -171,7 +169,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         use nom::number::complete::le_u64;
 
-        let (remaining, result) = le_u64::<_, Error>(self.input)?;
+        let (remaining, result) = le_u64(self.input)?;
         self.input = remaining;
         visitor.visit_u64(result)
     }
@@ -217,15 +215,16 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         V: Visitor<'de>,
     {
         let (remaining, len) = le_u8(self.input)?;
-        if (len as usize) > remaining.len() {
-            return Err(Error::SerdePacketError("Error deserializing string".to_string()));
-        }
-        let str_bytes = &remaining[..(len as usize)];
 
-        let str = std::str::from_utf8(str_bytes)
-            .map_err(|_| Error::SerdePacketError("Error deserializing string".to_string()))?;
+        if (len as usize) > remaining.len() {
+            return Err(PacketDeserializeError::StringDeError);
+        }
+
+        let str_vec = remaining[..(len as usize)].to_vec();
+
+        let str = String::from_utf8(str_vec).map_err(|_| PacketDeserializeError::StringDeError)?;
         self.input = &remaining[(len as usize)..];
-        visitor.visit_string(str.to_string())
+        visitor.visit_string(str)
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -283,10 +282,10 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        let (remaining, len) = le_u8::<_, Error>(self.input)?;
+        let (remaining, len) = le_u8(self.input)?;
         if len == u8::MAX {
             // This is a packed int spanning 3 bytes
-            let (remaining, len) = le_u24::<_, Error>(remaining)?;
+            let (remaining, len) = le_u24(remaining)?;
 
             self.input = remaining;
             visitor.visit_seq(SequenceAccess::new(self, len as usize))
@@ -375,9 +374,9 @@ impl<'a, 'de> SequenceAccess<'a, 'de> {
 }
 
 impl<'de, 'a> SeqAccess<'de> for SequenceAccess<'a, 'de> {
-    type Error = Error;
+    type Error = PacketDeserializeError;
 
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Error>
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {
@@ -408,9 +407,9 @@ impl<'a, 'de> VersionedSeqAccess<'a, 'de> {
 }
 
 impl<'de, 'a> SeqAccess<'de> for VersionedSeqAccess<'a, 'de> {
-    type Error = Error;
+    type Error = PacketDeserializeError;
 
-    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Error>
+    fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
     where
         T: DeserializeSeed<'de>,
     {
@@ -445,7 +444,7 @@ fn is_correct_version(de_version: &[u16; 4], item_version: &VersionInfo) -> bool
 }
 
 /// Return the remaining input and the byte_array that was parsed
-pub fn parse_byte_array(input: &[u8]) -> Result<(&[u8], &[u8]), Error> {
+pub fn parse_byte_array(input: &[u8]) -> Result<(&[u8], &[u8]), PacketDeserializeError> {
     let (remaining, len) = le_u8(input)?;
 
     if len == u8::MAX {

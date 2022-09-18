@@ -17,8 +17,8 @@
 /// ```
 /// This way `serde` takes care of the tedious byte to byte parsing (powered by `nom`).
 ///
-/// This assumes, that the input is truncated to match the exact payload, which means it
-/// also truncates some data that is usually part of the payload
+/// Deserializer assumes that the input will match the data format. This means that a packet's payload must be
+/// truncated to match the data.
 ///
 /// A replay packet contains the following :
 ///     - Metadata - (packet type, payload size, timestamp)

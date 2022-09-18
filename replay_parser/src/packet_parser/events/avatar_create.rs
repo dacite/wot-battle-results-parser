@@ -47,7 +47,7 @@ impl PacketParser for AvatarCreate {
 
         avatar_create.entity_id = entity_id;
 
-        println!("{}", serde_json::to_string_pretty(&avatar_create).unwrap());
+        // println!("{}", serde_json::to_string_pretty(&avatar_create).unwrap());
 
         Ok(BattleEvent::AvatarCreate(avatar_create))
     }

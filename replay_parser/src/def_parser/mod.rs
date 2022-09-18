@@ -5,6 +5,7 @@ pub mod utils;
 pub use entity::{Entity, Method, Property};
 pub use types::{OpaqueType, TypeAliasLookup, WotType};
 
+
 pub trait Size {
     /// Size in bytes of this structure
     fn get_size(&self) -> u64;

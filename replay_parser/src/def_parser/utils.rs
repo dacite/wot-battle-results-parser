@@ -7,7 +7,7 @@ use crate::{Error, Result};
 pub fn read_xml<P: AsRef<Path>>(path: P) -> Result<String> {
     match std::fs::read_to_string(&path) {
         Ok(file) => Ok(file),
-        Err(err) => Err(Error::DefinitionFileError(format!(
+        Err(err) => Err(Error::XmlFileError(format!(
             "error reading {:?}. {}",
             path.as_ref(),
             err
@@ -49,7 +49,7 @@ pub fn version_string_as_arr(version: String) -> Option<[u16; 4]> {
 /// closest to the input version
 pub fn validate_version(version: [u16; 4]) -> Result<[u16; 4]> {
     let def_dir = get_definitions_root();
-    let file_paths = std::fs::read_dir(def_dir).map_err(|e| Error::DefinitionFileError(e.to_string()))?;
+    let file_paths = std::fs::read_dir(def_dir).map_err(|e| Error::XmlFileError(e.to_string()))?;
 
     let dir_names = file_paths.filter_map(|entry| {
         entry
@@ -78,5 +78,5 @@ pub fn validate_version(version: [u16; 4]) -> Result<[u16; 4]> {
 }
 
 pub fn get_definitions_root() -> String {
-    std::env::var("DEF_DIR").unwrap_or_else(|_| "definitions".to_string())
+    std::env::var("DEF_DIR").unwrap_or_else(|_| "replay_parser/definitions".to_string())
 }

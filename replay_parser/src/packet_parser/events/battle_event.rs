@@ -31,6 +31,17 @@ impl<'pkt> Event<'pkt> {
     }
 }
 
+/// Parse packet to a Battle event. Optional context is provided to aid in parsing some particular packets.
+pub fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent> {
+    match packet.get_type() {
+        0x00 => AvatarCreate::parse(packet, context),
+        0x18 => GameVersion::parse(packet, &Context::default()),
+        0x08 => EntityMethodEvent::parse(packet, context),
+        0x23 => Chat::parse(packet, context),
+        _ => Ok(BattleEvent::Unimplemented),
+    }
+}
+
 /// This enum aims to represent all possible events that can occur in a battle. It's variant should map to
 /// each packet type and is expected to always be that type. For ex., a `GameVersion` packet has type `0x18`
 /// and is a variant of this enum. It is always be expected to be this type across all replays. Note that some
@@ -42,7 +53,9 @@ pub enum BattleEvent {
     GameVersion(GameVersion),
     AvatarCreate(AvatarCreate),
     EntityMethod(EntityMethodEvent),
+    Chat(Chat),
 }
+
 
 impl BattleEvent {
     pub fn is_unknown(&self) -> bool {
@@ -61,6 +74,7 @@ impl EventPrinter for BattleEvent {
             AvatarCreate(x) => x.to_debug_string(context),
             GameVersion(x) => x.to_debug_string(context),
             EntityMethod(x) => x.to_debug_string(context),
+            Chat(x) => x.to_debug_string(context),
         }
     }
 }
@@ -68,10 +82,11 @@ impl EventPrinter for BattleEvent {
 impl UpdateContext for BattleEvent {
     fn update_context(&self, context: &mut Context) {
         match self {
+            BattleEvent::AvatarCreate(x) => x.update_context(context),
             BattleEvent::Unimplemented => {}
             BattleEvent::GameVersion(_) => {}
-            BattleEvent::AvatarCreate(x) => x.update_context(context),
             BattleEvent::EntityMethod(_) => {}
+            BattleEvent::Chat(_) => {}
         }
     }
 }

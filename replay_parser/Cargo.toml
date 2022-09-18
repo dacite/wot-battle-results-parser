@@ -41,6 +41,15 @@ standard_format = { path = '../standard_format'}
 unpickler = { path = "../unpickler" }
 serde_bytes = "0.11.6"
 bimap = "0.6.2"
+tracing = "0.1.35"
+tracing-subscriber = { version= "0.3.14", features = ["registry"] }
+tracing-bunyan-formatter = "0.3.3"
+phf = "0.11.0"
+error-stack = "0.1.1"
+
+[build-dependencies]
+phf_codegen = "0.11.0"
+definition_parser = { path = "../definition_parser" }
 
 [dev-dependencies]
 criterion = "0.3.5"

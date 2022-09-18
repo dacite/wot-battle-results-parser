@@ -116,7 +116,7 @@ mod tests {
         let expected = BattleEvent::EntityMethod(EntityMethodEvent {
             entity_id: 9383728,
             size:      2,
-            method:    0,
+            method_id: 0,
             event:     EntityMethod::ShotFired(ShowShooting {
                 burst_count: 1,
                 gun_index:   Some(0),
@@ -137,7 +137,7 @@ mod tests {
         let expected = BattleEvent::EntityMethod(EntityMethodEvent {
             entity_id: 9383739,
             size:      9,
-            method:    2,
+            method_id: 2,
             event:     EntityMethod::HealthChanged(OnHealthChanged {
                 new_health:    1384,
                 old_health:    2179,

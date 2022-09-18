@@ -1,5 +1,4 @@
 use core::result::Result as StdResult;
-use std::io::{Cursor, Read};
 
 use crypto::{blowfish::Blowfish, symmetriccipher::BlockDecryptor};
 use miniz_oxide::inflate::decompress_to_vec_zlib;
@@ -9,9 +8,7 @@ use nom::{
     number::complete::le_u32,
 };
 
-use crate::{
-    json_parser::JsonParser, BattleContext, Error, EventStream, PacketStream, ReplayParseResult, Result,
-};
+use crate::{json_parser::JsonParser, BattleContext, Error, EventStream, PacketStream, Result};
 /// Parse a wotreplay from file. Only deals with that wotreplay. If you need to parse multiple replays, create
 /// multiple instances of `ReplayParser`.
 /// ## Example 1 - Print Replay Events
@@ -43,20 +40,25 @@ pub struct ReplayParser {
 }
 
 impl ReplayParser {
-    /// Parse JSON from replay file and convert the binary portion into packets
-    pub fn parse<T: Read>(mut input: T) -> Result<Self> {
-        let mut data = Vec::new();
-        input.read_to_end(&mut data).map_err(|_| Error::ReplayFileError)?;
+    #[tracing::instrument]
+    pub fn parse_file(path: &str) -> Result<Self> {
+        let input = std::fs::read(path)?;
 
-        let (json, packets_buffer) = parse(&data)?;
+        Self::parse(input)
+    }
+
+    /// Parse JSON from replay file and convert the binary portion into packets iterator (lazy)
+    pub fn parse(input: Vec<u8>) -> Result<Self> {
+        let (json_slices, binary_slice) = split_replay_data(&input)?;
+        let packets_buffer = decrypt_and_decompress_binary(binary_slice)?;
 
         // Raw JSON buffer to JSONValue from serde_json
         let json: StdResult<Vec<_>, serde_json::Error> =
-            json.into_iter().map(serde_json::from_slice).collect();
+            json_slices.into_iter().map(serde_json::from_slice).collect();
         let json = json?;
 
         Ok(ReplayParser {
-            data,
+            data: input,
             version: get_replay_version(&json),
             json,
             packets_buffer: Some(packets_buffer),
@@ -65,16 +67,16 @@ impl ReplayParser {
 
     /// Only parse the JSON portion of the replay. Use this if the packets portion is not needed because
     /// parsing the binary into packets is quite expensive.
-    pub fn parse_json<T: Read>(mut input: T) -> Result<Self> {
-        let mut data = Vec::new();
-        input
-            .read_to_end(&mut data)
-            .map_err(|err| Error::Other(format!("failed to read replay file: {}", err)))?;
+    pub fn parse_json(input: Vec<u8>) -> Result<Self> {
+        let (json_slices, _binary_slice) = split_replay_data(&input)?;
 
-        let json = parse_json_value(&data)?;
+        // Raw JSON buffer to JSONValue from serde_json
+        let json: StdResult<Vec<_>, serde_json::Error> =
+            json_slices.into_iter().map(serde_json::from_slice).collect();
+        let json = json?;
 
         Ok(ReplayParser {
-            data,
+            data: input,
             version: get_replay_version(&json),
             json,
             packets_buffer: None,
@@ -133,6 +135,7 @@ impl ReplayParser {
 
     /// An iterator over the events in the replay. This is a layer of abstraction over `PacketStream`. Each
     /// packet is converted into the event it represents.
+    // #[tracing::instrument(name = "event_stream", skip_all)]
     pub fn event_stream(&self) -> Result<EventStream> {
         let packet_stream = self.packet_stream()?;
         let version = self.get_version()?;
@@ -146,24 +149,31 @@ impl ReplayParser {
 
     /// Bi-directional map from avatar_id to db_id
     pub fn gen_id_bimap(&self) -> Result<bimap::BiHashMap<i32, i64>> {
-        let json = self.get_json().get(1).ok_or_else(|| Error::Other(String::from("Cannot generate bimap for incomplete replay")))?;
+        let json = self
+            .get_json()
+            .get(1)
+            .ok_or_else(|| Error::Other(String::from("Cannot generate bimap for incomplete replay")))?;
 
-        // TODO: Enfore DRY 
-        let vehicles = json.pointer("/0/vehicles")
+        // TODO: Enfore DRY
+        let vehicles = json
+            .pointer("/0/vehicles")
             .ok_or_else(|| Error::Other("JSON access error".into()))?
-            .as_object().ok_or_else(|| Error::Other("Unexpected JSON type".into()))?;
+            .as_object()
+            .ok_or_else(|| Error::Other("Unexpected JSON type".into()))?;
 
         let mut map = bimap::BiHashMap::new();
 
         for (avatar_id, vehicle) in vehicles {
             let avatar_id = avatar_id.parse().unwrap();
-            let db_id = vehicle.pointer("/0/accountDBID")
+            let db_id = vehicle
+                .pointer("/0/accountDBID")
                 .ok_or_else(|| Error::Other("JSON access error".into()))?
-                .as_i64().ok_or_else(|| Error::Other("Unexpected JSON type".into()))?;
+                .as_i64()
+                .ok_or_else(|| Error::Other("Unexpected JSON type".into()))?;
 
             map.insert(avatar_id, db_id);
         }
-        
+
         Ok(map)
     }
 }
@@ -174,58 +184,14 @@ impl JsonParser for ReplayParser {
     }
 }
 
-/// Parse replay and return the JSON portion and the binary portion (after decrypting)
-/// ## Example
-/// ```
-/// # use wot_replay_parser::parse_json;
-/// let replay_file = std::fs::read("input_files/example.wotreplay").unwrap();
-/// let (json_values, binary_portion) = parse(&replay_file).unwrap();
-///
-/// for json_buf in json_buffers {
-///     println!("{}", std::str::from_utf8(json_buf).unwrap());
-/// }
-/// ```
-pub fn parse(input: &[u8]) -> Result<ReplayParseResult> {
-    let (json_slices, binary_slice) = split_replay_data(input)?;
-
-    let packets_buffer = separate_binary(&mut Cursor::new(binary_slice))?;
-
-    Ok((json_slices, packets_buffer))
-}
-
-/// Parse and return the raw JSON data from the replay. Each element in the vector refers to a JSON object
-/// ## Example - Print JSON info of a replay
-/// ```
-/// # use wot_replay_parser::parse_json;
-/// let replay_file = std::fs::read("input_files/example.wotreplay").unwrap();
-/// let json_buffers = parse_json(&replay_file).unwrap();
-///
-/// for json_buf in json_buffers {
-///     println!("{}", std::str::from_utf8(json_buf).unwrap());
-/// }
-/// ```
-pub fn parse_json(input: &[u8]) -> Result<Vec<&[u8]>> {
-    let (json_slices, _binary_slice) = split_replay_data(input)?;
-
-    Ok(json_slices)
-}
-
-/// Same as [parse_json](fn.parse_json.html) but converts the raw json buffers to `serde_json::Value`
-pub fn parse_json_value(input: &[u8]) -> Result<Vec<serde_json::Value>> {
-    let (json_slices, _binary_slice) = split_replay_data(input)?;
-
-    let mut json = Vec::new();
-    for slice in json_slices {
-        json.push(serde_json::from_slice(slice)?);
-    }
-
-    Ok(json)
-}
-
 pub fn parse_binary(input: &[u8]) -> Result<Vec<u8>> {
     let (_json_slices, binary_slice) = split_replay_data(input)?;
 
-    let packets_buffer = separate_binary(&mut Cursor::new(binary_slice))?;
+    let decrypted = decrypt(binary_slice)?;
+    let decrypted = xor_decrypted(decrypted);
+
+    let packets_buffer =
+        decompress_to_vec_zlib(&decrypted).map_err(|_| Error::Other("decompression error".to_string()))?;
 
     Ok(packets_buffer)
 }
@@ -284,23 +250,14 @@ fn split_replay_data(input: &[u8]) -> Result<(Vec<&[u8]>, &[u8])> {
     Ok((json_slices, binary_slice))
 }
 
-fn separate_binary(seekable: &mut Cursor<&[u8]>) -> Result<Vec<u8>> {
-    let mut decrypted = decrypt_remaining_slice(seekable)?;
-    xor_decrypted(&mut decrypted);
+fn decrypt_and_decompress_binary(binary: &[u8]) -> Result<Vec<u8>> {
+    let decrypted = decrypt(binary)?;
+    let decrypted = xor_decrypted(decrypted);
 
     let decompressed =
         decompress_to_vec_zlib(&decrypted).map_err(|_| Error::Other("decompression error".to_string()))?;
 
     Ok(decompressed)
-}
-
-/// We have a seperate function for this because cursor remaining is unstable feature.
-fn decrypt_remaining_slice(seekable: &mut Cursor<&[u8]>) -> Result<Vec<u8>> {
-    // Grab encrypted buffer
-    let current_seek_pos = seekable.position() as usize;
-    let encrypted_buffer = &seekable.get_ref()[current_seek_pos..];
-
-    decrypt(encrypted_buffer)
 }
 
 fn decrypt(input_blocks: &[u8]) -> Result<Vec<u8>> {
@@ -327,12 +284,16 @@ fn decrypt(input_blocks: &[u8]) -> Result<Vec<u8>> {
     Ok(output_buffer)
 }
 
-fn xor_decrypted(decrypted: &mut [u8]) {
+#[inline]
+fn xor_decrypted(mut decrypted: Vec<u8>) -> Vec<u8> {
     for i in 8..decrypted.len() {
         decrypted[i] ^= decrypted[i - 8];
     }
+
+    decrypted
 }
 
+#[inline]
 fn get_padded_block(source_block: &[u8]) -> [u8; 8] {
     let mut padded_block = [0x00; 8];
     let block_size = source_block.len();

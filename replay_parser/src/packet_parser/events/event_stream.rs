@@ -3,12 +3,11 @@ use std::{collections::HashMap, rc::Rc};
 use super::battle_event::Event;
 use super::*;
 use crate::def_parser::{entity::Entity, TypeAliasLookup};
-use crate::packet_parser::Packet;
 use crate::{PacketStream, Result};
 
 #[derive(Default)]
 pub struct Context {
-    entities:     HashMap<i32, Entity>,
+    entities:     HashMap<i32, String>,
     type_aliases: Rc<TypeAliasLookup>,
     version:      [u16; 4],
 }
@@ -30,15 +29,21 @@ impl Context {
     }
 
     pub fn add_entity(&mut self, entity_id: i32, entity_name: &str) {
-        let entity = Entity::new(entity_name, self.version, self.type_aliases.clone()).unwrap();
+        // let entity = Entity::new(entity_name, self.version, self.type_aliases.clone()).unwrap();
 
-        self.entities.insert(entity_id, entity);
+        self.entities.insert(entity_id, entity_name.to_string());
     }
 
-    pub fn find_method(&self, entity_id: i32, method_id: usize) -> Option<&str> {
-        let entity = self.entities.get(&entity_id)?;
+    pub fn find_method(&self, entity_id: i32, method_id: i32) -> Option<&str> {
+        let entity_name = if let Some(name) = self.entities.get(&entity_id) {
+            name
+        } else {
+            "Vehicle"
+        };
 
-        entity.find_method(method_id)
+        let version_str = crate::utils::version_as_string(self.version);
+
+        method_defs::find_method(entity_name, &version_str, method_id)
     }
 }
 
@@ -71,15 +76,6 @@ impl<'pkt> EventStream<'pkt> {
     }
 }
 
-/// Parse packet to a Battle event. Optional context is provided to aid in parsing some particular packets.
-pub fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent> {
-    match packet.get_type() {
-        0x00 => AvatarCreate::parse(packet, context),
-        0x18 => GameVersion::parse(packet, &Context::default()),
-        0x08 => EntityMethodEvent::parse(packet, context),
-        _ => Ok(BattleEvent::Unimplemented),
-    }
-}
 
 impl<'pkt> Iterator for EventStream<'pkt> {
     type Item = Result<Event<'pkt>>;
@@ -94,9 +90,19 @@ impl<'pkt> Iterator for EventStream<'pkt> {
                     Event::new(packet, battle_event)
                 });
 
+                log_if_error(&event);
                 Some(event)
             }
             Err(err) => Some(Err(err)),
+        }
+    }
+}
+
+fn log_if_error(event: &Result<Event>) {
+    match event.as_ref() {
+        Ok(_) => {}
+        Err(err) => {
+            tracing::error!(error = ?err)
         }
     }
 }

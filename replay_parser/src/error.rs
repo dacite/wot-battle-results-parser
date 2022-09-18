@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::events::PacketDeserializeError;
+
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Error, Debug, Clone)]
@@ -14,7 +16,7 @@ pub enum Error {
     ReplayJsonError(String),
 
     #[error("cannot find definitions: {0}")]
-    DefinitionFileError(String),
+    XmlFileError(String),
 
     /// Error when parsing with nom. Only holds information about what type of nom error.
     /// More info is added and this error will turn to one of the other variants and this error gets bubbled
@@ -28,9 +30,12 @@ pub enum Error {
     #[error("serde packet error: {0}")]
     SerdePacketError(String),
 
-    #[error("entity method {method_name} parse failed: {root_cause}. given data: {method_data}")]
+    #[error(
+        "entity method {method_name}[ID: {method_id}] parse failed: {root_cause}. given data: {method_data}"
+    )]
     EntityMethodError {
         method_data: String,
+        method_id:   i32,
         method_name: String,
         root_cause:  String,
     },
@@ -43,21 +48,9 @@ pub enum Error {
 
     #[error("i/o error: {0}")]
     IoError(String),
-}
 
-impl Error {
-    /// Construct an `EnityMethodError` given:
-    /// - `data` data of the method
-    /// - `id` expected id of the method
-    /// - `name` name of the method
-    /// - `root_cause` the underlying factor that caused the parsing to fail
-    pub fn new_entity_method_err(data: &[u8], name: &str, root_cause: Error) -> Self {
-        Self::EntityMethodError {
-            method_data: hex::encode_upper(data),
-            method_name: name.to_string(),
-            root_cause:  root_cause.to_string(),
-        }
-    }
+    #[error("packet deserialize error: {0}")]
+    PacketDeserializeError(#[from] PacketDeserializeError),
 }
 
 impl From<nom::Err<Error>> for Error {

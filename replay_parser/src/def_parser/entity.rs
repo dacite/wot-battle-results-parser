@@ -72,7 +72,7 @@ impl Entity {
     }
 
     fn parse_def_file(&mut self, path: String) -> Result<()> {
-        let xml_string = utils::read_xml(path).map_err(|e| Error::DefinitionFileError(e.to_string()))?;
+        let xml_string = utils::read_xml(path).map_err(|e| Error::XmlFileError(e.to_string()))?;
         let document = Document::parse(&xml_string).unwrap();
         let root = document.root().first_child().unwrap();
 
@@ -113,7 +113,7 @@ fn parse_interfaces(entity: &mut Entity, node: XMLNode) -> Result<()> {
 
             entity.parse_def_file(interface_path)?;
         } else {
-            panic!("<Implements> may only contai <Interfaces>");
+            panic!("<Implements> may only contain <Interfaces>");
         }
     }
 

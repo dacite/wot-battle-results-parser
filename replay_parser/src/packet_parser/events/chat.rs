@@ -1,42 +1,30 @@
-use std::io::{Cursor, SeekFrom, Seek, Read};
+use macros::{EventPrinter, Version};
+use nom::number::complete::le_u32;
+use serde::{Deserialize, Serialize};
 
-use byteorder::{LittleEndian, ReadBytesExt};
-use macros::ToPacket;
-use getset::Getters;
+use super::battle_event::Version;
+use super::{event_stream::Context, BattleEvent, EventPrinter, PacketParser};
+// todo: how can this be inside macro (VersionInfo)
+use crate::events::VersionInfo;
+use crate::packet_parser::Packet;
+use crate::Result;
 
-use crate::{packet_stream::{Packet, METADATA_SIZE}, event::{PacketParser, ToPacket, TargetableEvent, battle_event::BattleEvent, EventPrinter, BattleInfo}};
-
-#[derive(derivative::Derivative, ToPacket, Getters, Clone)]
-#[derivative(Debug)]
+#[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
 pub struct Chat {
     msg: String,
-    #[derivative(Debug="ignore")]
-    inner: Cursor<Vec<u8>>,
 }
 
 
 impl PacketParser for Chat {
-    fn parse(packet: Packet) -> BattleEvent {
-        let mut inner = packet.get_seekable_vec();
+    fn parse(packet: &Packet, _context: &Context) -> Result<BattleEvent> {
+        let data = packet.get_payload();
+        let (remaining, msg_length) = le_u32(data)?;
 
-        inner.seek(SeekFrom::Start(METADATA_SIZE)).unwrap();
-        let msg_length = inner.read_u32::<LittleEndian>().unwrap() as usize;
+        let msg_buffer = &remaining[..msg_length as usize];
 
-        let mut msg_buffer: Vec<u8> = vec![0; msg_length];
-        
-        inner.read(&mut msg_buffer).unwrap();
-        let msg = String::from_utf8(msg_buffer).unwrap();
+        let msg = std::str::from_utf8(msg_buffer).unwrap();
+        // extract_player_name(msg);
 
-        inner.set_position(0);
-        
-        BattleEvent::Chat(Self {
-           msg, inner
-        })
-    }
-}
-
-impl EventPrinter for Chat {
-    fn to_string(&self, _: &BattleInfo) -> String {
-        format!("Chat: {}", self.msg.clone())
+        Ok(BattleEvent::Chat(Chat { msg: msg.to_string() }))
     }
 }
