@@ -2,7 +2,6 @@ use std::path::Path;
 
 use criterion::BenchmarkId;
 use criterion::{criterion_group, criterion_main, Criterion};
-use wot_replay_parser::{parse, parse_json};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("Replay: Parse JSON Only", |b| b.iter(parse_json_only));
@@ -16,7 +15,7 @@ fn parse_json_only() {
     .unwrap();
     for entry in files {
         let file = std::fs::read(entry.path()).unwrap();
-        let _result = parse_json(&file).unwrap();
+        let _result = wot_replay_parser::ReplayParser::parse_json(file).unwrap();
     }
 }
 
@@ -27,12 +26,12 @@ fn parse_entire_replay() {
     .unwrap();
     for entry in files {
         let file = std::fs::read(entry.path()).unwrap();
-        let _result = parse(&file).unwrap();
+        let _result = wot_replay_parser::ReplayParser::parse(file).unwrap();
     }
 }
 
 fn parse_events(bin_stream: &[u8]) {
-    let parser = wot_replay_parser::ReplayParser::parse(bin_stream).unwrap();
+    let parser = wot_replay_parser::ReplayParser::parse(bin_stream.to_vec()).unwrap();
     let event_stream = parser.event_stream().unwrap();
     let _events: Vec<_> = event_stream.into_iter().collect();
 }
