@@ -64,5 +64,5 @@ pub fn version_string_as_arr(version: String) -> Option<[u16; 4]> {
 // }
 
 pub fn get_definitions_root() -> String {
-    std::env::var("DEF_DIR").unwrap_or_else(|_| "definitions".to_string())
+    std::env::var("DEF_DIR").unwrap_or_else(|_| "../definition_parser/definitions".to_string())
 }
