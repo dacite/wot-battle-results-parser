@@ -10,7 +10,9 @@ pub use packet_parser::events::EventStream;
 pub use packet_parser::PacketStream;
 
 mod battle_context;
-pub use battle_context::{get_replay_time, BattleContext};
+pub use battle_context::BattleContext;
 pub use error::Error;
 pub use error::Result;
 pub use replay_parser::*;
+
+pub use crate::utils::get_replay_time;

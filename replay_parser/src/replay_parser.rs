@@ -1,5 +1,6 @@
 use core::result::Result as StdResult;
 
+use byteorder::{ReadBytesExt, LE};
 use crypto::{blowfish::Blowfish, symmetriccipher::BlockDecryptor};
 use miniz_oxide::inflate::decompress_to_vec_zlib;
 use nom::{
@@ -119,6 +120,17 @@ impl ReplayParser {
         } else {
             Err(Error::Other("failed to get replay version".to_string()))
         }
+    }
+
+    pub fn get_battle_start_time(packet_stream: PacketStream) -> f32 {
+        for packet in packet_stream {
+            let packet = packet.unwrap();
+            if packet.get_type() == 0x16 && packet.get_payload().read_u32::<LE>().unwrap() == 3 {
+                return packet.get_time();
+            }
+        }
+
+        -1.0
     }
 
     /// An iterator over the packets in the replay. Must call `load_packets` if its not already loaded. The
