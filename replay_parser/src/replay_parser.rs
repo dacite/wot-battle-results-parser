@@ -122,8 +122,8 @@ impl ReplayParser {
         }
     }
 
-    pub fn get_battle_start_time(packet_stream: PacketStream) -> f32 {
-        for packet in packet_stream {
+    pub fn get_battle_start_time(&self) -> f32 {
+        for packet in self.packet_stream().unwrap() {
             let packet = packet.unwrap();
             if packet.get_type() == 0x16 && packet.get_payload().read_u32::<LE>().unwrap() == 3 {
                 return packet.get_time();
