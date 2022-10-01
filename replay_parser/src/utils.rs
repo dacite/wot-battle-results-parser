@@ -11,7 +11,7 @@ pub fn get_replay_time(start_time: f64, current_time: f64, duration: i64) -> Str
     let actual_time = total_time - Duration::seconds_f64(current_time - start_time);
 
     format!(
-        "{}:{}",
+        "{}:{:02}",
         actual_time.whole_minutes(),
         actual_time.whole_seconds() % 60
     )
