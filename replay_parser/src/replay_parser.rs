@@ -1,7 +1,8 @@
 use core::result::Result as StdResult;
 
-use byteorder::{ReadBytesExt, LE};
-use crypto::{blowfish::Blowfish, symmetriccipher::BlockDecryptor};
+use blowfish::{Blowfish, cipher::BlockDecrypt};
+use blowfish::cipher::KeyInit;
+use byteorder::{BE, LE, ReadBytesExt};
 use miniz_oxide::inflate::decompress_to_vec_zlib;
 use nom::{
     bytes::complete::take,
@@ -276,24 +277,18 @@ fn decrypt(input_blocks: &[u8]) -> Result<Vec<u8>> {
     // Init blowfish cipher
     let mut wot_blowfish_key = [0; 16];
     hex::decode_to_slice("DE72BEA0DE04BEB1DEFEBEEFDEADBEEF", &mut wot_blowfish_key).unwrap();
-    let bf = Blowfish::new(&wot_blowfish_key);
+    let bf: Blowfish<BE> = Blowfish::new_from_slice(&wot_blowfish_key).unwrap();
+    
+    let output_len = input_blocks.len() + (input_blocks.len() % 8);
+    let mut output_blocks = input_blocks.to_vec();
+    output_blocks.resize(output_len, 0);
 
-    // Init output buffer (output buffer needs to be a multiple of 8)
-    let input_blocks_len = input_blocks.len();
-    let mut output_buffer = vec![0; input_blocks_len + (input_blocks_len % 8)];
-
-    // Fill output buffer with decrypted values
-    for i in (0..input_blocks_len).step_by(8) {
-        if (i + 8) > input_blocks_len {
-            let padded_block = get_padded_block(&input_blocks[i..input_blocks_len]);
-
-            bf.decrypt_block(&padded_block, &mut output_buffer[i..(i + 8)]);
-        } else {
-            bf.decrypt_block(&input_blocks[i..(i + 8)], &mut output_buffer[i..(i + 8)]);
-        }
+    for i in (0..output_blocks.len()).step_by(8) {
+        let block = &mut output_blocks[i..(i+8)];
+        bf.decrypt_block(block.into());
     }
 
-    Ok(output_buffer)
+    Ok(output_blocks)
 }
 
 #[inline]
@@ -303,13 +298,4 @@ fn xor_decrypted(mut decrypted: Vec<u8>) -> Vec<u8> {
     }
 
     decrypted
-}
-
-#[inline]
-fn get_padded_block(source_block: &[u8]) -> [u8; 8] {
-    let mut padded_block = [0x00; 8];
-    let block_size = source_block.len();
-    padded_block[..block_size].clone_from_slice(source_block);
-
-    padded_block
 }
