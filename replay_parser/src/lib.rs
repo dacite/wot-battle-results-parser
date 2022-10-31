@@ -1,7 +1,5 @@
 mod error;
-mod json_parser;
 mod utils;
-pub use json_parser::{JsonParser, ReplaySummary};
 
 pub mod packet_parser;
 mod replay_parser;
@@ -16,3 +14,4 @@ pub use error::Result;
 pub use replay_parser::*;
 
 pub use crate::utils::get_replay_time;
+pub use crate::events::method_defs::METHOD_MAP;
