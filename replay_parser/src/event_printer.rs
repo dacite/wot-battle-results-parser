@@ -19,7 +19,7 @@ pub fn main() -> Result<()> {
 
 fn analyze(dir_entry: DirEntry) -> wot_replay_parser::Result<()> {
     println!("{:?}", dir_entry.file_name());
-    let read_file = File::open(dir_entry.path())?;
+    let file_buf = std::fs::read(dir_entry.path())?;
 
     create_dir_all("results")?;
     create_dir_all("results_json")?;
@@ -34,7 +34,7 @@ fn analyze(dir_entry: DirEntry) -> wot_replay_parser::Result<()> {
         dir_entry.file_name().into_string().unwrap()
     ))?;
 
-    let parser = wot_replay_parser::ReplayParser::parse(read_file)?;
+    let parser = wot_replay_parser::ReplayParser::parse(file_buf)?;
     let battle_context = parser.battle_context();
     serde_json::to_writer_pretty(write_file_json, parser.get_json())?;
     for event in parser.event_stream()? {
@@ -47,7 +47,8 @@ fn analyze(dir_entry: DirEntry) -> wot_replay_parser::Result<()> {
                             "{} {}",
                             wot_replay_parser::get_replay_time(
                                 battle_context.get_start_time() as f64,
-                                event.packet().get_time() as f64
+                                event.packet().get_time() as f64,
+                                15
                             ),
                             method.to_debug_string(&battle_context)
                         )?;

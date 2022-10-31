@@ -32,17 +32,26 @@ fn parse_arena_data(update_type: u8, arena_data: &[u8]) -> Result<()> {
         )
         .unwrap();
 
+        // println!("{:#?}", pickle_value);
+
         let wot_value = serde_pickle::from_value(pickle_value).unwrap();
         let wot_value = try_variant!(wot_value, WotValue::Collection).unwrap();
         let wot_value = try_variant!(wot_value[0].clone(), WotValue::Collection).unwrap();
-        let wot_value = try_variant!(wot_value[1].clone(), WotValue::Bytes).unwrap();
-        println!("{:#?}", wot_value);
+        println!("{:#?}", wot_value[1]);
+        // let wot_value = try_variant!(wot_value[1].clone(), WotValue::Bytes).unwrap();
         todo!()
     }
 
     Ok(())
 }
 
+fn get_vehicle_type(compact_description: Vec<u8>, extra_data: Option<i32>) {}
+
+fn split_vehicle_compact_descr(compact_description: Vec<u8>) {
+    let header = *compact_description.get(0).unwrap();
+    let vehicle_type_id = *compact_description.get(1).unwrap();
+    let nation_id = header >> 4 & 15;
+}
 // TODO: We might need to do a versioned way of doing this because there is another dictionary that only
 // TODO: contains some of these that's used by WOT
 #[allow(dead_code)]

@@ -40,7 +40,7 @@ pub fn criterion_benchmark_events(c: &mut Criterion) {
     let file = std::fs::read("/home/dacite/Projects/wot-battle-results-parser/replay_parser/input_files/20220312_2330_uk-GB98_T95_FV4201_Chieftain_59_asia_great_wall.wotreplay").unwrap();
 
     let mut group = c.benchmark_group("Event parsing overhead");
-    group.sample_size(5000);
+    group.sample_size(100);
     group.bench_with_input(
         BenchmarkId::new("input_example", "ok"),
         &file,
@@ -51,6 +51,6 @@ pub fn criterion_benchmark_events(c: &mut Criterion) {
     group.finish();
 }
 
-// criterion_group!(benches, criterion_benchmark);
+criterion_group!(benches, criterion_benchmark);
 criterion_group!(event_parsing, criterion_benchmark_events);
-criterion_main!(event_parsing);
+criterion_main!(event_parsing, benches);

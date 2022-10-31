@@ -3,12 +3,11 @@ use nom::number::complete::{le_i32, le_u16, le_u32};
 use serde::{de, Deserialize, Serialize};
 use standard_format::WotValue;
 
-use super::{battle_event::Version, event_stream::UpdateContext};
-use super::{event_stream::Context, BattleEvent, EventPrinter, PacketParser};
+use super::event_stream::UpdateContext;
+use super::{event_stream::Context, BattleEvent, EventPrinter, PacketParser, Version, VersionInfo};
+use crate::packet_parser::serde_packet;
 use crate::packet_parser::Packet;
 use crate::Result;
-// todo: how can this be inside macro (VersionInfo)
-use crate::{events::VersionInfo, packet_parser::serde_packet};
 
 #[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
 pub struct AvatarCreate {

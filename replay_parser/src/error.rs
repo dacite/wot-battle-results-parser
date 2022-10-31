@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::events::PacketDeserializeError;
+use crate::packet_parser::{PacketDeserializeError, PacketError};
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -48,6 +48,10 @@ pub enum Error {
 
     #[error("i/o error: {0}")]
     IoError(String),
+
+    // TODO: Combine both packet errors into one
+    #[error("{0}")]
+    PacketError(#[from] PacketError),
 
     #[error("packet deserialize error: {0}")]
     PacketDeserializeError(#[from] PacketDeserializeError),

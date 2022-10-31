@@ -3,7 +3,8 @@ use nom::number::complete::{le_u24, le_u8};
 use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::Deserialize;
 
-use crate::events::{PacketDeserializeError, Version, VersionInfo};
+use crate::events::{Version, VersionInfo};
+use crate::packet_parser::PacketDeserializeError;
 
 
 pub struct Deserializer<'de> {
@@ -79,11 +80,7 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     {
         let (remaining, result) = le_u8(self.input)?;
         self.input = remaining;
-        let result = match result {
-            0 => false,
-            1 => true,
-            _ => true,
-        };
+        let result = !matches!(result, 0);
 
         visitor.visit_bool(result)
     }

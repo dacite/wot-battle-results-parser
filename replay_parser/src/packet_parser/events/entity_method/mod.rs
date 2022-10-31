@@ -1,5 +1,7 @@
 mod update_arena;
 mod vehicle_methods;
+mod other_methods;
+mod vehicle_misc_status;
 
 use macros::EventPrinter;
 use nom::number::complete::le_i32;
@@ -107,7 +109,7 @@ impl EntityMethod {
             "onStaticCollision" => Ok(StaticCollision(EntityMethod::parse_method(data, version)?)),
             "showDamageFromShot" => Ok(DamageFromShot(EntityMethod::parse_method(data, version)?)),
             "showTracer" => Ok(Tracer(EntityMethod::parse_method(data, version)?)),
-            // "updateArena" => Ok(Arena(UpdateArena::from(data, version)?)),
+            // "updateArena" => Ok(Arena(UpdateArena::from(data, version).unwrap())),
             _ => {
                 // eprintln!("{name}");
 

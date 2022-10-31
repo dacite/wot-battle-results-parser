@@ -1,5 +1,7 @@
 use byteorder::{ReadBytesExt, LE};
 
+use crate::packet_parser::PacketError;
+
 pub const METADATA_SIZE: usize = 12;
 
 /// A packet is simply a wrapper around a slice that represents that packet. We can also access its type,
@@ -60,16 +62,14 @@ impl<'a> PacketStream<'a> {
 }
 
 impl<'a> Iterator for PacketStream<'a> {
-    type Item = crate::Result<Packet<'a>>;
+    type Item = Result<Packet<'a>, PacketError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let position = self.position;
 
         if (position + 4) > self.inner.len() {
             if position != self.inner.len() {
-                return Some(Err(crate::Error::Other(
-                    "packet stream ended unexpectedly".to_string(),
-                )));
+                return Some(Err(PacketError::PacketStreamError));
             }
             return None;
         }
@@ -81,9 +81,7 @@ impl<'a> Iterator for PacketStream<'a> {
         let packet_range = position..(position + packet_size);
 
         if (position + packet_size) > self.inner.len() {
-            return Some(Err(crate::Error::Other(
-                "packet has invalid payload size".to_string(),
-            )));
+            return Some(Err(PacketError::PacketStreamError));
         }
 
         self.position += packet_size;

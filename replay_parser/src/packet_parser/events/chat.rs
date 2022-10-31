@@ -23,7 +23,6 @@ impl PacketParser for Chat {
         let msg_buffer = &remaining[..msg_length as usize];
 
         let msg = std::str::from_utf8(msg_buffer).unwrap();
-        // extract_player_name(msg);
 
         Ok(BattleEvent::Chat(Chat { msg: msg.to_string() }))
     }

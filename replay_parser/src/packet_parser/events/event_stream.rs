@@ -14,7 +14,6 @@ pub struct Context {
 
 impl Context {
     pub fn new(version: [u16; 4]) -> Result<Self> {
-
         Ok(Context {
             entities: HashMap::new(),
             version,
@@ -87,7 +86,7 @@ impl<'pkt> Iterator for EventStream<'pkt> {
                 log_if_error(&event);
                 Some(event)
             }
-            Err(err) => Some(Err(err)),
+            Err(err) => Some(Err(err.into())),
         }
     }
 }

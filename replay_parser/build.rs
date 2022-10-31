@@ -4,7 +4,7 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::rc::Rc;
 
-use definition_parser::utils;
+use definition_parser::utils::{self, version_string_as_arr};
 use definition_parser::{Entity, TypeAliasLookup};
 
 fn main() {
@@ -16,19 +16,33 @@ pub fn load_definitions() {
     let mut file = BufWriter::new(File::create(&path).unwrap());
 
     let mut map = phf_codegen::Map::new();
-    load_version([0, 9, 15, 0], &mut map);
-    load_version([1, 6, 1, 0], &mut map);
-    load_version([1, 8, 0, 0], &mut map);
-    load_version([1, 16, 1, 0], &mut map);
+    let versions = get_available_versions();
+
+    for version in versions {
+        load_version(version, &mut map);
+    }
 
     writeln!(
         &mut file,
-        "static METHOD_MAP: phf::Map<&'static str, &'static str> = \n{};\n",
+        "pub static METHOD_MAP: phf::Map<&'static str, &'static str> = \n{};\n",
         map.build()
     )
     .unwrap();
 }
 
+fn get_available_versions() -> Vec<[u16; 4]>{
+    let dir = std::fs::read_dir("../definition_parser/definitions").unwrap();
+
+    let mut vec = Vec::new();
+    for dir_entry in dir.flatten() {
+        let dir_name = dir_entry.file_name().to_string_lossy().to_string();
+        let version = version_string_as_arr(dir_name).unwrap();
+
+        vec.push(version);
+    }
+
+    vec
+}
 /// Load type aliases for this version and also the necessary entities
 fn load_version(version: [u16; 4], map: &mut phf_codegen::Map<String>) {
     let type_alias = Rc::new(TypeAliasLookup::load(version).unwrap());

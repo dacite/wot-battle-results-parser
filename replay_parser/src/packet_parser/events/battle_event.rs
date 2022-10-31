@@ -18,6 +18,10 @@ impl<'pkt> Event<'pkt> {
         self.event
     }
 
+    pub fn battle_event(&self) -> BattleEvent {
+        self.event.clone()
+    }
+
     pub fn event(&self) -> &BattleEvent {
         &self.event
     }
@@ -35,6 +39,7 @@ impl<'pkt> Event<'pkt> {
 pub fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent> {
     match packet.get_type() {
         0x00 => AvatarCreate::parse(packet, context),
+        0x0A => Position::parse(packet, &Context::default()),
         0x18 => GameVersion::parse(packet, &Context::default()),
         0x08 => EntityMethodEvent::parse(packet, context),
         0x23 => Chat::parse(packet, context),
@@ -53,6 +58,7 @@ pub enum BattleEvent {
     GameVersion(GameVersion),
     AvatarCreate(AvatarCreate),
     EntityMethod(EntityMethodEvent),
+    Position(Position),
     Chat(Chat),
 }
 
@@ -74,6 +80,7 @@ impl EventPrinter for BattleEvent {
             AvatarCreate(x) => x.to_debug_string(context),
             GameVersion(x) => x.to_debug_string(context),
             EntityMethod(x) => x.to_debug_string(context),
+            Position(x) => x.to_debug_string(context),
             Chat(x) => x.to_debug_string(context),
         }
     }
@@ -86,6 +93,7 @@ impl UpdateContext for BattleEvent {
             BattleEvent::Unimplemented => {}
             BattleEvent::GameVersion(_) => {}
             BattleEvent::EntityMethod(_) => {}
+            BattleEvent::Position(_) => {}
             BattleEvent::Chat(_) => {}
         }
     }

@@ -52,3 +52,7 @@ pub use events::parse;
 mod packet;
 pub use packet::Packet;
 pub use packet::PacketStream;
+
+mod error;
+pub use error::PacketError;
+pub use error::PacketDeserializeError;
