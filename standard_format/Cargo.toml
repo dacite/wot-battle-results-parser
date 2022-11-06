@@ -11,6 +11,3 @@ serde-pickle = "1.1.0"
 serde_json = "1.0.68"
 serde = { version = "1.0.135", features = ["derive"] }
 anyhow = "1.0.52"
-serde_bytes = "0.11"
-serde_with = { version = "1.12.0", features = ["hex"]}
-hex = { version = "0.4.3", features = ["serde"] }

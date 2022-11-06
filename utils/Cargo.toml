@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.52"
 serde = { version = "1.0.137", features = ["derive"] }
-nom = { version = "7.1.1", features = ["alloc"] }
-thiserror = "1.0.30"
+serde-pickle = "1.1.1"
+miniz_oxide = "0.6.2"
+thiserror = "1.0.37"

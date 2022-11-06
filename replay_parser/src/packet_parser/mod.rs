@@ -40,12 +40,11 @@
 ///       of u8s
 mod serde_packet;
 pub use serde_packet::from_slice;
+pub use serde_packet::from_slice_unchecked;
 
-/// Contains code for all the different types of events. `battle_event` module is like entry point as it
-/// contains the main parsing code. For each packet, we have an event. An event can be considered the human
-/// readable abstraction over a packet.
+/// Contains code for all the different types of events. For each packet, we have an event. An event can be
+/// considered the human readable abstraction over a packet.
 pub mod events;
-pub use events::parse;
 
 /// Contains `Packet`, and `PacketStream`. A light zero-copy wrapper for the binary data from
 /// `.wotreplay`. These are then used by the `events` module to parse into events that we can understand.
@@ -55,4 +54,26 @@ pub use packet::PacketStream;
 
 mod error;
 pub use error::PacketError;
-pub use error::PacketDeserializeError;
+
+mod context;
+pub use context::Context;
+pub use context::VERSIONS;
+
+mod event;
+pub use event::Event;
+pub use event::EventStream;
+
+mod types;
+
+/// This prelude is to be used by code inside the events module
+mod prelude {
+    pub(crate) use macros::{EventPrinter, Version};
+    pub(crate) use serde::{Deserialize, Serialize};
+
+    pub(crate) use super::event::{Event, EventPrinter, PacketParser, UpdateContext, Version, VersionInfo};
+    pub(crate) use super::from_slice;
+    pub(crate) use super::from_slice_unchecked;
+    pub(crate) use super::types::Vector3;
+    pub(crate) use super::Context;
+    pub(crate) use super::{Packet, PacketError};
+}

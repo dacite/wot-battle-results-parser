@@ -2,12 +2,10 @@ mod battle_result_fields;
 
 use std::collections::BTreeMap;
 
-pub use battle_result_fields::{
-    ALL_TYPES, BATTLE_ROYALE, FRONTLINE, MAPS_TRAINING, MAX_VERSION, RANDOM_ARENA, RANKED, RTS,
-};
-use unpickler::PickleValue;
+pub use battle_result_fields::*;
+use wot_types::ArenaBonusType;
 
-use crate::ArenaBonusType;
+use crate::PickleValue;
 
 #[derive(Clone)]
 /// A data structure that holds information about a field found in battle
@@ -111,26 +109,25 @@ impl FieldDefault {
     }
 }
 
-impl ArenaBonusType {
-    /// This function retreives the relevant list of battle result fields for
-    /// that game mode
-    pub fn get_collection(&self) -> Option<&'static [Field]> {
-        match self {
-            ArenaBonusType::EpicRandom => Some(RANDOM_ARENA),
-            ArenaBonusType::EpicRandomTraining => Some(RANDOM_ARENA),
-            ArenaBonusType::Mapbox => Some(RANDOM_ARENA),
-            ArenaBonusType::Ranked => Some(RANKED),
-            ArenaBonusType::EpicBattle => Some(FRONTLINE),
-            ArenaBonusType::EpicBattleTraining => Some(FRONTLINE),
-            ArenaBonusType::BattleRoyaleTrnSolo => Some(BATTLE_ROYALE),
-            ArenaBonusType::BattleRoyaleTrnSquad => Some(BATTLE_ROYALE),
-            ArenaBonusType::BattleRoyaleSolo => Some(BATTLE_ROYALE),
-            ArenaBonusType::BattleRoyaleSquad => Some(BATTLE_ROYALE),
-            ArenaBonusType::MapsTraining => Some(MAPS_TRAINING),
-            ArenaBonusType::Rts => Some(RTS),
-            ArenaBonusType::Rts1x1 => Some(RTS),
-            ArenaBonusType::RtsBootcamp => Some(RTS),
-            _ => None,
-        }
+
+/// This function retreives the relevant list of battle result fields for
+/// that game mode
+pub fn get_collection(arena_bonus_type: ArenaBonusType) -> Option<&'static [Field]> {
+    match arena_bonus_type {
+        ArenaBonusType::EpicRandom => Some(RANDOM_ARENA),
+        ArenaBonusType::EpicRandomTraining => Some(RANDOM_ARENA),
+        ArenaBonusType::Mapbox => Some(RANDOM_ARENA),
+        ArenaBonusType::Ranked => Some(RANKED),
+        ArenaBonusType::EpicBattle => Some(FRONTLINE),
+        ArenaBonusType::EpicBattleTraining => Some(FRONTLINE),
+        ArenaBonusType::BattleRoyaleTrnSolo => Some(BATTLE_ROYALE),
+        ArenaBonusType::BattleRoyaleTrnSquad => Some(BATTLE_ROYALE),
+        ArenaBonusType::BattleRoyaleSolo => Some(BATTLE_ROYALE),
+        ArenaBonusType::BattleRoyaleSquad => Some(BATTLE_ROYALE),
+        ArenaBonusType::MapsTraining => Some(MAPS_TRAINING),
+        ArenaBonusType::Rts => Some(RTS),
+        ArenaBonusType::Rts1x1 => Some(RTS),
+        ArenaBonusType::RtsBootcamp => Some(RTS),
+        _ => None,
     }
 }

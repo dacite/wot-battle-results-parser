@@ -8,11 +8,10 @@ use nom::number::complete::{le_u16, le_u32};
 use nom::{AsBytes, Finish};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JSONValue;
-use standard_format::WotValue;
-use unpickler::HashablePickleValue;
-use unpickler::PickleValue;
-use utils::try_variant;
-use wot_constants::battle_results::Field;
+use wot_types::WotValue;
+
+use crate::battle_results::Field;
+use crate::{try_variant, HashablePickleValue, PickleValue};
 
 pub fn pickle_val_to_json_manual(pickle_value: PickleValue, field: &Field) -> Result<JSONValue> {
     // Check the field name to see if there is a manual parser
@@ -32,9 +31,7 @@ pub fn pickle_val_to_json_manual(pickle_value: PickleValue, field: &Field) -> Re
 // or can be converted easily. Therefore, we convert pickle value to this
 // intermediate type (WotValue) before converting to JSON
 fn pickle_to_wotvalue_to_json(pickle: PickleValue) -> Result<JSONValue> {
-    let wot_value: WotValue = serde_pickle::from_value(pickle).map_err(|e| {
-        return anyhow!("{}", e.to_string());
-    })?;
+    let wot_value: WotValue = serde_pickle::from_value(pickle).map_err(|e| anyhow!("{}", e.to_string()))?;
 
     let json_value = if let WotValue::Bytes(bytes) = wot_value {
         JSONValue::String(hex::encode_upper(bytes))

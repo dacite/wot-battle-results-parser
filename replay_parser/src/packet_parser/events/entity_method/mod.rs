@@ -1,19 +1,12 @@
 mod update_arena;
-mod vehicle_methods;
-mod other_methods;
-mod vehicle_misc_status;
+pub(crate) mod vehicle_methods;
+// mod vehicle_misc_status;
 
-use macros::EventPrinter;
 use nom::number::complete::le_i32;
-use serde::{Deserialize, Serialize};
+use update_arena::UpdateArena;
 pub use vehicle_methods::*;
 
-use self::update_arena::UpdateArena;
-use super::{event_stream::Context, BattleEvent, EventPrinter, PacketParser, Version};
-use crate::{
-    packet_parser::{serde_packet, Packet},
-    BattleContext, Error, Result,
-};
+use crate::{packet_parser::prelude::*, BattleContext};
 
 /// Represents all packets of type `0x08`. `0x08` packet seems to describe a method call on an entity.
 /// Refers to multiple types of events (depending on which method was called on the entity).
@@ -37,7 +30,7 @@ pub struct EntityMethodEvent {
 }
 
 impl PacketParser for EntityMethodEvent {
-    fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent> {
+    fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
         let data = packet.get_payload();
         let (remaining, entity_id) = le_i32(data)?;
         let (remaining, method_id) = le_i32(remaining)?;
@@ -49,7 +42,7 @@ impl PacketParser for EntityMethodEvent {
                 size,
                 method_id,
                 event: EntityMethod::new(method_name, method_data, context.get_version()).map_err(
-                    |root_cause| Error::EntityMethodError {
+                    |root_cause| PacketError::EntityMethodError {
                         method_data: hex::encode_upper(data),
                         method_name: method_name.into(),
                         method_id,
@@ -58,7 +51,7 @@ impl PacketParser for EntityMethodEvent {
                 )?,
             };
 
-            Ok(BattleEvent::EntityMethod(entity_method_event))
+            Ok(Event::EntityMethod(entity_method_event))
         } else {
             let entity_method_event = EntityMethodEvent {
                 entity_id,
@@ -67,7 +60,7 @@ impl PacketParser for EntityMethodEvent {
                 event: EntityMethod::Unknown(method_id),
             };
 
-            Ok(BattleEvent::EntityMethod(entity_method_event))
+            Ok(Event::EntityMethod(entity_method_event))
         }
     }
 }
@@ -123,7 +116,7 @@ impl EntityMethod {
     fn parse_method<'de, T: Deserialize<'de> + Version>(
         data: &'de [u8], version: [u16; 4],
     ) -> std::result::Result<T, String> {
-        serde_packet::from_slice(data, version).map_err(|err| err.to_string())
+        from_slice(data, version).map_err(|err| err.to_string())
     }
 }
 
@@ -143,11 +136,4 @@ impl EventPrinter for EntityMethod {
             EntityMethod::Unknown(method_id) => format!("Unknown method: {}", method_id),
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Vector3 {
-    x: f32,
-    z: f32,
-    y: f32,
 }

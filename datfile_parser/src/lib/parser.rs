@@ -9,13 +9,12 @@ use serde_json::from_value as from_json_value;
 use serde_json::Value as JSONValue;
 use serde_pickle::Value as PickleValue;
 use standard_format::{AccountSelf, ArenaFieldsGetter, Battle};
-use unpickler::decompress_and_load_pickle;
-use utils::try_variant;
-use wot_constants::battle_results::Field;
+use utils::decompress_and_load_pickle;
 
 use crate::{
+    battle_results::Field,
     fields::{matches_version, FieldCollection},
-    get_checksum, manual_parser, to_default_if_none,
+    get_checksum, manual_parser, to_default_if_none, try_variant,
 };
 
 /// An instantiation of a `Parser` is used to parse a single `.dat` file
@@ -62,7 +61,7 @@ struct ObjectList {
 impl<'a> Parser<'a> {
     pub fn parse(&mut self, input: &[u8]) -> Result<()> {
         // Load the root pickle
-        let root_pickle = unpickler::load_pickle(input)?;
+        let root_pickle = utils::load_pickle(input)?;
 
         // Convert the deeply nested root pickle into objects that can be easily parsed
         let datfile_format = parse_root_pickle(root_pickle)?;
@@ -340,7 +339,7 @@ fn to_rust_dict(pickle_object: PickleValue) -> Result<HashMap<String, Vec<Pickle
                     try_variant!(value, PickleValue::List)?,
                 ))
             }
-            _ => return Err(anyhow!("to rust map found unexpected pickle object")),
+            _ => Err(anyhow!("to rust map found unexpected pickle object")),
         })
         .collect()
 }

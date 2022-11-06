@@ -1,22 +1,19 @@
-use thiserror::Error;
+use crate::packet_parser::PacketError;
 
-use crate::packet_parser::{PacketDeserializeError, PacketError};
 
-pub type Result<T> = core::result::Result<T, Error>;
-
-#[derive(Error, Debug, Clone)]
-pub enum Error {
-    #[error("given packet's size did not match its expected size")]
-    InvalidPacket,
-
+#[derive(thiserror::Error, Debug)]
+pub enum ReplayError {
     #[error("cannot read replay file")]
     ReplayFileError,
 
-    #[error("error reading replay json: {0}")]
-    ReplayJsonError(String),
+    #[error("error deserializing json: {0}")]
+    SerdeJsonError(#[from] serde_json::Error),
 
     #[error("cannot find definitions: {0}")]
     XmlFileError(String),
+
+    #[error("replay has unexpected json format: {0}")]
+    ReplayJsonFormatError(String),
 
     /// Error when parsing with nom. Only holds information about what type of nom error.
     /// More info is added and this error will turn to one of the other variants and this error gets bubbled
@@ -24,64 +21,39 @@ pub enum Error {
     #[error("nom: {0}")]
     NomParseError(String),
 
-    #[error("nom error with serde: {nom_error} for {info}")]
-    NomSerdeParseError { nom_error: String, info: String },
-
     #[error("serde packet error: {0}")]
     SerdePacketError(String),
-
-    #[error(
-        "entity method {method_name}[ID: {method_id}] parse failed: {root_cause}. given data: {method_data}"
-    )]
-    EntityMethodError {
-        method_data: String,
-        method_id:   i32,
-        method_name: String,
-        root_cause:  String,
-    },
 
     #[error("other error: {0}")]
     Other(String),
 
-    #[error("json error: {0}")]
-    JsonKeyError(&'static str),
+    #[error("json path error: {0}")]
+    JsonPathError(&'static str),
+
+    #[error("json type error: {0}")]
+    JsonTypeError(String),
+
+    #[error("{0}")]
+    PacketParseError(#[from] PacketError),
 
     #[error("i/o error: {0}")]
-    IoError(String),
-
-    // TODO: Combine both packet errors into one
-    #[error("{0}")]
-    PacketError(#[from] PacketError),
-
-    #[error("packet deserialize error: {0}")]
-    PacketDeserializeError(#[from] PacketDeserializeError),
+    IoError(#[from] std::io::Error),
 }
 
-impl From<nom::Err<Error>> for Error {
-    fn from(err: nom::Err<Error>) -> Self {
+impl From<nom::Err<ReplayError>> for ReplayError {
+    fn from(err: nom::Err<ReplayError>) -> Self {
         match err {
-            nom::Err::Incomplete(_) => Error::NomParseError("nom incomplete error".to_string()),
+            nom::Err::Incomplete(_) => ReplayError::NomParseError("nom incomplete error".to_string()),
             nom::Err::Error(error) => error,
             nom::Err::Failure(error) => error,
         }
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self {
-        Error::IoError(err.to_string())
-    }
-}
 
-impl From<serde_json::Error> for Error {
-    fn from(err: serde_json::Error) -> Self {
-        Error::ReplayJsonError(err.to_string())
-    }
-}
-
-impl<T> nom::error::ParseError<T> for Error {
+impl<T> nom::error::ParseError<T> for ReplayError {
     fn from_error_kind(_: T, kind: nom::error::ErrorKind) -> Self {
-        Error::NomParseError(kind.description().to_string())
+        ReplayError::NomParseError(kind.description().to_string())
     }
 
     fn append(_: T, _: nom::error::ErrorKind, other: Self) -> Self {
@@ -89,7 +61,7 @@ impl<T> nom::error::ParseError<T> for Error {
     }
 }
 
-impl serde::de::Error for Error {
+impl serde::de::Error for ReplayError {
     fn custom<T>(msg: T) -> Self
     where
         T: std::fmt::Display,

@@ -1,14 +1,7 @@
-use macros::{EventPrinter, Version};
-use serde::Deserialize;
+use crate::packet_parser::prelude::*;
 
-use super::entity_method::Vector3;
-use super::{event_stream::Context, BattleEvent, PacketParser};
-use super::{EventPrinter, Version, VersionInfo};
-use crate::packet_parser::{serde_packet, Packet};
-use crate::Result;
-
-#[derive(Debug, Clone, Deserialize, Version, EventPrinter)]
 // Credit: https://github.com/Monstrofil/replays_unpack/blob/master/replay_unpack/core/packets/Position.py
+#[derive(Debug, Clone, Deserialize, Version, EventPrinter)]
 pub struct Position {
     pub entity_id:      i32,
     pub vehicle_id:     i32,
@@ -21,9 +14,9 @@ pub struct Position {
 }
 
 impl PacketParser for Position {
-    fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent> {
-        let position = serde_packet::from_slice(packet.get_payload(), context.get_version())?;
+    fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
+        let position = from_slice(packet.get_payload(), context.get_version())?;
 
-        Ok(BattleEvent::Position(position))
+        Ok(Event::Position(position))
     }
 }

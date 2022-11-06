@@ -6,8 +6,6 @@ pub use entity::{Entity, Method, Property};
 pub use types::{OpaqueType, TypeAliasLookup, WotType};
 pub type Result<T> = core::result::Result<T, std::io::Error>;
 
-pub static VERSIONS: &[[u16; 4]] = &[[0, 9, 15, 0], [1, 6, 1, 0], [1, 8, 0, 0], [1, 16, 1, 0]];
-
 pub trait Size {
     /// Size in bytes of this structure
     fn get_size(&self) -> u64;

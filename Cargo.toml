@@ -3,10 +3,9 @@
 members = [
     "datfile_parser",
     "replay_parser",
-    "unpickler",
-    "standard_format",
     "macros",
-    "wot_constants",
+    "wot_types",
     "utils",
-    "definition_parser"
+    "definition_parser",
+    "examples/replay_parser_example"
 ]

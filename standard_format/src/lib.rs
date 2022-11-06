@@ -4,7 +4,6 @@ mod common;
 mod player_info;
 mod vehicle_all;
 mod vehicle_self;
-mod wot_value;
 
 use std::collections::HashMap;
 
@@ -17,7 +16,6 @@ pub use crate::common::Common;
 pub use crate::player_info::PlayerInfo;
 pub use crate::vehicle_all::VehicleAll;
 pub use crate::vehicle_self::VehicleSelf;
-pub use crate::wot_value::WotValue;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Battle {

@@ -1,14 +1,8 @@
-use macros::{EventPrinter, Version};
 use nom::number::complete::{le_i32, le_u16, le_u32};
-use serde::{de, Deserialize, Serialize};
-use standard_format::WotValue;
+use serde::de;
 
-use super::event_stream::UpdateContext;
-use super::{event_stream::Context, BattleEvent, EventPrinter, PacketParser, Version, VersionInfo};
-use crate::packet_parser::serde_packet;
-use crate::packet_parser::Packet;
-use crate::Result;
-
+use crate::packet_parser::prelude::*;
+use crate::wot_types::WotValue;
 #[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
 pub struct AvatarCreate {
     #[serde(skip)]
@@ -32,7 +26,7 @@ pub struct AvatarCreate {
 }
 
 impl PacketParser for AvatarCreate {
-    fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent> {
+    fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
         let data = packet.get_payload();
         let (remaining, entity_id) = le_i32(data)?;
         let (remaining, _entity_type) = le_u16(remaining)?;
@@ -41,14 +35,13 @@ impl PacketParser for AvatarCreate {
 
         assert!(remaining.len() == size as usize);
 
-        let mut avatar_create: AvatarCreate =
-            serde_packet::from_slice_unchecked(remaining, context.get_version())?;
+        let mut avatar_create: AvatarCreate = from_slice_unchecked(remaining, context.get_version())?;
 
         avatar_create.entity_id = entity_id;
 
         // println!("{}", serde_json::to_string_pretty(&avatar_create).unwrap());
 
-        Ok(BattleEvent::AvatarCreate(avatar_create))
+        Ok(Event::AvatarCreate(avatar_create))
     }
 }
 

@@ -4,7 +4,6 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::rc::Rc;
 
-use definition_parser::utils::{self, version_string_as_arr};
 use definition_parser::{Entity, TypeAliasLookup};
 
 fn main() {
@@ -16,10 +15,13 @@ pub fn load_definitions() {
     let mut file = BufWriter::new(File::create(&path).unwrap());
 
     let mut map = phf_codegen::Map::new();
+    let mut set = phf_codegen::Set::new();
+
     let versions = get_available_versions();
 
     for version in versions {
         load_version(version, &mut map);
+        set.entry(version);
     }
 
     writeln!(
@@ -28,15 +30,22 @@ pub fn load_definitions() {
         map.build()
     )
     .unwrap();
+
+    writeln!(
+        &mut file,
+        "pub static VERSIONS: phf::Set<[u16; 4]> = \n{};\n",
+        set.build()
+    )
+    .unwrap();
 }
 
-fn get_available_versions() -> Vec<[u16; 4]>{
+fn get_available_versions() -> Vec<[u16; 4]> {
     let dir = std::fs::read_dir("../definition_parser/definitions").unwrap();
 
     let mut vec = Vec::new();
     for dir_entry in dir.flatten() {
         let dir_name = dir_entry.file_name().to_string_lossy().to_string();
-        let version = version_string_as_arr(dir_name).unwrap();
+        let version = utils::version_string_as_arr(dir_name).unwrap();
 
         vec.push(version);
     }

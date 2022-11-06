@@ -9,11 +9,16 @@ pub const METADATA_SIZE: usize = 12;
 #[derive(Clone)]
 pub struct Packet<'a> {
     inner: &'a [u8],
+    id:    i32,
 }
 
 impl<'pkt> Packet<'pkt> {
-    pub fn new(data: &'pkt [u8]) -> Self {
-        Self { inner: data }
+    pub fn new(id: i32, data: &'pkt [u8]) -> Self {
+        Self { id, inner: data }
+    }
+
+    pub fn id(&self) -> i32 {
+        self.id
     }
 
     pub fn get_type(&'pkt self) -> u32 {
@@ -49,11 +54,16 @@ impl<'pkt> Packet<'pkt> {
 pub struct PacketStream<'a> {
     inner:    &'a [u8],
     position: usize,
+    count:    i32,
 }
 
 impl<'a> PacketStream<'a> {
     pub fn new(inner: &'a [u8]) -> Self {
-        Self { inner, position: 0 }
+        Self {
+            inner,
+            position: 0,
+            count: 0,
+        }
     }
 
     pub fn reset(&mut self) {
@@ -85,7 +95,11 @@ impl<'a> Iterator for PacketStream<'a> {
         }
 
         self.position += packet_size;
-        Some(Ok(Packet::new(&self.inner[packet_range])))
+
+        let packet_id = self.count;
+        self.count += 1;
+
+        Some(Ok(Packet::new(packet_id, &self.inner[packet_range])))
     }
 }
 

@@ -3,8 +3,8 @@ use nom::number::complete::{le_u24, le_u8};
 use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::Deserialize;
 
-use crate::events::{Version, VersionInfo};
-use crate::packet_parser::PacketDeserializeError;
+use super::event::{Version, VersionInfo};
+use crate::packet_parser::PacketError;
 
 
 pub struct Deserializer<'de> {
@@ -39,7 +39,7 @@ impl<'de> Deserializer<'de> {
     }
 }
 
-pub fn from_slice<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, PacketDeserializeError>
+pub fn from_slice<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, PacketError>
 where
     T: Deserialize<'a> + Version,
 {
@@ -47,14 +47,14 @@ where
     let t = T::deserialize(&mut deserializer)?;
 
     if !deserializer.input.is_empty() {
-        return Err(PacketDeserializeError::UnconsumedInput);
+        return Err(PacketError::UnconsumedInput);
     }
 
     Ok(t)
 }
 
 /// Does not check if the input was fully consumed
-pub fn from_slice_unchecked<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, PacketDeserializeError>
+pub fn from_slice_unchecked<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, PacketError>
 where
     T: Deserialize<'a> + Version,
 {
@@ -64,14 +64,14 @@ where
     Ok(t)
 }
 
-impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
-    type Error = PacketDeserializeError;
+impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
+    type Error = PacketError;
 
     fn deserialize_any<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(PacketDeserializeError::IncorrectUsage)
+        Err(PacketError::IncorrectUsage)
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -214,14 +214,14 @@ impl<'de, 'a, 'v> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         let (remaining, len) = le_u8(self.input)?;
 
         if (len as usize) > remaining.len() {
-            return Err(PacketDeserializeError::StringDeError);
+            return Err(PacketError::IncompleteInput("string length is too large".into()));
         }
 
-        let str_vec = remaining[..(len as usize)].to_vec();
+        let str_vec = &remaining[..(len as usize)];
 
-        let str = String::from_utf8(str_vec).map_err(|_| PacketDeserializeError::StringDeError)?;
+        let str = std::str::from_utf8(str_vec)?;
         self.input = &remaining[(len as usize)..];
-        visitor.visit_string(str)
+        visitor.visit_string(str.into())
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -371,7 +371,7 @@ impl<'a, 'de> SequenceAccess<'a, 'de> {
 }
 
 impl<'de, 'a> SeqAccess<'de> for SequenceAccess<'a, 'de> {
-    type Error = PacketDeserializeError;
+    type Error = PacketError;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
     where
@@ -404,7 +404,7 @@ impl<'a, 'de> VersionedSeqAccess<'a, 'de> {
 }
 
 impl<'de, 'a> SeqAccess<'de> for VersionedSeqAccess<'a, 'de> {
-    type Error = PacketDeserializeError;
+    type Error = PacketError;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
     where
@@ -441,7 +441,7 @@ fn is_correct_version(de_version: &[u16; 4], item_version: &VersionInfo) -> bool
 }
 
 /// Return the remaining input and the byte_array that was parsed
-pub fn parse_byte_array(input: &[u8]) -> Result<(&[u8], &[u8]), PacketDeserializeError> {
+pub fn parse_byte_array(input: &[u8]) -> Result<(&[u8], &[u8]), PacketError> {
     let (remaining, len) = le_u8(input)?;
 
     if len == u8::MAX {

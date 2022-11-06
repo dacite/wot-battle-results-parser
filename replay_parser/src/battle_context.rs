@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use byteorder::{ReadBytesExt, LE};
-use time::Duration;
 
 use crate::PacketStream;
 

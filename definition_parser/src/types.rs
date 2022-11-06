@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use roxmltree::{Document, Node as XMLNode};
 
-use super::utils::{self, get_definitions_root};
+use super::utils::{get_definitions_root, select_child};
 use super::Result;
 
 /// Type information for types found in the alias.xml and .def files.
@@ -46,7 +46,6 @@ pub struct TypeAliasLookup {
     dict: HashMap<String, WotType>,
 }
 
-
 impl TypeAliasLookup {
     pub fn load(version: [u16; 4]) -> Result<Self> {
         let def_root = get_definitions_root();
@@ -72,7 +71,7 @@ impl TypeAliasLookup {
             let dict = self.parse_dict_type(node);
 
             let mut is_nullable = false;
-            if let Some(allow_none) = utils::select_child("AllowNone", node) {
+            if let Some(allow_none) = select_child("AllowNone", node) {
                 if let Some(text) = allow_none.text() {
                     is_nullable = text.contains("true");
                 }
@@ -91,18 +90,18 @@ impl TypeAliasLookup {
         Ok(())
     }
 
-    fn parse_dict_type(&mut self, node: &XMLNode) -> HashMap<String, WotType> {
-        let properties = utils::select_child("Properties", node).unwrap();
+    fn parse_dict_type(&self, node: &XMLNode) -> HashMap<String, WotType> {
+        let properties = select_child("Properties", node).unwrap();
 
         self.parse_properties(&properties).unwrap()
     }
 
-    fn parse_properties(&mut self, node: &XMLNode) -> Result<HashMap<String, WotType>> {
+    fn parse_properties(&self, node: &XMLNode) -> Result<HashMap<String, WotType>> {
         let mut dict = HashMap::new();
 
         for child in node.children().filter(XMLNode::is_element) {
             let name = child.tag_name().name().to_string();
-            let ty = utils::select_child("Type", &child).unwrap();
+            let ty = select_child("Type", &child).unwrap();
 
             dict.insert(name, self.parse_type(&ty)?);
         }
@@ -116,10 +115,21 @@ impl TypeAliasLookup {
 
         match ty {
             "ARRAY" | "TUPLE" => {
-                let child_type = utils::select_child("of", node).unwrap();
+                let child_type = select_child("of", node).unwrap();
                 let child_type = self.parse_type(&child_type)?;
 
                 Ok(WotType::Array(Box::new(child_type)))
+            }
+            "FIXED_DICT" => {
+                let dict = self.parse_dict_type(node);
+
+                let mut is_nullable = false;
+                if let Some(allow_none) = select_child("AllowNone", node) {
+                    if let Some(text) = allow_none.text() {
+                        is_nullable = text.contains("true");
+                    }
+                }
+                Ok(WotType::FixedDict { is_nullable, dict })
             }
             _ => {
                 let type_as_text = node.text().unwrap();

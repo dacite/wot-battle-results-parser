@@ -3,6 +3,7 @@ name = "wot_replay_parser"
 version = "0.1.0"
 edition = "2021"
 authors = ["dacite <d4cite@outlook.com>"]
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -10,17 +11,8 @@ authors = ["dacite <d4cite@outlook.com>"]
 name = "wot_replay_parser"
 path = "src/lib.rs"
 
-[[bin]]
-name = "wot_replay_parser"
-path = "src/main.rs"
-
-[[bin]]
-name = "event_printer"
-path = "src/event_printer.rs"
-
 [dependencies]
-utils = { path = "../utils" }
-anyhow = "1.0.52"
+wot_types = { path = "../wot_types" }
 miniz_oxide = "0.4.4"
 byteorder = "1.4.3"
 hex = "0.4.3"
@@ -31,23 +23,22 @@ time = "0.3.7"
 nom = { version = "7.1.1", features = ["alloc"] }
 thiserror = "1.0.31"
 serde-pickle = "1.1.0"
-standard_format = { path = '../standard_format'}
-unpickler = { path = "../unpickler" }
 serde_bytes = "0.11.6"
 bimap = "0.6.2"
 tracing = "0.1.35"
-tracing-subscriber = { version= "0.3.14", features = ["registry"] }
 phf = "0.11.0"
-definition_parser = { path = "../definition_parser" }
 blowfish = "0.9.1"
+serde_with = { version = "1.12.0", features = ["hex"]}
 
 [build-dependencies]
 phf_codegen = "0.11.0"
 definition_parser = { path = "../definition_parser" }
+utils = { path = "../utils"}
 
 [dev-dependencies]
 criterion = "0.3.5"
 env_logger = "0.8.4"
+utils = { path = "../utils"}
 
 [[bench]]
 name = "benchmark"

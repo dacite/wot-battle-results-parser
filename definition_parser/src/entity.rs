@@ -4,7 +4,7 @@ use roxmltree::Document;
 use roxmltree::Node as XMLNode;
 
 use super::types::WotType;
-use super::utils::{self, select_child};
+use super::utils::select_child;
 use super::Result;
 use super::{Size, TypeAliasLookup};
 
@@ -62,9 +62,13 @@ impl Entity {
             cell_methods: Vec::new(),
             base_methods: Vec::new(),
         };
+
         entity.parse_def_file(get_def_file_path(version, name, false))?;
         entity.client_methods.sort_by_key(|a| a.get_size());
 
+        for method in &entity.client_methods {
+            println!("{} {:?}: {}", name, version, method.get_size())
+        }
         Ok(entity)
     }
 
@@ -75,31 +79,32 @@ impl Entity {
     }
 
     fn parse_def_file(&mut self, path: String) -> Result<()> {
+        println!("{:?}", path);
         let xml_string = std::fs::read_to_string(path)?;
         let document = Document::parse(&xml_string).unwrap();
         let root = document.root().first_child().unwrap();
 
-        if let Some(implements) = utils::select_child("Implements", &root) {
+        if let Some(implements) = select_child("Implements", &root) {
             parse_interfaces(self, implements)?;
         }
 
-        // let volatiles = utils::select_child("Volatile", &root).unwrap();
-        if let Some(properties) = utils::select_child("Properties", &root) {
+        // let volatiles = select_child("Volatile", &root).unwrap();
+        if let Some(properties) = select_child("Properties", &root) {
             parse_properties(self, properties)?;
         }
 
-        if let Some(client_methods) = utils::select_child("ClientMethods", &root) {
+        if let Some(client_methods) = select_child("ClientMethods", &root) {
             let mut client_methods = parse_methods(client_methods, self.type_aliases.as_ref())?;
             self.client_methods.append(&mut client_methods);
         }
 
-        if let Some(cell_methods) = utils::select_child("CellMethods", &root) {
+        if let Some(cell_methods) = select_child("CellMethods", &root) {
             let mut cell_methods = parse_methods(cell_methods, self.type_aliases.as_ref())?;
 
             self.cell_methods.append(&mut cell_methods);
         }
 
-        if let Some(base_methods) = utils::select_child("BaseMethods", &root) {
+        if let Some(base_methods) = select_child("BaseMethods", &root) {
             let mut base_methods = parse_methods(base_methods, self.type_aliases.as_ref())?;
 
             self.base_methods.append(&mut base_methods);
@@ -215,7 +220,7 @@ fn is_arg(node: &XMLNode) -> bool {
 /// `Avatar.def`
 fn get_def_file_path(version: [u16; 4], name: &str, is_interface: bool) -> String {
     let game_version = utils::version_as_string(version);
-    let def_dir = utils::get_definitions_root();
+    let def_dir = crate::utils::get_definitions_root();
 
     if is_interface {
         format!("{def_dir}/{game_version}/interfaces/{name}.def").to_lowercase()

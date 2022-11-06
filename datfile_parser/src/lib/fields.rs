@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-use wot_constants::{
-    battle_results::{Field, FieldType, ALL_TYPES, MAX_VERSION},
-    ArenaBonusType,
-};
+use wot_types::ArenaBonusType;
+
+use crate::battle_results::{get_collection, Field, FieldType, ALL_TYPES, MAX_VERSION};
 
 pub const CRC32: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
 
@@ -21,7 +20,7 @@ pub struct FieldCollection {
 }
 
 pub fn gen_collection() -> FieldCollection {
-    use ArenaBonusType::*;
+    use wot_types::ArenaBonusType::*;
     let arena_types = [
         EpicRandom,
         Ranked,
@@ -91,7 +90,7 @@ pub fn generate_fields_list(arena_type: ArenaBonusType) -> Vec<Vec<Field>> {
     field_types.into_iter().for_each(|field_type| {
         let mut fields = filter_list_for_type(field_type, ALL_TYPES);
 
-        if let Some(arena_specific_fields) = arena_type.get_collection() {
+        if let Some(arena_specific_fields) = get_collection(arena_type) {
             let mut arena_field_list = filter_list_for_type(field_type, arena_specific_fields);
 
             fields.append(&mut arena_field_list);
