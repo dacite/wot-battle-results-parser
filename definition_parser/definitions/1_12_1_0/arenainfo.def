@@ -1,0 +1,13 @@
+<ArenaInfo.def>
+  <AppealRadius>	3000	</AppealRadius>
+  <Implements>
+    <Interface>	VehiclesAreaMarker	</Interface>
+  </Implements>
+  <Volatile></Volatile>
+  <Properties></Properties>
+  <TempProperties></TempProperties>
+  <ClientMethods></ClientMethods>
+  <CellMethods></CellMethods>
+  <BaseMethods></BaseMethods>
+  <shouldBackup>	false	</shouldBackup>
+</ArenaInfo.def>

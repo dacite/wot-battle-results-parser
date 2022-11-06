@@ -1,0 +1,21 @@
+<ArenaInfo.def>
+  <AppealRadius>	3000	</AppealRadius>
+  <Implements>
+    <Interface>	VehiclesAreaMarker	</Interface>
+    <Interface>	PlaneTrajectoryArenaInfo	</Interface>
+  </Implements>
+  <Volatile></Volatile>
+  <Properties></Properties>
+  <TempProperties></TempProperties>
+  <ClientMethods>
+    <showCarpetBombing>
+      <Arg>	UINT16	</Arg>
+      <Arg>	VECTOR3	</Arg>
+      <Arg>	VECTOR3	</Arg>
+      <Arg>	FLOAT32	</Arg>
+    </showCarpetBombing>
+  </ClientMethods>
+  <CellMethods></CellMethods>
+  <BaseMethods></BaseMethods>
+  <shouldBackup>	false	</shouldBackup>
+</ArenaInfo.def>

@@ -1,0 +1,18 @@
+<ArenaInfo.def>
+  <AppealRadius>	3000	</AppealRadius>
+  <Implements>
+    <Interface>	RacingEventArenaInfo	</Interface>
+  </Implements>
+  <Volatile></Volatile>
+  <Properties></Properties>
+  <TempProperties></TempProperties>
+  <ClientMethods>
+    <onCheckpoint>
+      <Arg>	OBJECT_ID	</Arg>
+      <Arg>	STRING	</Arg>
+    </onCheckpoint>
+  </ClientMethods>
+  <CellMethods></CellMethods>
+  <BaseMethods></BaseMethods>
+  <shouldBackup>	false	</shouldBackup>
+</ArenaInfo.def>
