@@ -6,6 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+num_enum = "0.5.7"
 serde = { version = "1.0.147", features = ["serde_derive"] }
 serde_bytes = "0.11.7"
 serde_with = { version = "2.0.1", features = ["hex"] }
+strum = { version = "0.24.1", features = ["derive"] }
