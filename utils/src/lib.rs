@@ -77,6 +77,7 @@ pub fn version_as_string(version: [u16; 4]) -> String {
     version.map(|x| x.to_string()).join("_")
 }
 
+/// `"0_9_15_0"` => `[0, 9, 15, 0]`  
 pub fn version_string_as_arr(version: String) -> Option<[u16; 4]> {
     let vec: Option<Vec<u16>> = version.split('_').map(|v| v.parse().ok()).collect();
 
