@@ -54,14 +54,16 @@ where
 }
 
 /// Does not check if the input was fully consumed
-pub fn from_slice_unchecked<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, PacketError>
+pub fn from_slice_unchecked<'a, T>(
+    input: &'a [u8], de_version: [u16; 4],
+) -> Result<(&'a [u8], T), PacketError>
 where
     T: Deserialize<'a> + Version,
 {
     let mut deserializer = Deserializer::from_slice(input, de_version, T::version(), T::name());
     let t = T::deserialize(&mut deserializer)?;
 
-    Ok(t)
+    Ok((deserializer.input, t))
 }
 
 impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
@@ -435,6 +437,13 @@ fn is_correct_version(de_version: &[u16; 4], item_version: &VersionInfo) -> bool
             }
 
             de_version >= version
+        }
+        VersionInfo::VersionRange((range_begin, range_end)) => {
+            if de_version == &[0, 0, 0, 0] {
+                return true;
+            }
+
+            de_version >= range_begin && de_version <= range_end
         }
         _ => true,
     }
