@@ -1,5 +1,3 @@
-use core::result::Result as StdResult;
-
 use blowfish::cipher::KeyInit;
 use blowfish::{cipher::BlockDecrypt, Blowfish};
 use byteorder::{ReadBytesExt, BE, LE};
@@ -12,7 +10,9 @@ use nom::{
 use serde_json::Value as JsonVal;
 use wot_types::ArenaBonusType;
 
-use crate::{BattleContext, EventStream, PacketStream, ReplayError};
+use crate::replay_errors;
+use crate::utils::{as_i64};
+use crate::{BattleContext, Event, EventStream, PacketStream, ReplayError};
 /// Parse a wotreplay from file. Only deals with that wotreplay. If you need to parse multiple replays, create
 /// multiple instances of `ReplayParser`.
 /// ## Example 1 - Print Replay Events
@@ -33,12 +33,6 @@ pub struct ReplayParser {
     /// raw binary data of the entire `.wotreplay` file
     data: Vec<u8>,
 
-    /// WoT version of the `.wotreplay` file. Parsed from the JSON portion
-    version: Option<[u16; 4]>,
-
-    /// Battle type of the replay. Analogous to arena bonus type for the most part
-    battle_type: ArenaBonusType,
-
     /// JSON portion of the `.wotreplay` file.
     json: Vec<JsonVal>,
 
@@ -46,26 +40,25 @@ pub struct ReplayParser {
     packets_buffer: Option<Vec<u8>>,
 }
 
-impl std::fmt::Display for ReplayParser {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Replay {{ ")?;
-        if let Some(version) = self.version() {
-            write!(
-                f,
-                "version: {}.{}.{}.{}, ",
-                version[0], version[1], version[2], version[3]
-            )?;
-        } else {
-            write!(f, "version: None")?;
-        }
-        write!(
-            f,
-            "battle_type: {}({}) }}",
-            self.battle_type, self.battle_type as u8
-        )
-    }
-}
-
+// impl std::fmt::Display for ReplayParser {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f, "Replay {{ ")?;
+//         if let Some(version) = self.parse_replay_version() {
+//             write!(
+//                 f,
+//                 "version: {}.{}.{}.{}, ",
+//                 version[0], version[1], version[2], version[3]
+//             )?;
+//         } else {
+//             write!(f, "version: None")?;
+//         }
+//         write!(
+//             f,
+//             "battle_type: {}({}) }}",
+//             self.battle_type, self.battle_type as u8
+//         )
+//     }
+// }
 
 impl ReplayParser {
     #[tracing::instrument]
@@ -76,20 +69,15 @@ impl ReplayParser {
     }
 
     /// Parse JSON from replay file and convert the binary portion into packets iterator (lazy)
-    #[tracing::instrument(err, ret(Display), skip_all)]
+    // #[tracing::instrument(err, ret(Display), skip_all)]
     pub fn parse(input: Vec<u8>) -> Result<Self, ReplayError> {
         let (json_slices, binary_slice) = split_replay_data(&input)?;
         let packets_buffer = decrypt_and_decompress_binary(binary_slice)?;
 
-        // Raw JSON buffer to JSONValue from serde_json
-        let json: StdResult<Vec<_>, serde_json::Error> =
-            json_slices.into_iter().map(serde_json::from_slice).collect();
-        let json = json?;
+        let json = parse_json_portion(json_slices)?;
 
         Ok(ReplayParser {
             data: input,
-            version: get_replay_version(&json),
-            battle_type: load_arena_bonus_type(&json)?,
             json,
             packets_buffer: Some(packets_buffer),
         })
@@ -100,15 +88,10 @@ impl ReplayParser {
     pub fn parse_json(input: Vec<u8>) -> Result<Self, ReplayError> {
         let (json_slices, _binary_slice) = split_replay_data(&input)?;
 
-        // Raw JSON buffer to JSONValue from serde_json
-        let json: StdResult<Vec<_>, serde_json::Error> =
-            json_slices.into_iter().map(serde_json::from_slice).collect();
-        let json = json?;
+        let json = parse_json_portion(json_slices)?;
 
         Ok(ReplayParser {
             data: input,
-            version: get_replay_version(&json),
-            battle_type: load_arena_bonus_type(&json)?,
             json,
             packets_buffer: None,
         })
@@ -129,11 +112,6 @@ impl ReplayParser {
     /// Get JSON values of this wotreplay
     pub fn replay_json(&self) -> &[JsonVal] {
         &self.json
-    }
-
-    /// Get Battle type of this wotreplay
-    pub fn battle_type(&self) -> ArenaBonusType {
-        self.battle_type
     }
 
     pub fn replay_json_start(&self) -> Result<&JsonVal, ReplayError> {
@@ -160,11 +138,6 @@ impl ReplayParser {
         }
     }
 
-    /// Very similar to [get_replay_version](get_replay_version)
-    pub fn version(&self) -> Option<[u16; 4]> {
-        self.version
-    }
-
     pub fn battle_start_time(&self) -> f32 {
         for packet in self.packet_stream() {
             let packet = packet.unwrap();
@@ -187,12 +160,11 @@ impl ReplayParser {
     }
 
     /// An iterator over the events in the replay. This is a layer of abstraction over `PacketStream`. Each
-    /// packet is converted into the event it represents.
-    // #[tracing::instrument(name = "event_stream", skip_all)]
+    /// packet is converted into the event it represents. It is important for
     pub fn event_stream(&self) -> Result<EventStream, ReplayError> {
         let packet_stream = self.packet_stream();
         let version = self
-            .version()
+            .parse_replay_version()
             .ok_or_else(|| ReplayError::ReplayJsonFormatError("failed to parse replay version".into()))?;
 
         Ok(EventStream::new(packet_stream, version)?)
@@ -222,9 +194,77 @@ impl ReplayParser {
 
         Ok(map)
     }
+
+    /// Parse the replay version. Return `None` if parsing fails
+    pub fn parse_replay_version(&self) -> Option<[u16; 4]> {
+        // TODO: MAKE FASTER!
+        let json = self.replay_json_start().ok()?;
+
+        // World\u{a0}of\u{a0}Tanks v.1.9.1.1 #378
+        // "坦克世界 v.0.9.10 #77"
+        let version = json.pointer("/clientVersionFromXml")?.as_str()?;
+
+        // ["World\u{a0}of\u{a0}Tanks", "v.1.9.1.1", "#378"]
+        // ["坦克世界", "v.0.9.10", "#77"]
+        let version: Vec<_> = version.split(' ').collect();
+
+        // "v.0.9.10"
+        // "v.1.9.1.1"
+        let version = version.get(1)?;
+
+        let mut version_iter = version.split('.');
+
+        version_iter.next(); // skip "v"
+
+        let major: u16 = version_iter.next()?.parse().ok()?;
+        let minor: u16 = version_iter.next()?.parse().ok()?;
+        let patch: u16 = version_iter.next()?.parse().ok()?;
+        let extra: u16 = version_iter.next().unwrap_or("0").parse().ok()?;
+
+        let version_array = [major, minor, patch, extra];
+
+        Some(version_array)
+    }
+
+    /// Parse the Arena Unique ID of the battle in the replay. 
+    /// 
+    /// For complete replays, this information
+    /// is present in the JSON portion of the replay and is therefore not very expensive to parse. 
+    /// 
+    /// For incomplete replays, Arena Unique ID is present in one of the packets and is therefore
+    /// more expensive to parse
+    pub fn parse_arena_unique_id(&self) -> Result<i64, ReplayError> {
+        if let Some(replay_end) = self.replay_json_end() {
+            as_i64("/0/arenaUniqueID", replay_end)
+        } else {
+            let stream = self.event_stream()?;
+    
+            for event in stream.flatten() {
+                if let Event::AvatarCreate(avatar_create) = event {
+                    return Ok(avatar_create.arena_unique_id);
+                }
+            }
+    
+            Err(ReplayError::MissingArenaUniqueId)
+        }
+    }
+
+    /// Parse the type of the replay. For ex. Regular, Clan Wars, Frontlines etc.
+    pub fn parse_arena_bonus_type(json: &[JsonVal]) -> Result<ArenaBonusType, ReplayError> {
+        let replay_start_json = json.first().ok_or_else(|| {
+            ReplayError::ReplayJsonFormatError(
+                "missing initial json object that is present in all replays".into(),
+            )
+        })?;
+        let bonus_type = crate::utils::as_i64("/battleType", replay_start_json)?;
+    
+        ArenaBonusType::try_from(bonus_type as i32).map_err(|_| {
+            ReplayError::ReplayJsonFormatError(format!("arena bonus type of {bonus_type} is invalid"))
+        })
+    }
 }
 
-pub fn parse_binary(input: &[u8]) -> Result<Vec<u8>, ReplayError> {
+fn parse_binary(input: &[u8]) -> Result<Vec<u8>, ReplayError> {
     let (_json_slices, binary_slice) = split_replay_data(input)?;
 
     let decrypted = decrypt(binary_slice)?;
@@ -236,45 +276,23 @@ pub fn parse_binary(input: &[u8]) -> Result<Vec<u8>, ReplayError> {
     Ok(packets_buffer)
 }
 
-/// Retrieve version information of a particular replay file. If the replay is from WoT v.1.16.1, we get `[1,
-/// 16, 1, 0]`.
-/// ## Example
-/// ```
-/// # use wot_replay_parser::*;
-/// let replay_file = std::fs::read("input_files/example.wotreplay").unwrap();
-/// let json_values = parse_json_value(&replay_file).unwrap();
-///
-/// let replay_version = get_replay_version(&json_values).unwrap();
-/// assert_eq!(replay_version, [1, 16, 1, 0]);
-/// ```
-pub fn get_replay_version(json: &[JsonVal]) -> Option<[u16; 4]> {
-    let json = json.iter().next()?;
+fn parse_json_portion(json_slices: Vec<&[u8]>) -> Result<Vec<serde_json::Value>, ReplayError> {
+    let mut json_values = Vec::new();
+    for slice in json_slices {
+        let json_value = serde_json::from_slice(slice).or_else(|_| {
+            let slice_as_string = String::from_utf8_lossy(slice);
+            let fixed = replay_errors::fix_json_bugs(slice_as_string);
 
-    // World\u{a0}of\u{a0}Tanks v.1.9.1.1 #378
-    let version = json.pointer("/clientVersionFromXml")?.as_str()?;
+            serde_json::from_str(&fixed)
+        })?;
 
-    // "1.9.1.1 #378"
-    let version = version.replace("World\u{a0}of\u{a0}Tanks v.", "");
-
-    // ["1.9.1.1", "#378"]
-    let version: Vec<_> = version.split(' ').collect();
-
-    // "1.9.1.1"
-    let version = version.first()?;
-
-    let version = version.replace(", ", "."); // Some replays have ", " as delimiter
-
-    let mut version_array = [0u16; 4];
-    for (i, substr) in version.split('.').enumerate() {
-        if i >= 4 {
-            break;
-        }
-
-        version_array[i] = substr.parse().ok()?;
+        json_values.push(json_value);
     }
 
-    Some(version_array)
+    Ok(json_values)
 }
+
+
 
 /// Return the JSON part and Binary part of the `.wotreplay` file as a tuple
 fn split_replay_data(input: &[u8]) -> Result<(Vec<&[u8]>, &[u8]), ReplayError> {
@@ -325,17 +343,4 @@ fn xor_decrypted(mut decrypted: Vec<u8>) -> Vec<u8> {
     }
 
     decrypted
-}
-
-fn load_arena_bonus_type(json: &[JsonVal]) -> Result<ArenaBonusType, ReplayError> {
-    let replay_start_json = json.first().ok_or_else(|| {
-        ReplayError::ReplayJsonFormatError(
-            "missing initial json object that is present in all replays".into(),
-        )
-    })?;
-    let bonus_type = crate::utils::as_i64("/battleType", replay_start_json)?;
-
-    ArenaBonusType::from(bonus_type as i32).ok_or_else(|| {
-        ReplayError::ReplayJsonFormatError(format!("arena bonus type of {bonus_type} is invalid"))
-    })
 }

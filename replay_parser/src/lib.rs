@@ -1,6 +1,7 @@
 mod error;
 mod utils;
 
+mod replay_errors;
 mod replay_parser;
 
 mod packet_parser;

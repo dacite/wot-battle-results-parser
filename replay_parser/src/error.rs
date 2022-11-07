@@ -38,6 +38,9 @@ pub enum ReplayError {
 
     #[error("i/o error: {0}")]
     IoError(#[from] std::io::Error),
+
+    #[error("Unable to find the arena unique id")]
+    MissingArenaUniqueId,
 }
 
 impl From<nom::Err<ReplayError>> for ReplayError {
