@@ -1,4 +1,3 @@
-use nom::number::complete::{le_i32, le_u16, le_u32};
 use serde::de;
 
 use crate::packet_parser::prelude::*;
@@ -25,19 +24,27 @@ pub struct AvatarCreate {
     pub denunciations_left: i16, // Complaints left
 }
 
+#[derive(Deserialize, Version)]
+struct HeaderInfo {
+    pub entity_id:    i32,
+    pub _entity_type: u16,
+
+    #[version([0, 9, 14, 0])]
+    pub _padding: Option<u32>, // not exactly sure what this is
+    pub size:     u32,
+}
+
 impl PacketParser for AvatarCreate {
     fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
         let data = packet.get_payload();
-        let (remaining, entity_id) = le_i32(data)?;
-        let (remaining, _entity_type) = le_u16(remaining)?;
-        let (remaining, _unknown) = le_i32(remaining)?;
-        let (remaining, size) = le_u32(remaining)?;
+        let (remaining, header_info) = from_slice_unchecked::<HeaderInfo>(data, context.get_version())?;
 
-        assert!(remaining.len() == size as usize);
+        // println!("{} == {}, {:?}", remaining.len(), header_info.size, context.get_version());
+        assert!(remaining.len() == header_info.size as usize);
 
-        let mut avatar_create: AvatarCreate = from_slice_unchecked(remaining, context.get_version())?;
+        let (_, mut avatar_create) = from_slice_unchecked::<AvatarCreate>(remaining, context.get_version())?;
 
-        avatar_create.entity_id = entity_id;
+        avatar_create.entity_id = header_info.entity_id;
 
         // println!("{}", serde_json::to_string_pretty(&avatar_create).unwrap());
 
