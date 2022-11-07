@@ -26,7 +26,9 @@ pub struct ShowShooting {
 #[derive(Serialize, Deserialize, Debug, Clone, EventPrinter, Version)]
 pub struct OnHealthChanged {
     pub new_health: i16,
-    pub old_health: i16,
+
+    #[version([1, 11, 1, 0])]
+    pub old_health: Option<i16>,
 
     #[event_debug(as_player)]
     pub attacker_id: i32,
