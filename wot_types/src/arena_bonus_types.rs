@@ -48,4 +48,6 @@ pub enum ArenaBonusType {
     Rts                  = 39,
     Rts1x1               = 40,
     RtsBootcamp          = 41,
+    FunRandom            = 42,
+    Comp7                = 43,
 }
