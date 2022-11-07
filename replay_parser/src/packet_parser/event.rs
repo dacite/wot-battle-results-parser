@@ -106,6 +106,9 @@ pub enum VersionInfo {
     /// Present in this version
     Version([u16; 4]),
 
+    /// Present in this version range (inclusive)
+    VersionRange(([u16; 4], [u16; 4])),
+
     /// Represent Versions of structs
     Struct(&'static [VersionInfo]),
 }

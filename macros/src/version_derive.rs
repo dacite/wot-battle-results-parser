@@ -4,7 +4,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Attribute, Data, DataStruct, ExprArray, Fields, Path};
+use syn::{Attribute, Data, DataStruct, Expr, ExprArray, ExprCall, Fields, Path};
 
 pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
     let has_lifetime = ast.generics.lt_token.is_some();
@@ -46,7 +46,12 @@ pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
         }
 
         let version = args.into_iter().next().unwrap();
-        statements.push(quote! { VersionInfo::Version(#version), });
+        match version {
+            VersionArg::Single(version) => statements.push(quote! { VersionInfo::Version(#version), }),
+            VersionArg::Range((range_begin, range_end)) => {
+                statements.push(quote! { VersionInfo::VersionRange((#range_begin, #range_end)), })
+            }
+        }
     }
 
     let version = quote! {
@@ -80,10 +85,27 @@ pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
     gen.into()
 }
 
-fn get_version_arg(attr: &Attribute) -> Option<ExprArray> {
+enum VersionArg {
+    Single(ExprArray),
+    Range((ExprArray, ExprArray)),
+}
+
+fn get_version_arg(attr: &Attribute) -> Option<VersionArg> {
     if attr.path.is_ident("version") {
-        let arg: ExprArray = attr.parse_args().unwrap();
-        Some(arg)
+        if let Ok(arg) = attr.parse_args::<ExprArray>() {
+            Some(VersionArg::Single(arg))
+        } else {
+            let arg: ExprCall = attr.parse_args().unwrap();
+
+            let mut arguments = arg.args.into_pairs();
+            let range_begin = arguments.next().unwrap().into_value();
+            let Expr::Array(range_begin) = range_begin else { panic!("Unexpected argument to Version range")};
+
+            let range_end = arguments.next().unwrap().into_value();
+            let Expr::Array(range_end) = range_end else { panic!("Unexpected argument to Version range")};
+
+            Some(VersionArg::Range((range_begin, range_end)))
+        }
     } else {
         None
     }
