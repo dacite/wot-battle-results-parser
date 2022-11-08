@@ -11,3 +11,5 @@ tracing-subscriber = { version= "0.3.14", features = ["registry"] }
 tracing-bunyan-formatter = "0.3.3"
 tracing = "0.1.35"
 utils = { path = "../../utils" }
+rayon = "1.5.3"
+walkdir = "2.3.2"
