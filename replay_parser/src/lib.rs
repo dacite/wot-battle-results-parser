@@ -6,8 +6,12 @@ mod replay_parser;
 
 mod packet_parser;
 pub use packet_parser::events;
-pub use packet_parser::Event;
+pub use packet_parser::BattleEvent;
+pub use packet_parser::Context;
 pub use packet_parser::EventStream;
+pub use packet_parser::Packet;
+pub use packet_parser::PacketError;
+pub use packet_parser::PacketParser;
 pub use packet_parser::PacketStream;
 pub use packet_parser::VERSIONS;
 

@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use super::PacketError;
-
 // This file contains information regarding method calls for different replay versions. This is
 // generated during the build process
 include!(concat!(env!("OUT_DIR"), "/method_map_codegen.rs"));
@@ -13,11 +11,11 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(version: [u16; 4]) -> Result<Self, PacketError> {
-        Ok(Context {
+    pub fn new(version: [u16; 4]) -> Self {
+        Context {
             entities: HashMap::new(),
             version,
-        })
+        }
     }
 
     pub fn get_version(&self) -> [u16; 4] {

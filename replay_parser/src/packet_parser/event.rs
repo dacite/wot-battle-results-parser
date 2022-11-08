@@ -8,7 +8,7 @@ use crate::BattleContext;
 /// packet types like `0x08` may have children of its own. See `EntityMethodEvent` for more details.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
-pub enum Event {
+pub enum BattleEvent {
     Unimplemented,
     GameVersion(GameVersion),
     AvatarCreate(AvatarCreate),
@@ -17,28 +17,28 @@ pub enum Event {
     Chat(Chat),
 }
 
-impl Event {
+impl BattleEvent {
     /// Parse packet to a Battle event. Optional context is provided to aid in parsing some particular
     /// packets.
-    pub fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
+    pub fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent, PacketError> {
         match packet.packet_type() {
             0x00 => AvatarCreate::parse(packet, context),
             0x0A => Position::parse(packet, &Context::default()),
             0x18 => GameVersion::parse(packet, &Context::default()),
             0x08 => EntityMethodEvent::parse(packet, context),
             0x23 => Chat::parse(packet, context),
-            _ => Ok(Event::Unimplemented),
+            _ => Ok(BattleEvent::Unimplemented),
         }
     }
 
     pub fn is_unknown(&self) -> bool {
-        matches!(self, Event::Unimplemented)
+        matches!(self, BattleEvent::Unimplemented)
     }
 }
 
 /// This trait is implemented by all events so that they can parse a packet to a BattleEvent
 pub trait PacketParser {
-    fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError>;
+    fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent, PacketError>;
 }
 
 /// Used for debugging purposes. Instead of the `Debug` trait (we don't have to choose. It is available as
@@ -66,12 +66,12 @@ pub trait UpdateContext {
     fn update_context(&self, context: &mut Context);
 }
 
-impl EventPrinter for Event {
+impl EventPrinter for BattleEvent {
     fn to_debug_string(&self, context: &BattleContext) -> String
     where
         Self: std::fmt::Debug,
     {
-        use Event::*;
+        use BattleEvent::*;
         match self {
             Unimplemented => "Unimplemented".to_string(),
             AvatarCreate(x) => x.to_debug_string(context),
@@ -83,15 +83,15 @@ impl EventPrinter for Event {
     }
 }
 
-impl UpdateContext for Event {
+impl UpdateContext for BattleEvent {
     fn update_context(&self, context: &mut Context) {
         match self {
-            Event::AvatarCreate(x) => x.update_context(context),
-            Event::Unimplemented => {}
-            Event::GameVersion(_) => {}
-            Event::EntityMethod(_) => {}
-            Event::Position(_) => {}
-            Event::Chat(_) => {}
+            BattleEvent::AvatarCreate(x) => x.update_context(context),
+            BattleEvent::Unimplemented => {}
+            BattleEvent::GameVersion(_) => {}
+            BattleEvent::EntityMethod(_) => {}
+            BattleEvent::Position(_) => {}
+            BattleEvent::Chat(_) => {}
         }
     }
 }
@@ -125,7 +125,7 @@ pub struct EventStream<'pkt> {
 impl<'pkt> EventStream<'pkt> {
     pub fn new(packet_stream: PacketStream<'pkt>, version: [u16; 4]) -> Result<Self, PacketError> {
         let version_validated = validate_version(version);
-        let context = Context::new(version_validated)?;
+        let context = Context::new(version_validated);
 
         Ok(EventStream {
             packet_stream,
@@ -135,14 +135,14 @@ impl<'pkt> EventStream<'pkt> {
 }
 
 impl<'pkt> Iterator for EventStream<'pkt> {
-    type Item = Result<Event, PacketError>;
+    type Item = Result<BattleEvent, PacketError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let packet = self.packet_stream.next()?;
         match packet {
             Ok(packet) => {
                 let packet_id = packet.id();
-                let event = Event::parse(&packet, &self.context).map(|battle_event| {
+                let event = BattleEvent::parse(&packet, &self.context).map(|battle_event| {
                     battle_event.update_context(&mut self.context);
 
                     battle_event
@@ -156,7 +156,7 @@ impl<'pkt> Iterator for EventStream<'pkt> {
     }
 }
 
-fn log_if_error(packet_id: i32, event: &Result<Event, PacketError>) {
+fn log_if_error(packet_id: i32, event: &Result<BattleEvent, PacketError>) {
     match event.as_ref() {
         Ok(_) => {}
         Err(err) => {

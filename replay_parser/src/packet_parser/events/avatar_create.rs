@@ -35,7 +35,7 @@ struct HeaderInfo {
 }
 
 impl PacketParser for AvatarCreate {
-    fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
+    fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent, PacketError> {
         let data = packet.payload();
         let (remaining, header_info) = from_slice_unchecked::<HeaderInfo>(data, context.get_version())?;
 
@@ -48,7 +48,7 @@ impl PacketParser for AvatarCreate {
 
         // println!("{}", serde_json::to_string_pretty(&avatar_create).unwrap());
 
-        Ok(Event::AvatarCreate(avatar_create))
+        Ok(BattleEvent::AvatarCreate(avatar_create))
     }
 }
 

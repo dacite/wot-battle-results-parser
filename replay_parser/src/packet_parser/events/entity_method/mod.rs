@@ -30,7 +30,7 @@ pub struct EntityMethodEvent {
 }
 
 impl PacketParser for EntityMethodEvent {
-    fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
+    fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent, PacketError> {
         let data = packet.payload();
         let (remaining, entity_id) = le_i32(data)?;
         let (remaining, method_id) = le_i32(remaining)?;
@@ -51,7 +51,7 @@ impl PacketParser for EntityMethodEvent {
                 )?,
             };
 
-            Ok(Event::EntityMethod(entity_method_event))
+            Ok(BattleEvent::EntityMethod(entity_method_event))
         } else {
             let entity_method_event = EntityMethodEvent {
                 entity_id,
@@ -60,7 +60,7 @@ impl PacketParser for EntityMethodEvent {
                 event: EntityMethod::Unknown(method_id),
             };
 
-            Ok(Event::EntityMethod(entity_method_event))
+            Ok(BattleEvent::EntityMethod(entity_method_event))
         }
     }
 }

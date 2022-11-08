@@ -60,8 +60,9 @@ pub use context::Context;
 pub use context::VERSIONS;
 
 mod event;
-pub use event::Event;
+pub use event::BattleEvent;
 pub use event::EventStream;
+pub use event::PacketParser;
 
 mod types;
 
@@ -70,7 +71,9 @@ mod prelude {
     pub(crate) use macros::{EventPrinter, Version};
     pub(crate) use serde::{Deserialize, Serialize};
 
-    pub(crate) use super::event::{Event, EventPrinter, PacketParser, UpdateContext, Version, VersionInfo};
+    pub(crate) use super::event::{
+        BattleEvent, EventPrinter, PacketParser, UpdateContext, Version, VersionInfo,
+    };
     pub(crate) use super::from_slice;
     pub(crate) use super::from_slice_unchecked;
     pub(crate) use super::types::Vector3;

@@ -14,7 +14,7 @@ use wot_types::ArenaBonusType;
 
 use crate::replay_errors;
 use crate::utils::as_i64;
-use crate::{BattleContext, Event, EventStream, PacketStream, ReplayError};
+use crate::{BattleContext, BattleEvent, EventStream, PacketStream, ReplayError};
 /// Parse a wotreplay from file. Only deals with that wotreplay. If you need to parse multiple replays, create
 /// multiple instances of `ReplayParser`.
 /// ## Example 1 - Print Replay Events
@@ -242,7 +242,7 @@ impl ReplayParser {
             let stream = self.event_stream()?;
 
             for event in stream.flatten() {
-                if let Event::AvatarCreate(avatar_create) = event {
+                if let BattleEvent::AvatarCreate(avatar_create) = event {
                     return Ok(avatar_create.arena_unique_id);
                 }
             }
