@@ -3,7 +3,6 @@ name = "wot_replay_parser"
 version = "0.1.0"
 edition = "2021"
 authors = ["dacite <d4cite@outlook.com>"]
-publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,13 +11,13 @@ name = "wot_replay_parser"
 path = "src/lib.rs"
 
 [dependencies]
-wot_types = { path = "../wot_types" }
+wot_types = { path = "../wot_types", version = "0.1.0" }
 miniz_oxide = "0.4.4"
 byteorder = "1.4.3"
 hex = "0.4.3"
 serde_json = "1.0.68"
 serde = { version = "1.0.130", features = ["derive"] }
-macros = { path = "../macros"}
+macros = { path = "../macros", version = "0.1.0"}
 time = "0.3.7"
 nom = { version = "7.1.1", features = ["alloc"] }
 thiserror = "1.0.31"
@@ -32,8 +31,8 @@ serde_with = { version = "1.12.0", features = ["hex"]}
 
 [build-dependencies]
 phf_codegen = "0.11.0"
-definition_parser = { path = "../definition_parser" }
-utils = { path = "../utils"}
+definition_parser = { path = "../definition_parser", version = "0.1.0" }
+utils = { path = "../utils", version = "0.1.0" }
 
 [dev-dependencies]
 criterion = "0.3.5"
