@@ -4,8 +4,7 @@ use rayon::prelude::*;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{prelude::*, Registry};
 use walkdir::WalkDir;
-use wot_replay_parser::wot_types::ArenaBonusType;
-use wot_replay_parser::{ReplayError, ReplayParser};
+use wot_replay_parser::{BattleEvent, ReplayError, ReplayParser};
 
 pub fn main() -> Result<(), ReplayError> {
     let formatting_layer = BunyanFormattingLayer::new("wot_replay_parser".into(), std::io::stderr);
@@ -36,9 +35,15 @@ pub fn main() -> Result<(), ReplayError> {
 
 fn parse_replay<T: AsRef<Path> + std::fmt::Debug>(path: T) {
     let parser = ReplayParser::parse_file(&path).unwrap();
-    if let Ok(ArenaBonusType::Regular) = parser.parse_arena_bonus_type() {
-        for event in parser.event_stream().unwrap() {
-            println!("{:?}", event);
+    let context = wot_replay_parser::Context::new(parser.parse_replay_version().unwrap());
+
+    // Here we use packet stream to get each packet and then convert into the event
+    // However we can use parser.event_stream() directly as well
+    for packet in parser.packet_stream() {
+        let packet = packet.unwrap();
+
+        if let Ok(event) = BattleEvent::parse(&packet, &context) {
+            println!("{:?}", event)
         }
     }
 }
