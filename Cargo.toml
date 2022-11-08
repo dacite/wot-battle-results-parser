@@ -7,5 +7,6 @@ members = [
     "wot_types",
     "utils",
     "definition_parser",
-    "examples/replay_parser_example"
+    "examples/replay_parser_example",
+    "examples/replay_parser_simple"
 ]

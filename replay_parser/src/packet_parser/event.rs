@@ -2,7 +2,6 @@ use crate::events::*;
 use crate::packet_parser::{Context, Packet, PacketError};
 use crate::BattleContext;
 
-
 /// This enum aims to represent all possible events that can occur in a battle. It's variant should map to
 /// each packet type and is expected to always be that type. For ex., a `GameVersion` packet has type `0x18`
 /// and is a variant of this enum. It is always be expected to be this type across all replays. Note that some
@@ -22,7 +21,7 @@ impl Event {
     /// Parse packet to a Battle event. Optional context is provided to aid in parsing some particular
     /// packets.
     pub fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
-        match packet.get_type() {
+        match packet.packet_type() {
             0x00 => AvatarCreate::parse(packet, context),
             0x0A => Position::parse(packet, &Context::default()),
             0x18 => GameVersion::parse(packet, &Context::default()),
@@ -97,7 +96,6 @@ impl UpdateContext for Event {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub enum VersionInfo {
     /// Present in all versions
@@ -112,7 +110,6 @@ pub enum VersionInfo {
     /// Represent Versions of structs
     Struct(&'static [VersionInfo]),
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// All code related to the event stream

@@ -21,28 +21,28 @@ impl<'pkt> Packet<'pkt> {
         self.id
     }
 
-    pub fn get_type(&'pkt self) -> u32 {
-        let mut chunk = &self.get_inner()[4..8];
+    pub fn packet_type(&'pkt self) -> u32 {
+        let mut chunk = &self.inner()[4..8];
         chunk.read_u32::<LE>().unwrap()
     }
 
-    pub fn get_time(&'pkt self) -> f32 {
-        let mut chunk = &self.get_inner()[8..];
+    pub fn time(&'pkt self) -> f32 {
+        let mut chunk = &self.inner()[8..];
         chunk.read_f32::<LE>().unwrap()
     }
 
     /// Size is only the size of the payload
     /// The size of the entire packet is `(payload_size + metadata_size)`
-    pub fn get_size(&'pkt self) -> u32 {
-        let mut chunk = &self.get_inner()[..4];
+    pub fn size(&'pkt self) -> u32 {
+        let mut chunk = &self.inner()[..4];
         chunk.read_u32::<LE>().unwrap()
     }
 
-    pub fn get_payload(&'pkt self) -> &'pkt [u8] {
-        &self.get_inner()[METADATA_SIZE..]
+    pub fn payload(&'pkt self) -> &'pkt [u8] {
+        &self.inner()[METADATA_SIZE..]
     }
 
-    pub fn get_inner(&'pkt self) -> &'pkt [u8] {
+    pub fn inner(&'pkt self) -> &'pkt [u8] {
         self.inner
     }
 }
@@ -132,25 +132,25 @@ impl<'a> std::fmt::Debug for Packet<'a> {
                 }
             });
 
-        let payload_as_hex = (0..self.get_payload().len())
+        let payload_as_hex = (0..self.payload().len())
             .step_by(chunk)
             .fold(String::new(), |acc, i| {
-                let len = if i + chunk > self.get_payload().len() {
-                    self.get_payload().len()
+                let len = if i + chunk > self.payload().len() {
+                    self.payload().len()
                 } else {
                     i + chunk
                 };
 
                 if is_spaced {
-                    format!("{} {}", acc, hex::encode_upper(&self.get_payload()[i..len]))
+                    format!("{} {}", acc, hex::encode_upper(&self.payload()[i..len]))
                 } else {
-                    format!("{}{}", acc, hex::encode_upper(&self.get_payload()[i..len]))
+                    format!("{}{}", acc, hex::encode_upper(&self.payload()[i..len]))
                 }
             });
 
-        let packet_name = format!("0x{:02X}", &self.get_type());
-        let time = format!("{:3.3}", &self.get_time());
-        let size = format!("{}", &self.get_size());
+        let packet_name = format!("0x{:02X}", &self.packet_type());
+        let time = format!("{:3.3}", &self.time());
+        let size = format!("{}", &self.size());
 
         if f.sign_plus() {
             f.debug_struct(&packet_name)

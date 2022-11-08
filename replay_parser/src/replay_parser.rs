@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use blowfish::cipher::KeyInit;
 use blowfish::{cipher::BlockDecrypt, Blowfish};
 use byteorder::{ReadBytesExt, BE, LE};
@@ -11,7 +13,7 @@ use serde_json::Value as JsonVal;
 use wot_types::ArenaBonusType;
 
 use crate::replay_errors;
-use crate::utils::{as_i64};
+use crate::utils::as_i64;
 use crate::{BattleContext, Event, EventStream, PacketStream, ReplayError};
 /// Parse a wotreplay from file. Only deals with that wotreplay. If you need to parse multiple replays, create
 /// multiple instances of `ReplayParser`.
@@ -62,7 +64,7 @@ pub struct ReplayParser {
 
 impl ReplayParser {
     #[tracing::instrument]
-    pub fn parse_file(path: &str) -> Result<Self, ReplayError> {
+    pub fn parse_file<T: AsRef<Path> + std::fmt::Debug>(path: T) -> Result<Self, ReplayError> {
         let input = std::fs::read(path)?;
 
         Self::parse(input)
@@ -141,8 +143,8 @@ impl ReplayParser {
     pub fn battle_start_time(&self) -> f32 {
         for packet in self.packet_stream() {
             let packet = packet.unwrap();
-            if packet.get_type() == 0x16 && packet.get_payload().read_u32::<LE>().unwrap() == 3 {
-                return packet.get_time();
+            if packet.packet_type() == 0x16 && packet.payload().read_u32::<LE>().unwrap() == 3 {
+                return packet.time();
             }
         }
 
@@ -226,11 +228,11 @@ impl ReplayParser {
         Some(version_array)
     }
 
-    /// Parse the Arena Unique ID of the battle in the replay. 
-    /// 
+    /// Parse the Arena Unique ID of the battle in the replay.
+    ///
     /// For complete replays, this information
-    /// is present in the JSON portion of the replay and is therefore not very expensive to parse. 
-    /// 
+    /// is present in the JSON portion of the replay and is therefore not very expensive to parse.
+    ///
     /// For incomplete replays, Arena Unique ID is present in one of the packets and is therefore
     /// more expensive to parse
     pub fn parse_arena_unique_id(&self) -> Result<i64, ReplayError> {
@@ -238,26 +240,23 @@ impl ReplayParser {
             as_i64("/0/arenaUniqueID", replay_end)
         } else {
             let stream = self.event_stream()?;
-    
+
             for event in stream.flatten() {
                 if let Event::AvatarCreate(avatar_create) = event {
                     return Ok(avatar_create.arena_unique_id);
                 }
             }
-    
+
             Err(ReplayError::MissingArenaUniqueId)
         }
     }
 
     /// Parse the type of the replay. For ex. Regular, Clan Wars, Frontlines etc.
-    pub fn parse_arena_bonus_type(json: &[JsonVal]) -> Result<ArenaBonusType, ReplayError> {
-        let replay_start_json = json.first().ok_or_else(|| {
-            ReplayError::ReplayJsonFormatError(
-                "missing initial json object that is present in all replays".into(),
-            )
-        })?;
+    pub fn parse_arena_bonus_type(&self) -> Result<ArenaBonusType, ReplayError> {
+        let replay_start_json = self.replay_json_start()?;
+
         let bonus_type = crate::utils::as_i64("/battleType", replay_start_json)?;
-    
+
         ArenaBonusType::try_from(bonus_type as i32).map_err(|_| {
             ReplayError::ReplayJsonFormatError(format!("arena bonus type of {bonus_type} is invalid"))
         })
@@ -291,8 +290,6 @@ fn parse_json_portion(json_slices: Vec<&[u8]>) -> Result<Vec<serde_json::Value>,
 
     Ok(json_values)
 }
-
-
 
 /// Return the JSON part and Binary part of the `.wotreplay` file as a tuple
 fn split_replay_data(input: &[u8]) -> Result<(Vec<&[u8]>, &[u8]), ReplayError> {

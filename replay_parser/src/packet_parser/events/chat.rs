@@ -9,7 +9,7 @@ pub struct Chat {
 
 impl PacketParser for Chat {
     fn parse(packet: &Packet, _context: &Context) -> Result<Event, PacketError> {
-        let data = packet.get_payload();
+        let data = packet.payload();
         let (remaining, msg_length) = le_u32(data)?;
 
         let msg_buffer = &remaining[..msg_length as usize];

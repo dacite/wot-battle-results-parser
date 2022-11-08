@@ -16,7 +16,7 @@ impl PacketParser for GameVersion {
     fn parse(packet: &Packet, _context: &Context) -> Result<Event, PacketError> {
         // First, we skip an le_u32 value which tells us the size of the rest of the packet
         // We don't really need it because we try to match 4 digits in input regardless of size.
-        let (remaining, _) = take(4_usize)(packet.get_payload())?;
+        let (remaining, _) = take(4_usize)(packet.payload())?;
 
         // We could simply the parse the `remaining` as one str but the problem is the delimiter can be
         // different for different replay files so getting that problem out of the way at this stage

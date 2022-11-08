@@ -36,7 +36,7 @@ struct HeaderInfo {
 
 impl PacketParser for AvatarCreate {
     fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
-        let data = packet.get_payload();
+        let data = packet.payload();
         let (remaining, header_info) = from_slice_unchecked::<HeaderInfo>(data, context.get_version())?;
 
         // println!("{} == {}, {:?}", remaining.len(), header_info.size, context.get_version());

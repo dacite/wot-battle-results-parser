@@ -31,7 +31,7 @@ pub struct EntityMethodEvent {
 
 impl PacketParser for EntityMethodEvent {
     fn parse(packet: &Packet, context: &Context) -> Result<Event, PacketError> {
-        let data = packet.get_payload();
+        let data = packet.payload();
         let (remaining, entity_id) = le_i32(data)?;
         let (remaining, method_id) = le_i32(remaining)?;
         let (method_data, size) = le_i32(remaining)?;
