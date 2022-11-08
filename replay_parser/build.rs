@@ -23,7 +23,6 @@ pub fn load_definitions() {
         load_version(version, &mut map);
         set.entry(version);
     }
-
     writeln!(
         &mut file,
         "pub static METHOD_MAP: phf::Map<&'static str, &'static str> = \n{};\n",
@@ -40,7 +39,8 @@ pub fn load_definitions() {
 }
 
 fn get_available_versions() -> Vec<[u16; 4]> {
-    let dir = std::fs::read_dir("../definition_parser/definitions").unwrap();
+    let dir = std::fs::read_dir("definitions").unwrap();
+    std::env::set_var("DEF_DIR", "definitions");
 
     let mut vec = Vec::new();
     for dir_entry in dir.flatten() {
