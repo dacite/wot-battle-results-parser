@@ -20,14 +20,13 @@ use crate::{BattleContext, BattleEvent, EventStream, PacketStream, ReplayError};
 /// ## Example 1 - Print Replay Events
 /// ```
 /// # use wot_replay_parser::*;
-/// let replay_file = std::fs::File::open("input_files/example.wotreplay").unwrap();
-/// let replay = ReplayParser::parse(replay_file).unwrap();
+/// let replay = ReplayParser::parse_file("input_files/example.wotreplay").unwrap();
 ///
 /// for event in replay.event_stream().unwrap() {
 ///     let event = event.unwrap();
 ///
 ///     if !event.is_unknown() { // skip printing events that arent support yet
-///         println!("{:?}", event.into_battle_event());
+///         println!("{:?}", event);
 ///     }
 /// }
 /// ```
