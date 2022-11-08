@@ -1,5 +1,3 @@
-/// This error implementation is heavily inspired by: https://github.com/lkolbly/wows-replays
-
 #[derive(thiserror::Error, Debug)]
 pub struct NomErrorWrapper {
     pub kind:  nom::error::ErrorKind,
@@ -22,15 +20,6 @@ impl nom::error::ParseError<&[u8]> for NomErrorWrapper {
         other
     }
 }
-
-// impl From<anyhow::Error> for Error {
-//     fn from(error: anyhow::Error) -> Self {
-//         Self {
-//             kind: ErrorKind::Other(error.into()),
-//             backtrace: Vec::new()
-//         }
-//     }
-// }
 
 impl std::fmt::Display for NomErrorWrapper {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
