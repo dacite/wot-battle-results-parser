@@ -2,8 +2,10 @@
 name = "wot_types"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["dacite <d4cite@outlook.com>"]
+description = "Describes some of the constant types used in World of Tanks source code"
+repository = "https://github.com/dacite/wot-battle-results-parser"
+license = "MIT"
 
 [dependencies]
 num_enum = "0.5.7"
