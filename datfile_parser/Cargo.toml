@@ -28,7 +28,7 @@ name = "benchmark"
 harness = false
 
 [dependencies]
-utils = { path = "../utils" }
+utils = { path = "../utils", package = "wot-battle-results-parser-utils", version = "0.1.0" }
 wot_types = { path = "../wot_types"}
 anyhow = "1.0.52"
 serde_json = "1.0.74"

@@ -1,10 +1,12 @@
 [package]
-name = "definition_parser"
+name = "wot_def_file_parser"
 version = "0.1.0"
 edition = "2021"
-
+description = "A parser for `.def` files from World of Tanks source code. Not meant to be used directly"
+repository = "https://github.com/dacite/wot-battle-results-parser"
+license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 roxmltree = "0.14.1"
-utils = { path = "../utils"}
+utils = { path = "../utils", package = "wot-battle-results-parser-utils", version = "0.1.0"}
