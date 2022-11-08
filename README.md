@@ -11,7 +11,11 @@ Currently I am making major changes to this repo and is therefore a work in prog
 ### Datfile parser
  - `1.15.0` - `1.17.0`
 
-
+## Projects that use this library:
+- Wot Packet Analyzer: https://dacite.github.io/wot-packet-analyzer
+   - An analyzer for packets in a `.wotreplay` files. Useful for development
+   - Uses `wot_replay_parser` library
+   
 ## Backwards Compatibility
 ### Datfile parser
 Backwards compatibility is not guaranteed for the Datfile parser. This is not very important anyway since these files don't persist indefintely like `.wotreplay` files do.
