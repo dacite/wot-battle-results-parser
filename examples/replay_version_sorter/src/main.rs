@@ -1,5 +1,6 @@
+use std::path::PathBuf;
+
 use rayon::prelude::*;
-use wot_replay_parser::wot_types::ArenaBonusType;
 use wot_replay_parser::{ReplayError, ReplayParser};
 
 // This is a real world use case of the library. I used it to sort replays I downloaded from wotreplays.eu
@@ -10,14 +11,14 @@ pub fn main() -> Result<(), ReplayError> {
     // Use rayon to multithread this workload
     paths
         .par_iter()
-        .for_each(|path| copy_replay(path.path().as_os_str().to_str().unwrap()));
+        .for_each(|path| copy_replay(path.path()));
 
     Ok(())
 }
 
-fn copy_replay(path: &str) {
-    println!("{}", path);
-    let parser = ReplayParser::parse_file(path).unwrap();
+fn copy_replay(path: PathBuf) {
+    println!("{}", path.display());
+    let parser = ReplayParser::parse_file(&path).unwrap();
     let json = parser.replay_json_start().unwrap();
 
     let region = json.pointer("/regionCode").unwrap().as_str().unwrap();
