@@ -1,8 +1,9 @@
 use nom::number::complete::le_u8;
 
-use crate::packet_parser::{serde_packet, PacketError};
+use crate::packet_parser::prelude::*;
+use crate::packet_parser::serde_packet;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct UpdateArena {
     pub update_type: u8,
 }

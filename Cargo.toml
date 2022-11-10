@@ -8,5 +8,6 @@ members = [
     "utils",
     "definition_parser",
     "examples/replay_parser_example",
-    "examples/replay_parser_simple"
+    "examples/replay_parser_simple",
+    "examples/replay_version_sorter"
 ]

@@ -5,7 +5,7 @@ use nom::{
 
 use crate::packet_parser::prelude::*;
 
-#[derive(Debug, Clone, EventPrinter)]
+#[derive(Debug, Clone, EventPrinter, Serialize)]
 pub struct GameVersion {
     /// Version of the game as described in the replay file
     /// sometimes `"0.0.0.0"` for some weird reason

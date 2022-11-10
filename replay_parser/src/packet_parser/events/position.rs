@@ -1,7 +1,7 @@
 use crate::packet_parser::prelude::*;
 
 // Credit: https://github.com/Monstrofil/replays_unpack/blob/master/replay_unpack/core/packets/Position.py
-#[derive(Debug, Clone, Deserialize, Version, EventPrinter)]
+#[derive(Debug, Clone, Deserialize, Version, EventPrinter, Serialize)]
 pub struct Position {
     pub entity_id:      i32,
     pub vehicle_id:     i32,

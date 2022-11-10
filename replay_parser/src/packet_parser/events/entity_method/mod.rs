@@ -10,7 +10,7 @@ use crate::{packet_parser::prelude::*, BattleContext};
 
 /// Represents all packets of type `0x08`. `0x08` packet seems to describe a method call on an entity.
 /// Refers to multiple types of events (depending on which method was called on the entity).
-#[derive(Debug, Clone, EventPrinter)]
+#[derive(Debug, Clone, EventPrinter, Serialize)]
 pub struct EntityMethodEvent {
     /// ID of the entity who called this method
     #[event_debug(as_player)]
@@ -79,7 +79,7 @@ impl From<EntityMethodEvent> for EntityMethod {
 }
 
 /// Enumerates all possible entity method calls (hopefully).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub enum EntityMethod {
     DamageFromShot(ShowDamageFromShot),

@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 use crate::events::*;
 use crate::packet_parser::{Context, Packet, PacketError};
 use crate::BattleContext;
@@ -6,7 +8,7 @@ use crate::BattleContext;
 /// each packet type and is expected to always be that type. For ex., a `GameVersion` packet has type `0x18`
 /// and is a variant of this enum. It is always be expected to be this type across all replays. Note that some
 /// packet types like `0x08` may have children of its own. See `EntityMethodEvent` for more details.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub enum BattleEvent {
     Unimplemented,
