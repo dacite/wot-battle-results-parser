@@ -37,7 +37,7 @@ the great thing is that there is a mechanism in place (see [here](https://github
 ### Replay Parser
 Currently this project is only available as Rust library. Perhaps in the future, we can provide Python bindings. To use it, add the following to the `[dependencies]` section of `Cargo.toml`
 ```
-wot_replay_parser = "0.2.0"
+wot_replay_parser = "0.2.1"
 ```
 
 #### Example 1: Print out JSON portion of the replay
