@@ -21,5 +21,4 @@ results_bin
 results_json
 results_known
 /replays
-/replay_parser/definitions
 .env
