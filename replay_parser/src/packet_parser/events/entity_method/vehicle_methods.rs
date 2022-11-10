@@ -9,7 +9,7 @@ pub struct ShowDamageFromShot {
     pub damage_factor: u8,
 
     #[version([1, 13, 0, 0])]
-    pub last_material_shield: bool,
+    pub last_material_shield: Option<bool>,
 }
 
 /// A vehicle fires a shot
