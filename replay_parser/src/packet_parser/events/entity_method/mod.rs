@@ -14,19 +14,19 @@ use crate::{packet_parser::prelude::*, BattleContext};
 pub struct EntityMethodEvent {
     /// ID of the entity who called this method
     #[event_debug(as_player)]
-    entity_id: i32,
+    pub entity_id: i32,
 
     /// Total size of the method arguments. i.e the size of the actual payload `(packet_payload =
     /// (payload_info_size + actual_payload_size))`
-    size: i32,
+    pub size: i32,
 
     /// Method ID associated with this method. This ID could be different for the same method if the replay
     /// versions are different
-    method_id: i32,
+    pub method_id: i32,
 
     /// Houses details about the actual entity method that was called
     #[event_debug(custom_debug)]
-    event: EntityMethod,
+    pub event: EntityMethod,
 }
 
 impl PacketParser for EntityMethodEvent {
