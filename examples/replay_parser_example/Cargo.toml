@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wot_replay_parser = { path = "../../replay_parser" }
+wot_replay_parser = "0.1.0"
 tracing-subscriber = { version= "0.3.14", features = ["registry"] }
 tracing-bunyan-formatter = "0.3.3"
 tracing = "0.1.35"
