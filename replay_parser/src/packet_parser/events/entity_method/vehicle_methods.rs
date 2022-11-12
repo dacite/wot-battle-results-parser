@@ -63,17 +63,17 @@ pub struct ShowTracer {
 
 #[derive(Serialize, Deserialize, Debug, Clone, EventPrinter, Version)]
 pub struct OnStaticCollision {
-    energy:     f32,
-    point:      Vector3,
-    normal:     Vector3,
-    misc_flags: u8,
+    pub energy:     f32,
+    pub point:      Vector3,
+    pub normal:     Vector3,
+    pub misc_flags: u8,
 
     #[version([0, 9, 16, 0])]
-    damage: Option<f32>,
+    pub damage: Option<f32>,
 
     #[version([0, 9, 17, 0])]
-    destr_effects_idx: Option<i8>,
+    pub destr_effects_idx: Option<i8>,
 
     #[version([0, 9, 23, 0])]
-    destr_max_health: Option<u16>,
+    pub destr_max_health: Option<u16>,
 }
