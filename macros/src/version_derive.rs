@@ -4,7 +4,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Attribute, Data, DataStruct, Expr, ExprArray, ExprCall, Fields, Path};
+use syn::{Attribute, Data, DataStruct, Expr, ExprArray, ExprCall, Fields, Path, Type};
 
 pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
     let has_lifetime = ast.generics.lt_token.is_some();
@@ -27,6 +27,18 @@ pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
         let mut skip_field = false;
         for attr in attr_list {
             if let Some(arg) = get_version_arg(&attr) {
+                let Type::Path(path) = &field.ty else {
+                    panic!("Unexpected type")
+                };
+                let ident = path
+                    .path
+                    .segments
+                    .first()
+                    .map(|path_segment| &path_segment.ident)
+                    .expect("Expected type that is wrapped in Option");
+                if ident != "Option" {
+                    panic!("Field that is using the version attribute must be wrapped in Option")
+                }
                 args.push(arg);
             }
             if is_serde_skip(&attr) {
