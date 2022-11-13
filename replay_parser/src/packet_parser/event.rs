@@ -10,6 +10,7 @@ use crate::BattleContext;
 /// packet types like `0x08` may have children of its own. See `EntityMethodEvent` for more details.
 #[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
+// TODO: Box Large structure
 pub enum BattleEvent {
     Unimplemented,
     GameVersion(GameVersion),
@@ -17,6 +18,8 @@ pub enum BattleEvent {
     EntityMethod(EntityMethodEvent),
     Position(Position),
     Chat(Chat),
+    EntityCreate(EntityCreate),
+    CryptoKey(CryptoKey),
 }
 
 impl BattleEvent {
@@ -25,10 +28,12 @@ impl BattleEvent {
     pub fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent, PacketError> {
         match packet.packet_type() {
             0x00 => AvatarCreate::parse(packet, context),
+            0x05 => EntityCreate::parse(packet, context),
+            0x08 => EntityMethodEvent::parse(packet, context),
             0x0A => Position::parse(packet, &Context::default()),
             0x18 => GameVersion::parse(packet, &Context::default()),
-            0x08 => EntityMethodEvent::parse(packet, context),
             0x23 => Chat::parse(packet, context),
+            0x3D => CryptoKey::parse(packet, context),
             _ => Ok(BattleEvent::Unimplemented),
         }
     }
@@ -81,6 +86,8 @@ impl EventPrinter for BattleEvent {
             EntityMethod(x) => x.to_debug_string(context),
             Position(x) => x.to_debug_string(context),
             Chat(x) => x.to_debug_string(context),
+            EntityCreate(x) => x.to_debug_string(context),
+            CryptoKey(x) => x.to_debug_string(context),
         }
     }
 }
@@ -94,6 +101,8 @@ impl UpdateContext for BattleEvent {
             BattleEvent::EntityMethod(_) => {}
             BattleEvent::Position(_) => {}
             BattleEvent::Chat(_) => {}
+            BattleEvent::EntityCreate(_) => {}
+            BattleEvent::CryptoKey(_) => {}
         }
     }
 }
