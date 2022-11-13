@@ -1,4 +1,4 @@
-use std::{num::ParseIntError, str::Utf8Error};
+use std::{num::ParseIntError, str::Utf8Error, string::FromUtf8Error};
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum PacketError {
     #[error("Packet stream is corrupted")]
@@ -14,7 +14,7 @@ pub enum PacketError {
     NomError(String),
 
     #[error("{0}")]
-    StringUtf8Error(Utf8Error),
+    StringUtf8Error(String),
 
     #[error("temporary error to catch incorrect usage of serde_packet deserializer")]
     IncorrectUsage,
@@ -68,7 +68,13 @@ impl<T> nom::error::ParseError<T> for PacketError {
 
 impl From<Utf8Error> for PacketError {
     fn from(err: Utf8Error) -> Self {
-        PacketError::StringUtf8Error(err)
+        PacketError::StringUtf8Error(err.to_string())
+    }
+}
+
+impl From<FromUtf8Error> for PacketError {
+    fn from(err: FromUtf8Error) -> Self {
+        PacketError::StringUtf8Error(err.to_string())
     }
 }
 
