@@ -13,13 +13,13 @@ A `.wotreplay` file contains two sections:
    - JSON section: contains the information used when showing battle results
    - Binary section: contains the information used when playing the replay with Wot client
 
-This project can parse both sections. However, most of the code if focused on trying to extract useful
+This project can parse both sections. However, most of the code is focused on trying to extract useful
 information from the Binary section.
 ## Supported Versions of World of Tanks
 ### Datfile Parser
  - `1.15.0` - `1.17.0`
 
-Backwards compatibility is not guaranteed for the Datfile parser. This is not very important anyway since these files don't persist indefintely like `.wotreplay` files do.
+Backwards compatibility is not guaranteed for the Datfile parser. This is not very important anyway since these files don't persist indefinitely like `.wotreplay` files do.
 ### Replay Parser
 - `0.9.13` - `1.18.1`
 
@@ -35,7 +35,7 @@ the great thing is that there is a mechanism in place (see [here](https://github
 
 ## Example Usage
 ### Replay Parser
-Currently this project is only available as Rust library. Perhaps in the future, we can provide Python bindings. To use it, add the following to the `[dependencies]` section of `Cargo.toml`
+Currently this project is only available as a Rust library. Perhaps in the future, we can provide Python bindings. To use it, add the following to the `[dependencies]` section of `Cargo.toml`
 ```
 wot_replay_parser = "0.2.1"
 ```
@@ -103,7 +103,7 @@ This is where most of the work is left to do. Events is an abstraction over pack
 data that is present in a packet. Some events such as `Position`,`AvatarCreate` works really well as of today.
 
 See [`BattleEvent`](https://docs.rs/wot_replay_parser/latest/wot_replay_parser/enum.BattleEvent.html) to see what kind 
-of events are supported. Not that this doesn't mean it will work in all replays
+of events are supported. Note that this doesn't mean it will work in all replays
 ```rust
 use wot_replay_parser::{ReplayParser, BattleEvent};
 

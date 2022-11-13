@@ -1,4 +1,4 @@
-//! This module contains code that deals with fixing bugs withing the actual replay format
+//! This module contains code that deals with fixing bugs within the actual replay format
 
 use std::borrow::Cow;
 
