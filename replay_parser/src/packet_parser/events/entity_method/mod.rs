@@ -6,7 +6,7 @@ use nom::number::complete::le_i32;
 use update_arena::UpdateArena;
 pub use vehicle_methods::*;
 
-use crate::{packet_parser::prelude::*, BattleContext};
+use crate::packet_parser::prelude::*;
 
 /// Represents all packets of type `0x08`. `0x08` packet seems to describe a method call on an entity.
 /// Refers to multiple types of events (depending on which method was called on the entity).
@@ -23,6 +23,9 @@ pub struct EntityMethodEvent {
     /// Method ID associated with this method. This ID could be different for the same method if the replay
     /// versions are different
     pub method_id: i32,
+
+    /// What we think the method is for right now..
+    pub method_name: Option<String>,
 
     /// Houses details about the actual entity method that was called
     #[event_debug(custom_debug)]
@@ -41,12 +44,13 @@ impl PacketParser for EntityMethodEvent {
                 entity_id,
                 size,
                 method_id,
+                method_name: Some(method_name.into()),
                 event: EntityMethod::new(method_name, method_data, context.get_version()).map_err(
                     |root_cause| PacketError::EntityMethodError {
                         method_data: hex::encode_upper(data),
                         method_name: method_name.into(),
                         method_id,
-                        root_cause,
+                        root_cause: root_cause.to_string(),
                     },
                 )?,
             };
@@ -57,6 +61,7 @@ impl PacketParser for EntityMethodEvent {
                 entity_id,
                 size,
                 method_id,
+                method_name: None,
                 event: EntityMethod::Unknown(method_id),
             };
 
@@ -89,39 +94,32 @@ pub enum EntityMethod {
     StaticCollision(OnStaticCollision),
     Tracer(ShowTracer),
     Arena(UpdateArena),
+    NotImplemented(String),
     Unknown(i32),
 }
 
 impl EntityMethod {
-    pub fn new(name: &str, data: &[u8], version: [u16; 4]) -> std::result::Result<Self, String> {
+    pub fn new(name: &str, data: &[u8], version: [u16; 4]) -> std::result::Result<Self, PacketError> {
         use EntityMethod::*;
         match name {
-            "showShooting" => Ok(ShotFired(EntityMethod::parse_method(data, version)?)),
-            "onHealthChanged" => Ok(HealthChanged(EntityMethod::parse_method(data, version)?)),
-            "showDamageFromExplosion" => Ok(Explosion(EntityMethod::parse_method(data, version)?)),
-            "onStaticCollision" => Ok(StaticCollision(EntityMethod::parse_method(data, version)?)),
-            "showDamageFromShot" => Ok(DamageFromShot(EntityMethod::parse_method(data, version)?)),
-            "showTracer" => Ok(Tracer(EntityMethod::parse_method(data, version)?)),
-            // "updateArena" => Ok(Arena(UpdateArena::from(data, version).unwrap())),
+            "showShooting" => Ok(ShotFired(from_slice(data, version)?)),
+            "onHealthChanged" => Ok(HealthChanged(from_slice(data, version)?)),
+            "showDamageFromExplosion" => Ok(Explosion(from_slice(data, version)?)),
+            "onStaticCollision" => Ok(StaticCollision(from_slice(data, version)?)),
+            "showDamageFromShot" => Ok(DamageFromShot(from_slice(data, version)?)),
+            "showTracer" => Ok(Tracer(from_slice(data, version)?)),
+            "updateArena" => Ok(Arena(UpdateArena::from(data, version)?)),
             _ => {
                 // eprintln!("{name}");
 
-                Ok(Unknown(-1))
+                Ok(NotImplemented(name.into()))
             }
         }
-    }
-
-    /// We move the parsing logic needed to create `EntityMethod` to its own function because with `map_err`
-    /// it gets messy.
-    fn parse_method<'de, T: Deserialize<'de> + Version>(
-        data: &'de [u8], version: [u16; 4],
-    ) -> std::result::Result<T, String> {
-        from_slice(data, version).map_err(|err| err.to_string())
     }
 }
 
 impl EventPrinter for EntityMethod {
-    fn to_debug_string(&self, context: &BattleContext) -> String
+    fn to_debug_string(&self, context: &Context) -> String
     where
         Self: std::fmt::Debug,
     {
@@ -134,6 +132,7 @@ impl EventPrinter for EntityMethod {
             EntityMethod::StaticCollision(event) => format!("{:?}", event),
             EntityMethod::Arena(event) => format!("{:?}", event),
             EntityMethod::Unknown(method_id) => format!("Unknown method: {}", method_id),
+            EntityMethod::NotImplemented(method) => format!("Not implemented: {method}"),
         }
     }
 }
