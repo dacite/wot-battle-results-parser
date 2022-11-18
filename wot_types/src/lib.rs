@@ -3,3 +3,6 @@ pub use arena_bonus_types::ArenaBonusType;
 
 mod wot_value;
 pub use wot_value::WotValue;
+
+mod arena_update;
+pub use arena_update::ArenaUpdate;
