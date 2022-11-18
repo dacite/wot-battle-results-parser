@@ -128,22 +128,16 @@ pub struct VehicleCompactDescr {
 }
 
 fn parse_compact_descr(compact_descr: Vec<u8>) -> VehicleCompactDescr {
-    println!("{:?}", compact_descr);
-
     let header = compact_descr[0];
     assert!(header & 15 == 1);
 
     let nation_id = header >> 4 & 15;
     let vehicle_type_id = compact_descr[1];
-    println!("vehicle_type_id = {vehicle_type_id}");
-    println!("nation_id = {nation_id}");
 
     let mut idx = 10 + (1) * 4;
     let components = compact_descr[2..idx].to_vec();
-    println!("components = {:?}", components);
 
     let flags = compact_descr[idx];
-    println!("flags = {:?}", flags);
     idx += 1;
 
     let mut count = 0;
@@ -155,11 +149,9 @@ fn parse_compact_descr(compact_descr: Vec<u8>) -> VehicleCompactDescr {
             optional_device_slots |= 1 << i;
         }
     }
-    println!("count = {:?}", count);
-    println!("optional_device_slots = {:?}", optional_device_slots);
 
     let optional_devices = compact_descr[idx..(idx + count * 2)].to_vec();
-    println!("optional_devices = {:?}", optional_devices);
+
     assert!(optional_devices.len() % 2 == 0);
     VehicleCompactDescr {
         nation_id,
