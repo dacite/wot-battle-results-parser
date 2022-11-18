@@ -1,8 +1,9 @@
+use std::collections::HashMap;
+
 use serde::Serialize;
 
-use crate::events::*;
 use crate::packet_parser::{Context, Packet, PacketError};
-use crate::BattleContext;
+use crate::{events::*, ReplayError};
 
 /// This enum aims to represent all possible events that can occur in a battle. It's variant should map to
 /// each packet type and is expected to always be that type. For ex., a `GameVersion` packet has type `0x18`
@@ -25,8 +26,8 @@ pub enum BattleEvent {
 impl BattleEvent {
     /// Parse packet to a Battle event. Optional context is provided to aid in parsing some particular
     /// packets.
-    pub fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent, PacketError> {
-        match packet.packet_type() {
+    pub fn parse(packet: &Packet, context: &mut Context) -> Result<BattleEvent, ReplayError> {
+        let event_result = match packet.packet_type() {
             0x00 => AvatarCreate::parse(packet, context),
             0x05 => EntityCreate::parse(packet, context),
             0x08 => EntityMethodEvent::parse(packet, context),
@@ -35,6 +36,19 @@ impl BattleEvent {
             0x23 => Chat::parse(packet, context),
             0x3D => CryptoKey::parse(packet, context),
             _ => Ok(BattleEvent::Unimplemented),
+        };
+
+        match event_result {
+            Ok(event) => {
+                event.update_context(context);
+
+                Ok(event)
+            }
+            Err(error) => Err(ReplayError::PacketParseError {
+                packet_id: packet.id(),
+                packet_type: packet.packet_type(),
+                error,
+            }),
         }
     }
 
@@ -59,7 +73,7 @@ pub trait PacketParser {
 ///
 /// If no options, then `std::fmt::Debug` is called on that field
 pub trait EventPrinter {
-    fn to_debug_string(&self, context: &BattleContext) -> String
+    fn to_debug_string(&self, context: &Context) -> String
     where
         Self: std::fmt::Debug;
 }
@@ -74,7 +88,7 @@ pub trait UpdateContext {
 }
 
 impl EventPrinter for BattleEvent {
-    fn to_debug_string(&self, context: &BattleContext) -> String
+    fn to_debug_string(&self, context: &Context) -> String
     where
         Self: std::fmt::Debug,
     {
@@ -134,30 +148,26 @@ pub struct EventStream<'pkt> {
 }
 
 impl<'pkt> EventStream<'pkt> {
-    pub fn new(packet_stream: PacketStream<'pkt>, version: [u16; 4]) -> Result<Self, PacketError> {
+    pub fn new(packet_stream: PacketStream<'pkt>, version: [u16; 4]) -> Self {
         let version_validated = validate_version(version);
-        let context = Context::new(version_validated);
+        let context = Context::new(version_validated, HashMap::new());
 
-        Ok(EventStream {
+        EventStream {
             packet_stream,
             context,
-        })
+        }
     }
 }
 
 impl<'pkt> Iterator for EventStream<'pkt> {
-    type Item = Result<BattleEvent, PacketError>;
+    type Item = Result<BattleEvent, ReplayError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let packet = self.packet_stream.next()?;
         match packet {
             Ok(packet) => {
                 let packet_id = packet.id();
-                let event = BattleEvent::parse(&packet, &self.context).map(|battle_event| {
-                    battle_event.update_context(&mut self.context);
-
-                    battle_event
-                });
+                let event = BattleEvent::parse(&packet, &mut self.context);
 
                 log_if_error(packet_id, &event);
                 Some(event)
@@ -167,7 +177,7 @@ impl<'pkt> Iterator for EventStream<'pkt> {
     }
 }
 
-fn log_if_error(packet_id: i32, event: &Result<BattleEvent, PacketError>) {
+fn log_if_error(packet_id: i32, event: &Result<BattleEvent, ReplayError>) {
     match event.as_ref() {
         Ok(_) => {}
         Err(err) => {

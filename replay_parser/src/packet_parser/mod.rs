@@ -61,6 +61,7 @@ pub use context::VERSIONS;
 
 mod event;
 pub use event::BattleEvent;
+pub use event::EventPrinter;
 pub use event::EventStream;
 pub use event::PacketParser;
 

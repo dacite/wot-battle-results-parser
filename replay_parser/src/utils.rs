@@ -1,7 +1,10 @@
+use std::collections::HashMap;
+
 use serde_json::Map;
 use serde_json::Value as JsonVal;
 use time::Duration;
 
+use crate::ReplayParser;
 use crate::{ReplayError, VERSIONS};
 
 /// `[0, 9, 15, 0]` => `"0_9_15_0"`
@@ -76,6 +79,24 @@ pub const fn get_json_type(json: &JsonVal) -> &'static str {
     }
 }
 
+pub fn get_player_list(parser: &ReplayParser) -> Result<HashMap<i32, String>, ReplayError> {
+    let json = parser.replay_json_start()?;
+
+    let mut player_list = HashMap::new();
+    let vehicles = as_map("/vehicles", json)?;
+    for (avatar_id, veh) in vehicles.into_iter() {
+        let avatar_id = avatar_id
+            .parse::<i32>()
+            .map_err(|err| ReplayError::Other(err.to_string()))?;
+        let name = as_string("/name", veh)?;
+        let tank = as_string("/vehicleType", veh)?;
+
+        player_list.insert(avatar_id, format!("{}, {}", name, tank));
+    }
+
+    Ok(player_list)
+}
+
 /// Validate this version by checking if we have definition files for this version. If not return version
 /// closest to the input version
 pub fn validate_version(version: [u16; 4]) -> [u16; 4] {
@@ -96,4 +117,22 @@ pub fn validate_version(version: [u16; 4]) -> [u16; 4] {
     }
 
     best_candidate
+}
+
+/// A macro that tries to destructure an Enum to the given variant,
+/// wrapped in a `Result`. Used to avoid using if let everywhere and have the
+/// entire code shift right. Once if let chains stablize, this is probably not
+/// needed.
+#[macro_export]
+macro_rules! try_variant {
+    ($target: expr, $pattern: path) => {{
+        if let $pattern(value) = $target {
+            Ok(value)
+        } else {
+            Err($crate::PacketError::WrongEnumVariant(format!(
+                "Wrong variant. Expected: {}",
+                stringify!($pattern)
+            )))
+        }
+    }};
 }

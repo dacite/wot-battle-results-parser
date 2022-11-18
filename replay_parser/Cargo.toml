@@ -31,6 +31,8 @@ tracing = "0.1.35"
 phf = "0.11.0"
 blowfish = "0.9.1"
 serde_with = { version = "1.12.0", features = ["hex"]}
+enum_dispatch = "0.3.8"
+utils = { path = "../utils", package = "wot-battle-results-parser-utils", version = "0.1.0"}
 
 [build-dependencies]
 phf_codegen = "0.11.0"

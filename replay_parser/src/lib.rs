@@ -11,6 +11,7 @@ mod packet_parser;
 pub use packet_parser::events;
 pub use packet_parser::BattleEvent;
 pub use packet_parser::Context;
+pub use packet_parser::EventPrinter;
 pub use packet_parser::EventStream;
 pub use packet_parser::Packet;
 pub use packet_parser::PacketError;
@@ -21,7 +22,7 @@ pub use packet_parser::VERSIONS;
 mod battle_context;
 pub use battle_context::BattleContext;
 pub use error::ReplayError;
-/// TODO: Remove this * import
+// TODO: Remove this * import
 pub use replay_parser::*;
 
 pub use crate::utils::get_replay_time;
