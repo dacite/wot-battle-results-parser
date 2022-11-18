@@ -137,7 +137,7 @@ fn parse_properties(entity: &mut Entity, node: XMLNode) -> Result<()> {
 
         let property = Property {
             name,
-            ty:   entity.type_aliases.parse_type(&ty)?,
+            ty: entity.type_aliases.parse_type(&ty)?,
             flag: flag.text().unwrap().trim().to_string(),
         };
 
