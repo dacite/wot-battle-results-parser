@@ -24,9 +24,9 @@ pub struct Entity {
 
 #[derive(Debug)]
 pub struct Property {
-    _name: String,
-    _ty:   WotType,
-    _flag: String,
+    pub name: String,
+    pub ty:   WotType,
+    pub flag: String,
 }
 
 #[derive(Debug, Clone)]
@@ -65,6 +65,7 @@ impl Entity {
 
         entity.parse_def_file(get_def_file_path(version, name, false))?;
         entity.client_methods.sort_by_key(|a| a.get_size());
+        entity.properties.sort_by_key(|a| a.get_size());
 
         for method in &entity.client_methods {
             println!("{} {:?}: {}", name, version, method.get_size())
@@ -135,9 +136,9 @@ fn parse_properties(entity: &mut Entity, node: XMLNode) -> Result<()> {
         let ty = select_child("Type", &child).unwrap();
 
         let property = Property {
-            _name: name,
-            _ty:   entity.type_aliases.parse_type(&ty)?,
-            _flag: flag.text().unwrap().trim().to_string(),
+            name,
+            ty:   entity.type_aliases.parse_type(&ty)?,
+            flag: flag.text().unwrap().trim().to_string(),
         };
 
         entity.properties.push(property)

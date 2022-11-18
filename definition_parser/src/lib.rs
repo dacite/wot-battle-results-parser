@@ -62,3 +62,9 @@ impl Size for Method {
         size
     }
 }
+
+impl Size for Property {
+    fn get_size(&self) -> u64 {
+        self.ty.get_size()
+    }
+}
