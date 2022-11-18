@@ -1,20 +1,25 @@
 use std::collections::HashMap;
 
+use crate::utils::validate_version;
+
 // This file contains information regarding method calls for different replay versions. This is
 // generated during the build process
 include!(concat!(env!("OUT_DIR"), "/method_map_codegen.rs"));
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Context {
     entities: HashMap<i32, String>,
+    players:  HashMap<i32, String>,
     version:  [u16; 4],
 }
 
 impl Context {
-    pub fn new(version: [u16; 4]) -> Self {
+    pub fn new(version: [u16; 4], players: HashMap<i32, String>) -> Self {
+        let validated_version = validate_version(version);
         Context {
             entities: HashMap::new(),
-            version,
+            players,
+            version: validated_version,
         }
     }
 
@@ -39,11 +44,14 @@ impl Context {
 
         find_method(entity_name, &version_str, method_id)
     }
+
+    pub fn find_player(&self, id: i32) -> Option<String> {
+        self.players.get(&id).map(Into::into)
+    }
 }
 
 
 pub fn find_method(entity_name: &str, version_str: &str, method_id: i32) -> Option<&'static str> {
     let key = format!("{entity_name} {version_str} {method_id}");
-
     METHOD_MAP.get(&key).copied()
 }

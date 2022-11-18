@@ -48,7 +48,7 @@ pub fn imp_event_debug_macro(ast: &syn::DeriveInput) -> TokenStream {
                 }
                 "as_player" => {
                     statements.push(quote! {
-                        format!("{} {} ", stringify!(#name), &context.entity_id_to_player(self.#name).unwrap_or(self.#name.to_string()))
+                        format!("{} {} ", stringify!(#name), context.find_player(self.#name).unwrap_or(self.#name.to_string()))
                     });
                 }
                 _ => panic!("Unknown value given to event_printer_macro"),
@@ -56,7 +56,7 @@ pub fn imp_event_debug_macro(ast: &syn::DeriveInput) -> TokenStream {
         }
     }
     let to_debug_string = quote! {
-        fn to_debug_string(&self, context: &crate::BattleContext) -> String
+        fn to_debug_string(&self, context: &crate::Context) -> String
             where
                 Self: std::fmt::Debug,
             {
