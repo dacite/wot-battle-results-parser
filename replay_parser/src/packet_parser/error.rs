@@ -1,9 +1,8 @@
 use std::{num::ParseIntError, str::Utf8Error, string::FromUtf8Error};
+
+use utils::DataError;
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum PacketError {
-    #[error("Packet stream is corrupted")]
-    PacketStreamError,
-
     #[error("{0}: incomplete input")]
     IncompleteInput(String),
 
@@ -22,6 +21,12 @@ pub enum PacketError {
     #[error("{0}")]
     ParseIntError(ParseIntError),
 
+    #[error("{0}")]
+    ConversionError(String),
+
+    #[error("{0}")]
+    DataError(String),
+
     #[error(
         "entity method {method_name}[ID: {method_id}] parse failed: {root_cause}. given data: {method_data}"
     )]
@@ -31,6 +36,12 @@ pub enum PacketError {
         method_name: String,
         root_cause:  String,
     },
+
+    #[error("Expected variant: {0}")]
+    WrongEnumVariant(String),
+
+    #[error("Pickle error: {0}")]
+    PickleError(String),
 }
 
 
@@ -72,6 +83,13 @@ impl From<Utf8Error> for PacketError {
     }
 }
 
+
+impl From<DataError> for PacketError {
+    fn from(err: DataError) -> Self {
+        PacketError::DataError(err.to_string())
+    }
+}
+
 impl From<FromUtf8Error> for PacketError {
     fn from(err: FromUtf8Error) -> Self {
         PacketError::StringUtf8Error(err.to_string())
@@ -81,5 +99,11 @@ impl From<FromUtf8Error> for PacketError {
 impl From<ParseIntError> for PacketError {
     fn from(err: ParseIntError) -> Self {
         PacketError::ParseIntError(err)
+    }
+}
+
+impl From<serde_pickle::Error> for PacketError {
+    fn from(err: serde_pickle::Error) -> Self {
+        PacketError::PickleError(err.to_string())
     }
 }

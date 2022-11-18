@@ -12,8 +12,8 @@ use nom::{
 use serde_json::Value as JsonVal;
 use wot_types::ArenaBonusType;
 
-use crate::replay_errors;
 use crate::utils::as_i64;
+use crate::{replay_errors, Context};
 use crate::{BattleContext, BattleEvent, EventStream, PacketStream, ReplayError};
 /// Parse a wotreplay from file. Only deals with that wotreplay. If you need to parse multiple replays, create
 /// multiple instances of `ReplayParser`.
@@ -168,7 +168,7 @@ impl ReplayParser {
             .parse_replay_version()
             .ok_or_else(|| ReplayError::ReplayJsonFormatError("failed to parse replay version".into()))?;
 
-        Ok(EventStream::new(packet_stream, version)?)
+        Ok(EventStream::new(packet_stream, version))
     }
 
     pub fn battle_context(&self) -> BattleContext {
@@ -259,6 +259,16 @@ impl ReplayParser {
         ArenaBonusType::try_from(bonus_type as i32).map_err(|_| {
             ReplayError::ReplayJsonFormatError(format!("arena bonus type of {bonus_type} is invalid"))
         })
+    }
+
+    pub fn context(&self) -> Result<Context, ReplayError> {
+        let version = self
+            .parse_replay_version()
+            .ok_or_else(|| ReplayError::ReplayJsonFormatError("cannot parse replay version".into()))?;
+
+        let player_list = crate::utils::get_player_list(self)?;
+
+        Ok(Context::new(version, player_list))
     }
 }
 

@@ -1,6 +1,5 @@
 use crate::packet_parser::PacketError;
 
-
 #[derive(thiserror::Error, Debug)]
 pub enum ReplayError {
     #[error("cannot read replay file")]
@@ -33,14 +32,21 @@ pub enum ReplayError {
     #[error("json type error: {0}")]
     JsonTypeError(String),
 
-    #[error("{0}")]
-    PacketParseError(#[from] PacketError),
-
     #[error("i/o error: {0}")]
     IoError(#[from] std::io::Error),
 
     #[error("Unable to find the arena unique id")]
     MissingArenaUniqueId,
+
+    #[error("Packet stream is corrupted")]
+    PacketStreamError,
+
+    #[error("packet parse error: packet id: {packet_id} type: {packet_type} error: {error}")]
+    PacketParseError {
+        packet_id:   i32,
+        packet_type: u32,
+        error:       PacketError,
+    },
 }
 
 impl From<nom::Err<ReplayError>> for ReplayError {
@@ -52,7 +58,6 @@ impl From<nom::Err<ReplayError>> for ReplayError {
         }
     }
 }
-
 
 impl<T> nom::error::ParseError<T> for ReplayError {
     fn from_error_kind(_: T, kind: nom::error::ErrorKind) -> Self {

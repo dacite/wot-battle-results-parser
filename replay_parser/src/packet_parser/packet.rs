@@ -1,6 +1,6 @@
 use byteorder::{ReadBytesExt, LE};
 
-use crate::packet_parser::PacketError;
+use crate::ReplayError;
 
 pub const METADATA_SIZE: usize = 12;
 
@@ -72,14 +72,14 @@ impl<'a> PacketStream<'a> {
 }
 
 impl<'a> Iterator for PacketStream<'a> {
-    type Item = Result<Packet<'a>, PacketError>;
+    type Item = Result<Packet<'a>, ReplayError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let position = self.position;
 
         if (position + 4) > self.inner.len() {
             if position != self.inner.len() {
-                return Some(Err(PacketError::PacketStreamError));
+                return Some(Err(ReplayError::PacketStreamError));
             }
             return None;
         }
@@ -91,7 +91,7 @@ impl<'a> Iterator for PacketStream<'a> {
         let packet_range = position..(position + packet_size);
 
         if (position + packet_size) > self.inner.len() {
-            return Some(Err(PacketError::PacketStreamError));
+            return Some(Err(ReplayError::PacketStreamError));
         }
 
         self.position += packet_size;
