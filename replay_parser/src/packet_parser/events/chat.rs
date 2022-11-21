@@ -10,12 +10,11 @@ pub struct Chat {
 impl PacketParser for Chat {
     fn parse(packet: &Packet, _context: &Context) -> Result<BattleEvent, PacketError> {
         let data = packet.payload();
+
         let (remaining, msg_length) = le_u32(data)?;
-
         let msg_buffer = &remaining[..msg_length as usize];
+        let msg = String::from_utf8_lossy(msg_buffer);
 
-        let msg = std::str::from_utf8(msg_buffer).unwrap();
-
-        Ok(BattleEvent::Chat(Chat { msg: msg.to_string() }))
+        Ok(BattleEvent::Chat(Chat { msg: msg.into() }))
     }
 }
