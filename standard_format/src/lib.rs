@@ -19,13 +19,14 @@ pub use crate::vehicle_self::VehicleSelf;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Battle {
+    #[serde(rename(serialize = "arenaUniqueID"))]
     pub arena_unique_id: String,
-    pub common:          Common,
-    pub player_info:     HashMap<String, PlayerInfo>,
-    pub account_all:     HashMap<String, AccountAll>,
-    pub vehicle_all:     HashMap<String, VehicleAll>,
-    pub vehicle_self:    HashMap<String, VehicleSelf>,
-    pub account_self:    HashMap<String, AccountSelf>,
+    pub common:          serde_json::Value,
+    pub player_info:     HashMap<String, serde_json::Value>,
+    pub account_all:     HashMap<String, serde_json::Value>,
+    pub vehicle_all:     HashMap<String, serde_json::Value>,
+    pub vehicle_self:    HashMap<String, serde_json::Value>,
+    pub account_self:    HashMap<String, serde_json::Value>,
 }
 
 /// TODO?????

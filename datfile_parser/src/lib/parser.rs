@@ -4,11 +4,9 @@ pub use std::{
 };
 
 use anyhow::{anyhow, ensure, Context, Result};
-use serde::de::DeserializeOwned;
-use serde_json::from_value as from_json_value;
 use serde_json::Value as JSONValue;
 use serde_pickle::Value as PickleValue;
-use standard_format::{AccountSelf, ArenaFieldsGetter, Battle};
+use standard_format::Battle;
 use utils::decompress_and_load_pickle;
 
 use crate::{
@@ -110,13 +108,16 @@ impl<'a> Parser<'a> {
 
         // TODO: More ergonomic way to include info about which object failed
         let common = self
-            .pickle_list_to_output_object(datfile.common)
+            .pickle_list_to_json_object(datfile.common)
             .map_err(|e| anyhow!("common failed: {}", e.to_string()))?;
 
-        let account_self: AccountSelf = self
-            .pickle_list_to_output_object(datfile.account_self.clone())
+        let account_self = self
+            .pickle_list_to_json_object(datfile.account_self.clone())
             .map_err(|e| anyhow!("account self failed: {}", e.to_string()))?;
-        let account_self = HashMap::from([(account_self.get_account_dbid().to_string(), account_self)]);
+        let account_self = HashMap::from([(
+            account_self.pointer("/accountDBID").unwrap().to_string(),
+            account_self,
+        )]);
 
         let vehicle_self = self
             .parse_list(datfile.vehicle_self)
@@ -142,40 +143,22 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_list<T>(&mut self, input: HashMap<String, Vec<PickleValue>>) -> Result<HashMap<String, T>>
-    where
-        T: DeserializeOwned + ArenaFieldsGetter,
-    {
+    fn parse_list(&mut self, input: HashMap<String, Vec<PickleValue>>) -> Result<HashMap<String, JSONValue>> {
         let mut output = HashMap::new();
         for (key, value) in input.into_iter() {
-            output.insert(key, self.pickle_list_to_output_object(value)?);
+            output.insert(key, self.pickle_list_to_json_object(value)?);
         }
 
         Ok(output)
     }
 
-    fn pickle_list_to_output_object<T>(&mut self, input: Vec<PickleValue>) -> Result<T>
-    where
-        T: DeserializeOwned + ArenaFieldsGetter,
-    {
-        let json = self.pickle_list_to_json_object(input)?;
-        let output: T = from_json_value(json)?;
+    // fn pickle_list_to_output_object<T>(&mut self, input: Vec<PickleValue>) -> Result<JSONValue>
+    // where
+    //     T: DeserializeOwned + ArenaFieldsGetter,
+    // {
+    //     self.pickle_list_to_json_object(input)
 
-        // At this point, there may be some fields that were not present in the output object (`T`). This is
-        // parsed as arena fields because these fields are only common to a specific gamemode.
-        // Nevertheless, we try to serialize these fields to one of the `extra` (For ex:
-        // AccountAllExtra, VehicleSelfExtra etc.) enums to make sure it is indeed the gamemode
-        // specific fields. If there are fields that are clearly not part of a specific gamemode then
-        // that's an error and should've been parsed as one of the member of the `T`
-        output.validate_arena_fields().map_err(|err| {
-            anyhow!(
-                "unknown fields found. standard format might be out of date. {}",
-                err.to_string()
-            )
-        })?;
-
-        Ok(output)
-    }
+    // }
 
     fn pickle_list_to_json_object(&mut self, value_list: Vec<PickleValue>) -> Result<JSONValue> {
         // checksum is used to find the correct list of identifiers for the `value_list`
