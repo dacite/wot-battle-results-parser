@@ -8,5 +8,5 @@ max_width = 110
 comment_width = 110
 reorder_impl_items = true
 ignore = [
-    "wot_constants/src/battle_results/battle_result_fields.rs"
+    "datfile_parser/src/lib/battle_results/battle_result_fields.rs"
 ]
