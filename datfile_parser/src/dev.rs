@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use wot_datfile_parser::DatFileParser;
 
 fn main() {

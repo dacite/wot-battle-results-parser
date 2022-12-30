@@ -1,11 +1,11 @@
 use super::{FieldDefault, Field, FieldType};
 
-pub const MAX_VERSION: usize = 5;
+pub const MAX_VERSION: usize = 1;
 
 pub const RANDOM_ARENA: &[Field] = &[
-    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "basePointsDiff", default: FieldDefault::Int(0), combined_string: "basePointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
-    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "sumPoints", default: FieldDefault::Int(0), combined_string: "sumPoints<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "hasBattlePass", default: FieldDefault::Bool(false), combined_string: "hasBattlePass<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
 ];
@@ -17,14 +17,17 @@ pub const BATTLE_ROYALE: &[Field] = &[
     Field { name: "battleXPTotal", default: FieldDefault::Int(0), combined_string: "battleXPTotal<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "modulesDescriptors", default: FieldDefault::List, combined_string: "modulesDescriptors<type 'list'>[]<type 'NoneType'>extend", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "achivedLevel", default: FieldDefault::Int(1), combined_string: "achivedLevel<type 'int'>1<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "basePointsDiff", default: FieldDefault::Int(0), combined_string: "basePointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
-    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "sumPoints", default: FieldDefault::Int(0), combined_string: "sumPoints<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "hasBattlePass", default: FieldDefault::Bool(false), combined_string: "hasBattlePass<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
-    
-    // Packed Value: DictPackers.MergeDictPacker
-    Field { name: "currencies", default: FieldDefault::Dict, combined_string: "currencies<type 'dict'>{}<class 'DictPackers.MergeDictPacker'>joinByEachPacker", version: 4, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "battlePassComplete", default: FieldDefault::Bool(false), combined_string: "battlePassComplete<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "availablePoints", default: FieldDefault::Int(0), combined_string: "availablePoints<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
+
+	// Packed Value: DictPackers.MergeDictPacker
+    Field { name: "currencies", default: FieldDefault::Dict, combined_string: "currencies<type 'dict'>{}<class 'DictPackers.MergeDictPacker'>joinByEachPacker", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+
 ];
 
 
@@ -49,9 +52,9 @@ pub const FRONTLINE: &[Field] = &[
 	// Packed Value: DictPackers.ValueReplayPacker
     Field { name: "flXPReplay", default: FieldDefault::Str, combined_string: "flXPReplay<type 'str'><type 'instance'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
 
-    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "basePointsDiff", default: FieldDefault::Int(0), combined_string: "basePointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
-    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "sumPoints", default: FieldDefault::Int(0), combined_string: "sumPoints<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "hasBattlePass", default: FieldDefault::Bool(false), combined_string: "hasBattlePass<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
 ];
@@ -71,31 +74,49 @@ pub const RANKED: &[Field] = &[
     Field { name: "efficiencyBonusBattles", default: FieldDefault::Int(0), combined_string: "efficiencyBonusBattles<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "stepsBonusBattles", default: FieldDefault::Int(0), combined_string: "stepsBonusBattles<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "prevAccRank", default: FieldDefault::Tuple(&(FieldDefault::Int(0), 2)), combined_string: "prevAccRank<type 'tuple'>(0, 0)<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
-    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "basePointsDiff", default: FieldDefault::Int(0), combined_string: "basePointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
-    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "sumPoints", default: FieldDefault::Int(0), combined_string: "sumPoints<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
     Field { name: "hasBattlePass", default: FieldDefault::Bool(false), combined_string: "hasBattlePass<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
 ];
 
 
 pub const RTS: &[Field] = &[
-    Field { name: "teamXP", default: FieldDefault::Int(0), combined_string: "teamXP<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "isCommander", default: FieldDefault::Bool(false), combined_string: "isCommander<type 'bool'>False<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "rtsVehicles", default: FieldDefault::List, combined_string: "rtsVehicles<type 'list'>[]<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "rts1x7TokensGain", default: FieldDefault::Int(0), combined_string: "rts1x7TokensGain<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "rts1x1TokensGain", default: FieldDefault::Int(0), combined_string: "rts1x1TokensGain<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "rts1x7TokensWithdraw", default: FieldDefault::Int(0), combined_string: "rts1x7TokensWithdraw<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "rts1x1TokensWithdraw", default: FieldDefault::Int(0), combined_string: "rts1x1TokensWithdraw<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "supplyDamageDealt", default: FieldDefault::Int(0), combined_string: "supplyDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "damageReceivedFromSupply", default: FieldDefault::Int(0), combined_string: "damageReceivedFromSupply<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "rtsEventPoints", default: FieldDefault::Int(0), combined_string: "rtsEventPoints<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "rtsLeaderPoints", default: FieldDefault::Int(0), combined_string: "rtsLeaderPoints<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "spottedSupplies", default: FieldDefault::Int(0), combined_string: "spottedSupplies<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "damagedSupplies", default: FieldDefault::Set, combined_string: "damagedSupplies<type 'set'>set([])<type 'NoneType'>joinSets", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "killedSupplies", default: FieldDefault::Int(0), combined_string: "killedSupplies<type 'int'>0<type 'NoneType'>sum", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "damagedTanks", default: FieldDefault::Set, combined_string: "damagedTanks<type 'set'>set([])<type 'NoneType'>joinSets", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "rtsOrdersCount", default: FieldDefault::Int(0), combined_string: "rtsOrdersCount<type 'int'>0<type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::Server },
+    Field { name: "teamXP", default: FieldDefault::Int(0), combined_string: "teamXP<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "isCommander", default: FieldDefault::Bool(false), combined_string: "isCommander<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rtsVehicles", default: FieldDefault::List, combined_string: "rtsVehicles<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rts1x7TokensGain", default: FieldDefault::Int(0), combined_string: "rts1x7TokensGain<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rts1x1TokensGain", default: FieldDefault::Int(0), combined_string: "rts1x1TokensGain<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rts1x7TokensWithdraw", default: FieldDefault::Int(0), combined_string: "rts1x7TokensWithdraw<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "rts1x1TokensWithdraw", default: FieldDefault::Int(0), combined_string: "rts1x1TokensWithdraw<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "supplyDamageDealt", default: FieldDefault::Int(0), combined_string: "supplyDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "damageReceivedFromSupply", default: FieldDefault::Int(0), combined_string: "damageReceivedFromSupply<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "rtsEventPoints", default: FieldDefault::Int(0), combined_string: "rtsEventPoints<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "rtsLeaderPoints", default: FieldDefault::Int(0), combined_string: "rtsLeaderPoints<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "spottedSupplies", default: FieldDefault::Int(0), combined_string: "spottedSupplies<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "damagedSupplies", default: FieldDefault::Set, combined_string: "damagedSupplies<type 'set'>set([])<type 'NoneType'>joinSets", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "killedSupplies", default: FieldDefault::Int(0), combined_string: "killedSupplies<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "damagedTanks", default: FieldDefault::Set, combined_string: "damagedTanks<type 'set'>set([])<type 'NoneType'>joinSets", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "rtsOrdersCount", default: FieldDefault::Int(0), combined_string: "rtsOrdersCount<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
+];
+
+
+pub const COMP7: &[Field] = &[
+    Field { name: "comp7PrestigePoints", default: FieldDefault::Int(0), combined_string: "comp7PrestigePoints<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "roleSkillUsed", default: FieldDefault::Int(0), combined_string: "roleSkillUsed<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "healthRepair", default: FieldDefault::Int(0), combined_string: "healthRepair<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "alliedHealthRepair", default: FieldDefault::Int(0), combined_string: "alliedHealthRepair<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "comp7Rating", default: FieldDefault::Int(0), combined_string: "comp7Rating<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "comp7Rank", default: FieldDefault::Tuple(&(FieldDefault::Int(0), 2)), combined_string: "comp7Rank<type 'tuple'>(0, 0)<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "comp7RatingDelta", default: FieldDefault::Int(0), combined_string: "comp7RatingDelta<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "comp7TeamStats", default: FieldDefault::Dict, combined_string: "comp7TeamStats<type 'dict'>{}<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
+    Field { name: "fareTeamPrestigePointsPosition", default: FieldDefault::Int(0), combined_string: "fareTeamPrestigePointsPosition<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "basePointsDiff", default: FieldDefault::Int(0), combined_string: "basePointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "bpNonChapterPointsDiff", default: FieldDefault::Int(0), combined_string: "bpNonChapterPointsDiff<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "sumPoints", default: FieldDefault::Int(0), combined_string: "sumPoints<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
+    Field { name: "hasBattlePass", default: FieldDefault::Bool(false), combined_string: "hasBattlePass<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
 ];
 
 
@@ -120,7 +141,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "piercingEnemyHits", default: FieldDefault::Int(0), combined_string: "piercingEnemyHits<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "damageDealt", default: FieldDefault::Int(0), combined_string: "damageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "sniperDamageDealt", default: FieldDefault::Int(0), combined_string: "sniperDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "artilleryFortEquipDamageDealt", default: FieldDefault::Int(0), combined_string: "artilleryFortEquipDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 4, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "artilleryFortEquipDamageDealt", default: FieldDefault::Int(0), combined_string: "artilleryFortEquipDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "equipmentDamageDealt", default: FieldDefault::Int(0), combined_string: "equipmentDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "damageAssistedRadio", default: FieldDefault::Int(0), combined_string: "damageAssistedRadio<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "damageAssistedTrack", default: FieldDefault::Int(0), combined_string: "damageAssistedTrack<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
@@ -162,7 +183,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "destructiblesNumDestroyed", default: FieldDefault::Int(0), combined_string: "destructiblesNumDestroyed<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "destructiblesDamageDealt", default: FieldDefault::Int(0), combined_string: "destructiblesDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "destructiblesHits", default: FieldDefault::Int(0), combined_string: "destructiblesHits<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
-    Field { name: "destructibleDeaths", default: FieldDefault::List, combined_string: "destructibleDeaths<type 'list'>[]<type 'NoneType'>extend", version: 3, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "destructibleDeaths", default: FieldDefault::List, combined_string: "destructibleDeaths<type 'list'>[]<type 'NoneType'>extend", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "numDefended", default: FieldDefault::Int(0), combined_string: "numDefended<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "accountDBID", default: FieldDefault::Int(0), combined_string: "accountDBID<type 'int'>0<type 'NoneType'>any", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "typeCompDescr", default: FieldDefault::Int(0), combined_string: "typeCompDescr<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
@@ -194,6 +215,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "crystal", default: FieldDefault::Int(0), combined_string: "crystal<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventCoin", default: FieldDefault::Int(0), combined_string: "eventCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "bpcoin", default: FieldDefault::Int(0), combined_string: "bpcoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "equipCoin", default: FieldDefault::Int(0), combined_string: "equipCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "piggyBank", default: FieldDefault::Int(0), combined_string: "piggyBank<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventCredits", default: FieldDefault::Int(0), combined_string: "eventCredits<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventXP", default: FieldDefault::Int(0), combined_string: "eventXP<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
@@ -203,6 +225,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "eventCrystal", default: FieldDefault::Int(0), combined_string: "eventCrystal<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventEventCoin", default: FieldDefault::Int(0), combined_string: "eventEventCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventBpcoin", default: FieldDefault::Int(0), combined_string: "eventBpcoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "eventEquipCoin", default: FieldDefault::Int(0), combined_string: "eventEquipCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "originalCredits", default: FieldDefault::Int(0), combined_string: "originalCredits<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
 
 	// Packed Value: DictPackers.ValueReplayPacker
@@ -237,6 +260,7 @@ pub const ALL_TYPES: &[Field] = &[
 
     Field { name: "originalEventCoin", default: FieldDefault::Int(0), combined_string: "originalEventCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "originalBpcoin", default: FieldDefault::Int(0), combined_string: "originalBpcoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "originalEquipCoin", default: FieldDefault::Int(0), combined_string: "originalEquipCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
 
 	// Packed Value: DictPackers.ValueReplayPacker
     Field { name: "eventCoinReplay", default: FieldDefault::Str, combined_string: "eventCoinReplay<type 'str'><type 'instance'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
@@ -244,6 +268,10 @@ pub const ALL_TYPES: &[Field] = &[
 
 	// Packed Value: DictPackers.ValueReplayPacker
     Field { name: "bpcoinReplay", default: FieldDefault::Str, combined_string: "bpcoinReplay<type 'str'><type 'instance'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+
+
+	// Packed Value: DictPackers.ValueReplayPacker
+    Field { name: "equipCoinReplay", default: FieldDefault::Str, combined_string: "equipCoinReplay<type 'str'><type 'instance'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
 
     Field { name: "factualXP", default: FieldDefault::Int(0), combined_string: "factualXP<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "factualFreeXP", default: FieldDefault::Int(0), combined_string: "factualFreeXP<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
@@ -256,6 +284,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "subtotalCrystal", default: FieldDefault::Int(0), combined_string: "subtotalCrystal<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "subtotalEventCoin", default: FieldDefault::Int(0), combined_string: "subtotalEventCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "subtotalBpcoin", default: FieldDefault::Int(0), combined_string: "subtotalBpcoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "subtotalEquipCoin", default: FieldDefault::Int(0), combined_string: "subtotalEquipCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventCreditsList", default: FieldDefault::List, combined_string: "eventCreditsList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventXPList", default: FieldDefault::List, combined_string: "eventXPList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventFreeXPList", default: FieldDefault::List, combined_string: "eventFreeXPList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
@@ -264,9 +293,9 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "eventCrystalList", default: FieldDefault::List, combined_string: "eventCrystalList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventEventCoinList", default: FieldDefault::List, combined_string: "eventEventCoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventBpcoinList", default: FieldDefault::List, combined_string: "eventBpcoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
-    Field { name: "eventCreditsFactor1000List", default: FieldDefault::List, combined_string: "eventCreditsFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 1, field_type: FieldType::VehicleSelf },
-    Field { name: "eventCreditsFactor100List", default: FieldDefault::List, combined_string: "eventCreditsFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 2, max_version: 0, field_type: FieldType::VehicleSelf },
-    Field { name: "eventXPFactor100List", default: FieldDefault::List, combined_string: "eventXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "eventEquipCoinList", default: FieldDefault::List, combined_string: "eventEquipCoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "eventCreditsFactor1000List", default: FieldDefault::List, combined_string: "eventCreditsFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "eventXPFactor1000List", default: FieldDefault::List, combined_string: "eventXPFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventFreeXPFactor100List", default: FieldDefault::List, combined_string: "eventFreeXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventTMenXPFactor100List", default: FieldDefault::List, combined_string: "eventTMenXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventGoldFactor100List", default: FieldDefault::List, combined_string: "eventGoldFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
@@ -357,14 +386,14 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "winnerIfDraw", default: FieldDefault::Int(0), combined_string: "winnerIfDraw<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "isPrematureLeave", default: FieldDefault::Bool(false), combined_string: "isPrematureLeave<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "watchedBattleToTheEnd", default: FieldDefault::Bool(false), combined_string: "watchedBattleToTheEnd<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "vseBattleResults", default: FieldDefault::List, combined_string: "vseBattleResults<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "vseBattleResults", default: FieldDefault::Dict, combined_string: "vseBattleResults<type 'dict'>{}<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "squadBonusInfo", default: FieldDefault::None, combined_string: "squadBonusInfoNoneNone<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "progressiveReward", default: FieldDefault::None, combined_string: "progressiveRewardNoneNone<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "eligibleForCrystalRewards", default: FieldDefault::Bool(false), combined_string: "eligibleForCrystalRewards<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "activeRents", default: FieldDefault::Dict, combined_string: "activeRents<type 'dict'>{}<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "recruitsIDs", default: FieldDefault::List, combined_string: "recruitsIDs<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "recruiterID", default: FieldDefault::Int(0), combined_string: "recruiterID<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "referralBonusVehicles", default: FieldDefault::List, combined_string: "referralBonusVehicles<type 'list'>[]<type 'NoneType'>skip", version: 1, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "referralBonusVehicles", default: FieldDefault::List, combined_string: "referralBonusVehicles<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "fareTeamXPPosition", default: FieldDefault::Int(0), combined_string: "fareTeamXPPosition<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "questsProgress", default: FieldDefault::Dict, combined_string: "questsProgress<type 'dict'>{}<type 'NoneType'>joinDicts", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "PM2Progress", default: FieldDefault::Dict, combined_string: "PM2Progress<type 'dict'>{}<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
@@ -377,6 +406,7 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "eventCrystal", default: FieldDefault::Int(0), combined_string: "eventCrystal<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "eventEventCoin", default: FieldDefault::Int(0), combined_string: "eventEventCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "eventBpcoin", default: FieldDefault::Int(0), combined_string: "eventBpcoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+    Field { name: "eventEquipCoin", default: FieldDefault::Int(0), combined_string: "eventEquipCoin<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "credits", default: FieldDefault::Int(0), combined_string: "credits<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "xp", default: FieldDefault::Int(0), combined_string: "xp<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "freeXP", default: FieldDefault::Int(0), combined_string: "freeXP<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
@@ -483,6 +513,12 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "setupsIndexes", default: FieldDefault::Dict, combined_string: "setupsIndexes<type 'dict'>{}<type 'NoneType'>any", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "startAmmo", default: FieldDefault::List, combined_string: "startAmmo<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "initialVehicleAmmo", default: FieldDefault::List, combined_string: "initialVehicleAmmo<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
-    Field { name: "replayURL", default: FieldDefault::Str, combined_string: "replayURL<type 'str'><type 'NoneType'>skip", version: 3, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "currencies", default: FieldDefault::Dict, combined_string: "currencies<type 'dict'>{}<class 'DictPackers.MergeDictPacker'>joinByEachPacker", version: 4, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "replayURL", default: FieldDefault::Str, combined_string: "replayURL<type 'str'><type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
+
+	// Packed Value: DictPackers.MergeDictPacker
+    Field { name: "currencies", default: FieldDefault::Dict, combined_string: "currencies<type 'dict'>{}<class 'DictPackers.MergeDictPacker'>joinByEachPacker", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+
+    Field { name: "entityCaptured", default: FieldDefault::Dict, combined_string: "entityCaptured<type 'dict'>{}<type 'NoneType'>any", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "poiCapturedByOwnTeam", default: FieldDefault::Int(0), combined_string: "poiCapturedByOwnTeam<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "isFirstBlood", default: FieldDefault::Bool(false), combined_string: "isFirstBlood<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
 ];

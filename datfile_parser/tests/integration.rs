@@ -2,8 +2,7 @@ use std::{fs, path::Path};
 
 use anyhow::{Context, Result};
 use log::info;
-use standard_format::Battle;
-use wot_datfile_parser::DatFileParser;
+use wot_datfile_parser::{Battle, DatFileParser};
 
 #[cfg(test)]
 mod tests {

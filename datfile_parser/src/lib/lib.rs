@@ -4,16 +4,31 @@ mod fields;
 mod manual_parser;
 mod parser;
 
+use std::collections::HashMap;
+
 use anyhow::{Context, Result};
 use battle_results::Field;
 use fields::{gen_collection, FieldCollection};
 use parser::Parser;
+use serde::Deserialize;
+use serde::Serialize;
 pub use serde_pickle::HashableValue as HashablePickleValue;
 pub use serde_pickle::Value as PickleValue;
-use standard_format::Battle;
 
 pub struct DatFileParser {
     collections: FieldCollection,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Battle {
+    #[serde(rename(serialize = "arenaUniqueID"))]
+    pub arena_unique_id: String,
+    pub common:          serde_json::Value,
+    pub player_info:     HashMap<String, serde_json::Value>,
+    pub account_all:     HashMap<String, serde_json::Value>,
+    pub vehicle_all:     HashMap<String, serde_json::Value>,
+    pub vehicle_self:    HashMap<String, serde_json::Value>,
+    pub account_self:    HashMap<String, serde_json::Value>,
 }
 
 impl DatFileParser {

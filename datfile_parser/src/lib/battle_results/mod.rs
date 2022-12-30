@@ -128,6 +128,7 @@ pub fn get_collection(arena_bonus_type: ArenaBonusType) -> Option<&'static [Fiel
         ArenaBonusType::Rts => Some(RTS),
         ArenaBonusType::Rts1x1 => Some(RTS),
         ArenaBonusType::RtsBootcamp => Some(RTS),
+        ArenaBonusType::Comp7 => Some(COMP7),
         _ => None,
     }
 }

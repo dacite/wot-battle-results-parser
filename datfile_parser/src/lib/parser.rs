@@ -6,13 +6,12 @@ pub use std::{
 use anyhow::{anyhow, ensure, Context, Result};
 use serde_json::Value as JSONValue;
 use serde_pickle::Value as PickleValue;
-use standard_format::Battle;
 use utils::decompress_and_load_pickle;
 
 use crate::{
     battle_results::Field,
     fields::{matches_version, FieldCollection},
-    get_checksum, manual_parser, to_default_if_none, try_variant,
+    get_checksum, manual_parser, to_default_if_none, try_variant, Battle,
 };
 
 /// An instantiation of a `Parser` is used to parse a single `.dat` file

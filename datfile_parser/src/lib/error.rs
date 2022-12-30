@@ -26,3 +26,10 @@ impl std::fmt::Display for NomErrorWrapper {
         write!(f, "Nom error: {} error", self.kind.description())
     }
 }
+
+
+#[derive(thiserror::Error, Debug)]
+pub enum DatfileParseError {
+    #[error("{0} has unknown checksum: {1}")]
+    UnknownChecksum(String, i32),
+}
