@@ -16,7 +16,7 @@ pub struct ChecksumInfo {
 // Manages the different types of field list
 pub struct FieldCollection {
     fields_list: Vec<Vec<Field>>,
-    checksums:   HashMap<i32, ChecksumInfo>,
+    checksums:   HashMap<i64, ChecksumInfo>,
 }
 
 pub fn gen_collection() -> FieldCollection {
@@ -52,7 +52,7 @@ impl FieldCollection {
         }
     }
 
-    pub fn get_fields_list(&self, checksum: i32) -> Option<(&Vec<Field>, usize)> {
+    pub fn get_fields_list(&self, checksum: i64) -> Option<(&Vec<Field>, usize)> {
         let checksum_info = self.checksums.get(&checksum)?;
         let fields_list = &self.fields_list[checksum_info.fields_list_index];
 
@@ -69,7 +69,7 @@ impl FieldCollection {
                 arena_type,
             };
 
-            self.checksums.insert(checksum, checksum_info);
+            self.checksums.insert(checksum.into(), checksum_info);
         }
         self.fields_list.push(fields);
     }
@@ -102,17 +102,23 @@ pub fn generate_fields_list(arena_type: ArenaBonusType) -> Vec<Vec<Field>> {
     fields_list
 }
 
+
 fn get_list_checksum(field_list: &[Field], version: usize) -> i32 {
-    let mut list_string = String::new();
+    let list_string = field_list
+        .iter()
+        .filter_map(|field| {
+            if matches_version(version, field) {
+                Some(field.combined_string)
+            } else {
+                None
+            }
+        })
+        .collect::<String>();
 
-    field_list.iter().for_each(|field| {
-        if matches_version(version, field) {
-            list_string.push_str(field.combined_string);
-        }
-    });
-
+    // Here some data is lost due to conversion to i32 but it is intended
     CRC32.checksum(list_string.as_bytes()) as i32
 }
+
 
 fn filter_list_for_type(field_type: FieldType, field_list: &[Field]) -> Vec<Field> {
     field_list
