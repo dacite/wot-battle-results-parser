@@ -15,7 +15,7 @@ pub struct ChecksumInfo {
 
 // Manages the different types of field list
 pub struct FieldCollection {
-    fields_list: Vec<Vec<Field>>,
+    fields_list: Vec<Vec<&'static Field>>,
     checksums:   HashMap<i64, ChecksumInfo>,
 }
 
@@ -52,14 +52,14 @@ impl FieldCollection {
         }
     }
 
-    pub fn get_fields_list(&self, checksum: i64) -> Option<(&Vec<Field>, usize)> {
+    pub fn get_fields_list(&self, checksum: i64) -> Option<(&Vec<&'static Field>, usize)> {
         let checksum_info = self.checksums.get(&checksum)?;
         let fields_list = &self.fields_list[checksum_info.fields_list_index];
 
         Some((fields_list, checksum_info.version))
     }
 
-    pub fn add_fields_list(&mut self, fields: Vec<Field>, arena_type: ArenaBonusType) {
+    pub fn add_fields_list(&mut self, fields: Vec<&'static Field>, arena_type: ArenaBonusType) {
         let fields_list_index = self.fields_list.len();
         for version in 0..MAX_VERSION {
             let checksum = get_list_checksum(&fields, version);
@@ -75,7 +75,7 @@ impl FieldCollection {
     }
 }
 
-pub fn generate_fields_list(arena_type: ArenaBonusType) -> Vec<Vec<Field>> {
+pub fn generate_fields_list(arena_type: ArenaBonusType) -> Vec<Vec<&'static Field>> {
     use FieldType::*;
     let field_types = [
         Common,
@@ -103,7 +103,7 @@ pub fn generate_fields_list(arena_type: ArenaBonusType) -> Vec<Vec<Field>> {
 }
 
 
-fn get_list_checksum(field_list: &[Field], version: usize) -> i32 {
+fn get_list_checksum(field_list: &[&'static Field], version: usize) -> i32 {
     let list_string = field_list
         .iter()
         .filter_map(|field| {
@@ -120,11 +120,10 @@ fn get_list_checksum(field_list: &[Field], version: usize) -> i32 {
 }
 
 
-fn filter_list_for_type(field_type: FieldType, field_list: &[Field]) -> Vec<Field> {
+fn filter_list_for_type(field_type: FieldType, field_list: &'static [Field]) -> Vec<&'static Field> {
     field_list
         .iter()
         .filter(|field| matches_type(field_type, field))
-        .cloned()
         .collect()
 }
 
