@@ -1,37 +1,45 @@
 use std::collections::HashMap;
 
+use itertools::Itertools;
 /// Sometimes, a manual parser is needed for some PickleValues when serde is not
 /// able to parse it.
-use anyhow::{anyhow, ensure, Context, Result};
 use nom::multi::count;
 use nom::number::complete::{le_u16, le_u32};
-use nom::{AsBytes, Finish};
+use nom::AsBytes;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JSONValue;
+use utils::IntoSubValue;
 use wot_types::WotValue;
 
 use crate::battle_results::Field;
-use crate::{try_variant, HashablePickleValue, PickleValue};
+use crate::error::Error::{self, *};
+use crate::{AnyErr, PickleValue};
 
-pub fn pickle_val_to_json_manual(pickle_value: PickleValue, field: &Field) -> Result<JSONValue> {
+
+pub fn pickle_val_to_json_manual(
+    pickle_value: PickleValue, field: &Field,
+) -> Result<JSONValue, (Error, JSONValue)> {
     // Check the field name to see if there is a manual parser
     // If not, we use the 'catch all' manual parser for the field
-    match field.name {
-        "accountCompDescr" => parse_account_comp_descr(pickle_value),
+    let result = match field.name {
+        "accountCompDescr" => parse_account_comp_descr(pickle_value).map_err(AccountCompDescrError),
 
         "xpReplay" | "creditsReplay" | "freeXPReplay" | "eventCoinReplay" | "goldReplay" | "tmenXPReplay"
-        | "bpcoinReplay" | "crystalReplay" => parse_value_replay(pickle_value),
+        | "bpcoinReplay" | "crystalReplay" => parse_value_replay(pickle_value).map_err(ValueReplayError),
 
-        _ => pickle_to_wotvalue_to_json(pickle_value),
-    }
+        _ => pickle_to_wotvalue_to_json(pickle_value).map_err(ManualParserError),
+    };
+
+    result.map_err(|err| (err, field.default.to_json_value()))
 }
+
 
 // There are some pickle values that are not supported by JSON (PickleValue do
 // not implement serde::Serialize). However, most of these are not needed by us
 // or can be converted easily. Therefore, we convert pickle value to this
 // intermediate type (WotValue) before converting to JSON
-fn pickle_to_wotvalue_to_json(pickle: PickleValue) -> Result<JSONValue> {
-    let wot_value: WotValue = serde_pickle::from_value(pickle).map_err(|e| anyhow!("{}", e.to_string()))?;
+fn pickle_to_wotvalue_to_json(pickle: PickleValue) -> Result<JSONValue, AnyErr> {
+    let wot_value: WotValue = serde_pickle::from_value(pickle)?;
 
     let json_value = if let WotValue::Bytes(bytes) = wot_value {
         JSONValue::String(hex::encode_upper(bytes))
@@ -57,55 +65,65 @@ struct AccountCompDescr {
 /// `BTreeMap<i64, [[i64, Vec<u8>]]`. I cannot find any easy way to make this
 /// work with serde, so here is a custom parser for it that turns it
 /// into a `HashMap<String, AccountCompDescr>`
-fn parse_account_comp_descr(pickle_value: PickleValue) -> Result<JSONValue> {
+fn parse_account_comp_descr(pickle_value: PickleValue) -> Result<JSONValue, AnyErr> {
+    use PickleValue::*;
+    let format_err = || "format error".into();
+
     // We expect dict to be BTreeMap<i64, [(i64, Vec<u8>)]>
-    let dict = try_variant!(pickle_value, PickleValue::Dict)?;
+    let dict = pickle_value.try_dict(format_err)?;
 
     let mut return_dict = HashMap::new();
 
     for (key, value) in dict.into_iter() {
-        let int_key = try_variant!(key, HashablePickleValue::I64)?;
+        let int_key = key.try_i64(format_err)?;
 
         // We expect list to be [[i64, Vec<u8>]]. The list should have exactly one
         // element and if it doesn't the parse should fail
-        let mut list_iter = try_variant!(value, PickleValue::List)?.into_iter();
-        let list_value = list_iter.next().context("AccountCompDescr parse failed")?;
-        ensure!(
-            list_iter.next().is_none(),
-            "accountCompDescr parse failed: expected one element but found more"
-        );
+        let list_iter = value.try_list(format_err)?.into_iter();
 
-        // We expect tuple to be [i64, Vec<u8>]. tuple[0] is the i64 and tuple[1] is the
-        // Vec<u8>
-        let mut tuple = try_variant!(list_value, PickleValue::Tuple)?.into_iter();
-        let id = tuple
-            .next()
-            .context("AccountCompDescr parse failed: expected id")?;
-        let val = tuple
-            .next()
-            .context("AccountCompDescr parse failed: expected val")?;
+
+        let Ok(Tuple(mut value)) = list_iter.exactly_one() else { return Err(format_err()) };
+
+        let [I64(id), Bytes(val)] = value.as_mut_slice() else { return Err(format_err()) };
 
         let account_comp_descr = AccountCompDescr {
-            id:  try_variant!(id, PickleValue::I64)?,
-            val: try_variant!(val, PickleValue::Bytes)?,
+            id:  *id,
+            val: std::mem::take(val),
         };
 
         // int_key is converted to string to ensure compatiblity with serde_json
         return_dict.insert(int_key.to_string(), account_comp_descr);
     }
 
-    serde_json::to_value(return_dict).with_context(|| {
-        anyhow!("Conversion to JSON failed after successfully serializing accountCompDescr from PickleValue")
-    })
+    Ok(serde_json::to_value(return_dict)?)
 }
 
-fn parse_value_replay(wot_value: PickleValue) -> Result<JSONValue> {
-    let packed_value = try_variant!(wot_value, PickleValue::Bytes)?;
-    let (packed_value, size) = le_u16::<_, crate::error::NomErrorWrapper>(packed_value.as_bytes())?;
 
-    let (rest, value_list) =
-        count::<_, _, crate::error::NomErrorWrapper, _>(le_u32, size as usize)(packed_value.as_bytes())
-            .finish()?;
-    ensure!(rest.is_empty(), "Expected empty rest after parsing value replay");
+struct NomError;
+
+impl<I> nom::error::ParseError<I> for NomError {
+    fn from_error_kind(_: I, _: nom::error::ErrorKind) -> Self {
+        NomError
+    }
+
+    fn append(_: I, _: nom::error::ErrorKind, _: Self) -> Self {
+        NomError
+    }
+}
+
+
+// TODO: Ability to add context to low level errors instead of map err all over the place
+fn parse_value_replay(wot_value: PickleValue) -> Result<JSONValue, AnyErr> {
+    let nom_err = |_: nom::Err<NomError>| "nom error";
+    let packed_value = wot_value.try_bytes(|| "expected bytes")?;
+
+    let (packed_value, size) = le_u16(packed_value.as_bytes()).map_err(nom_err)?;
+
+    let (rest, value_list) = count(le_u32, size as usize)(packed_value).map_err(nom_err)?;
+
+    if !rest.is_empty() {
+        return Err("Buffer not empty".into());
+    }
+
     Ok(serde_json::to_value(value_list)?)
 }

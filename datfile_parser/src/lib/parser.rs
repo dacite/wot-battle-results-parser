@@ -1,40 +1,31 @@
+use std::collections::BTreeMap;
 pub use std::{
     collections::{HashMap, HashSet},
     rc::Rc,
 };
 
-use anyhow::{anyhow, ensure, Context, Result};
+use itertools::Itertools;
 use serde_json::Value as JSONValue;
-use serde_pickle::Value as PickleValue;
-use utils::decompress_and_load_pickle;
+use serde_pickle::{HashableValue, Value as PickleValue};
 
+use crate::{fields::gen_collection, manual_parser::pickle_val_to_json_manual, InterceptFn, Result};
+type Dict<T> = HashMap<String, T>;
 use crate::{
-    battle_results::Field,
+    battle_results::{Field, FieldType},
+    error::Error,
     fields::{matches_version, FieldCollection},
-    get_checksum, manual_parser, to_default_if_none, try_variant, Battle,
+    to_default_if_none, Battle,
 };
 
 /// An instantiation of a `Parser` is used to parse a single `.dat` file
-pub struct Parser<'a> {
-    /// Result of the parsing
-    result: Option<Battle>,
-
+pub struct DatFileParser {
     /// Identifier manager. Identifier lists can be retrieved with a checksum
     /// value
-    fields: &'a FieldCollection,
-
-    /// Fields that were not present for this particular datfile
-    pub not_present: HashSet<String>,
-
-    /// Fields that were not parsed automatically with serde
-    pub manually_parsed: HashSet<String>,
-
-    /// Fields that were unable to parse even manually
-    pub failed: HashSet<String>,
+    fields: FieldCollection,
 }
 
 /// The raw data structure from the datfile is not very easy to work with. So we
-/// break down into the following structure
+/// break it down into the following structure
 struct DatfileFormat {
     arena_unique_id: String,
     account_self:    Vec<PickleValue>,
@@ -46,90 +37,69 @@ struct DatfileFormat {
     player_info: HashMap<String, Vec<PickleValue>>,
 }
 
-/// A container to hold some nested output objects(ex: AccountAll, VehicleAll
-/// etc.)
-struct ObjectList {
-    common:      Vec<PickleValue>,
-    account_all: HashMap<String, Vec<PickleValue>>,
-    vehicle_all: HashMap<String, Vec<PickleValue>>,
-    player_info: HashMap<String, Vec<PickleValue>>,
+
+pub enum Intercept {
+    Success(&'static Field, serde_json::Value),
+    NotPresent(&'static Field, serde_json::Value),
+    ManuallyParsed(&'static Field, serde_json::Value),
+    Failed(&'static Field, serde_json::Value, String),
 }
 
-impl<'a> Parser<'a> {
-    pub fn parse(&mut self, input: &[u8]) -> Result<()> {
+impl Intercept {
+    pub fn original_result(self) -> serde_json::Value {
+        use Intercept::*;
+        match self {
+            Success(_, val) | NotPresent(_, val) | ManuallyParsed(_, val) | Failed(_, val, _) => val,
+        }
+    }
+}
+
+impl DatFileParser {
+    pub fn parse(&self, input: &[u8]) -> Result<Battle> {
         // Load the root pickle
-        let root_pickle = utils::load_pickle(input)?;
+        let root_pickle = utils::load_pickle(input).unwrap();
 
         // Convert the deeply nested root pickle into objects that can be easily parsed
-        let datfile_format = parse_root_pickle(root_pickle)?;
+        let datfile_format = parse_root_pickle(root_pickle).unwrap();
 
         // Parse the pickle objects to make a battle
-        match self.parse_datfile_format(datfile_format) {
-            Ok(battle) => {
-                self.result = Some(battle);
-
-                Ok(())
-            }
-            Err(e) => Err(e),
-        }
+        self.parse_datfile_format(datfile_format, |intercept, _| intercept.original_result())
     }
 
-    pub fn new(field_collection: &'a FieldCollection) -> Self {
+    pub fn parse_intercept(&self, input: &[u8], intercept: InterceptFn) -> Result<Battle> {
+        // Load the root pickle
+        let root_pickle = utils::load_pickle(input).unwrap();
+
+        // Convert the deeply nested root pickle into objects that can be easily parsed
+        let datfile_format = parse_root_pickle(root_pickle).unwrap();
+
+        // Parse the pickle objects to make a battle
+        self.parse_datfile_format(datfile_format, intercept)
+    }
+
+    pub fn new() -> Self {
         Self {
-            result: None,
-            fields: field_collection,
-
-            not_present:     HashSet::new(),
-            manually_parsed: HashSet::new(),
-            failed:          HashSet::new(),
+            fields: gen_collection(),
         }
     }
 
-    pub fn into_battle(self) -> Battle {
-        self.result.unwrap()
-    }
+    fn parse_datfile_format(&self, datfile: DatfileFormat, intercept: InterceptFn) -> Result<Battle> {
+        use FieldType::*;
 
-    pub fn print_parse_summary(&self) {
-        if let Some(battle) = &self.result {
-            println!("Summary for {}", battle.arena_unique_id);
-            println!("Fields not present: {:?}", self.not_present);
-            println!("Fields manually parsed: {:?}", self.manually_parsed);
-            println!("Fields that failed to parse: {:?}", self.failed);
-        } else {
-            println!("No parse result to show summary");
-        }
-
-        println!();
-    }
-
-    fn parse_datfile_format(&mut self, datfile: DatfileFormat) -> Result<Battle> {
         let arena_unique_id = datfile.arena_unique_id;
 
-        // TODO: More ergonomic way to include info about which object failed
-        let common = self
-            .pickle_list_to_json_object(datfile.common)
-            .map_err(|e| anyhow!("common failed: {}", e.to_string()))?;
+        let common = pickle_to_json(&self.fields, Common, datfile.common, intercept)?;
 
-        let account_self = self
-            .pickle_list_to_json_object(datfile.account_self.clone())
-            .map_err(|e| anyhow!("account self failed: {}", e.to_string()))?;
+        let account_self = pickle_to_json(&self.fields, AccountSelf, datfile.account_self, intercept)?;
         let account_self = HashMap::from([(
             account_self.pointer("/accountDBID").unwrap().to_string(),
             account_self,
         )]);
 
-        let vehicle_self = self
-            .parse_list(datfile.vehicle_self)
-            .map_err(|e| anyhow!("vehicle self failed: {}", e.to_string()))?;
-        let player_info = self
-            .parse_list(datfile.player_info)
-            .map_err(|e| anyhow!("player info failed: {}", e.to_string()))?;
-        let account_all = self
-            .parse_list(datfile.account_all)
-            .map_err(|e| anyhow!("account all failed: {}", e.to_string()))?;
-        let vehicle_all = self
-            .parse_list(datfile.vehicle_all)
-            .map_err(|e| anyhow!("vehicle_all failed: {}", e.to_string()))?;
+        let vehicle_self = parse_list(&self.fields, VehicleSelf, datfile.vehicle_self, intercept)?;
+        let player_info = parse_list(&self.fields, PlayerInfo, datfile.player_info, intercept)?;
+        let account_all = parse_list(&self.fields, AccountAll, datfile.account_all, intercept)?;
+        let vehicle_all = parse_list(&self.fields, VehicleAll, datfile.vehicle_all, intercept)?;
 
         Ok(Battle {
             arena_unique_id,
@@ -141,198 +111,133 @@ impl<'a> Parser<'a> {
             account_self,
         })
     }
+}
 
-    fn parse_list(&mut self, input: HashMap<String, Vec<PickleValue>>) -> Result<HashMap<String, JSONValue>> {
-        let mut output = HashMap::new();
-        for (key, value) in input.into_iter() {
-            output.insert(key, self.pickle_list_to_json_object(value)?);
-        }
+fn parse_list(
+    fields: &FieldCollection, field_type: FieldType, input: Dict<Vec<PickleValue>>, intercept: InterceptFn,
+) -> Result<Dict<JSONValue>> {
+    input
+        .into_iter()
+        .map(|(key, value)| {
+            pickle_to_json(fields, field_type.clone(), value, intercept).map(|value| (key, value))
+        })
+        .collect()
+}
 
-        Ok(output)
-    }
+fn decompress_and_load_pickle(input: &PickleValue) -> Result<PickleValue> {
+    let PickleValue::Bytes(input) = input else { panic!() };
+    let decompressed =
+        miniz_oxide::inflate::decompress_to_vec_zlib(input).map_err(|_| Error::DecompressionError)?;
 
-    // fn pickle_list_to_output_object<T>(&mut self, input: Vec<PickleValue>) -> Result<JSONValue>
-    // where
-    //     T: DeserializeOwned + ArenaFieldsGetter,
-    // {
-    //     self.pickle_list_to_json_object(input)
-
-    // }
-
-    fn pickle_list_to_json_object(&mut self, value_list: Vec<PickleValue>) -> Result<JSONValue> {
-        // checksum is used to find the correct list of identifiers for the `value_list`
-        let checksum = get_checksum(&value_list)?;
-
-        // If we cannot find the correct the identifier list, we cannot parse the
-        // datfile so we return with error
-        let (iden_list, version) = self.fields.get_fields_list(checksum).ok_or_else(|| {
-            anyhow!(
-                "Value list has unrecognized checksum({}). Identifier list won't match",
-                checksum
-            )
-        })?;
-
-        // We skip the first element of the `value_list` because it is the checksum
-        let mut value_list_iter = value_list.into_iter().skip(1);
-
-        let mut map = HashMap::new();
-        for iden in iden_list.iter() {
-            // Identifer list is always the latest version, but the datfile itself might be
-            // a bit older so we need to insert a default value for that missing identifier
-            if !matches_version(version, iden) {
-                self.not_present.insert(iden.name.to_owned());
-
-                map.insert(iden.name, iden.default.to_json_value());
-                continue;
-            }
-
-            if let Some(value) = value_list_iter.next() {
-                map.insert(iden.name, self.pickle_val_to_json(iden, value));
-            } else {
-                // If this case happens, it will be really nasty bug (involving checksums).
-                return Err(anyhow!("value list exhausted before populating all fields"));
-            }
-        }
-
-        ensure!(
-            value_list_iter.next().is_none(),
-            "value list not empty after populating fields"
-        );
-
-        Ok(serde_json::to_value(map)?)
-    }
-
-    /// Convert a `PickleValue` that contains a field value(for ex. field value
-    /// of `damageDealt` is of type `i32`) to JSON. Note that even if the
-    /// parsing fails we get a JSON because it will be the default value for
-    /// the field We make the distinction between `Ok` and `Err` based on
-    /// whether the field value was parsed succesfully to JSON
-    fn pickle_val_to_json(&mut self, identifier: &Field, input: PickleValue) -> JSONValue {
-        let value = to_default_if_none(identifier, input);
-
-        match serde_pickle::from_value(value.clone()) {
-            Ok(json_value) => json_value,
-
-            // Simple parsing did not work so we delegate to the more
-            // powerful manual parser
-            Err(_) => {
-                self.manually_parsed.insert(identifier.name.to_owned());
-
-                manual_parser::pickle_val_to_json_manual(value, identifier).unwrap_or_else(|e| {
-                    // If manual parser was not able to get the job done, we log the problem and
-                    // return a default value
-                    log::warn!("Could not parse {}. {}", identifier.name, e.to_string());
-                    self.failed.insert(identifier.name.to_owned());
-
-                    identifier.default.to_json_value()
-                })
-            }
-        }
-    }
+    Ok(serde_pickle::value_from_slice(&decompressed, Default::default())?)
 }
 
 fn parse_root_pickle(root_pickle: PickleValue) -> Result<DatfileFormat> {
+    use PickleValue::*;
     // root pickle is a tuple of the shape : (i64, Tuple)
-    let mut root_tuple = try_variant!(root_pickle, PickleValue::Tuple)?;
+    let Tuple(root_tuple) = root_pickle else { panic!( )};
 
     // data tuple should contain the following: (arenaUniqueID, [u8], [u8], [u8])
     // the three u8 buffers in this tuple are compressed pickle dumps
-    let data_tuple = try_variant!(root_tuple.remove(1), PickleValue::Tuple)?;
-    let mut data_tuple = data_tuple.into_iter();
+    let [_, Tuple(data_tuple)] = root_tuple.as_slice() else { panic!( )};
 
-    let arena_unique_id = data_tuple.next().context("unexpected pickle format")?;
-    let arena_unique_id = try_variant!(arena_unique_id, PickleValue::I64)?.to_string();
+    let [I64(arena_unique_id), rest @ ..] = data_tuple.as_slice() else {
+        panic!()
+    };
 
-    let account_self = decompress_and_load_pickle(&data_tuple.next().context("unexpected pickle format")?)?;
-    let account_self = try_variant!(account_self, PickleValue::List)?;
+    let Some((List(account_self), Dict(vehicle_self), Tuple(multiple))) = rest.into_iter().map(decompress_and_load_pickle).flatten().next_tuple() else {
+        panic!()
+    };
 
-    let vehicle_self = decompress_and_load_pickle(&data_tuple.next().context("unexpected pickle format")?)?;
-    let vehicle_self = parse_nested(vehicle_self)?;
-
-    let multiple = decompress_and_load_pickle(&data_tuple.next().context("unexpected pickle format")?)?;
-    let ObjectList {
-        common,
-        account_all,
-        vehicle_all,
-        player_info,
-    } = parse_multiple_pickle(multiple)?;
+    let Some((List(common), Dict(player_info), Dict(vehicle_all), Dict(account_all))) = multiple.into_iter().next_tuple() else {
+        panic!()
+    };
 
     Ok(DatfileFormat {
-        arena_unique_id,
+        arena_unique_id: arena_unique_id.to_string(),
         account_self,
-        vehicle_self,
         common,
-        account_all,
-        vehicle_all,
-        player_info,
+        account_all: to_rust_dict(account_all)?,
+        vehicle_all: to_rust_dict(vehicle_all)?,
+        player_info: to_rust_dict(player_info)?,
+        vehicle_self: to_rust_dict(vehicle_self)?,
     })
 }
 
-fn parse_nested(input: PickleValue) -> Result<HashMap<String, Vec<PickleValue>>> {
-    let dict = try_variant!(input, PickleValue::Dict)?;
 
-    let mut output_map = HashMap::new();
-    for (key, value) in dict.into_iter() {
-        let output_value = try_variant!(value, PickleValue::List)?;
+fn pickle_to_json(
+    fields: &FieldCollection, field_type: FieldType, value_list: Vec<PickleValue>, intercept: InterceptFn,
+) -> Result<JSONValue> {
+    let mut value_list = value_list.into_iter();
 
-        // TODO: Remove this panic
-        if output_map.insert(key.to_string(), output_value).is_some() {
-            panic!("Vehicle Self with same key not supported");
+    // The checksum describes the list of identifiers that are associated with that list of PickleValue.
+    // This prevents us from blindly assigning, for example `damageDealt` identifier to
+    // `PickleValue::I64(5433)` because `5433` looks like a `damageDealt` value. With checksum we
+    // can know for sure.
+    let Some(PickleValue::I64(checksum)) = value_list.next() else {
+        return Err(Error::OtherError("Value list is empty"))
+    };
+
+    // If we cannot find the correct the identifier list, we cannot parse the
+    // datfile so we return with error
+    let (iden_list, version) = fields
+        .get_fields_list(checksum)
+        .ok_or_else(|| Error::UnknownChecksum(field_type.to_str(), checksum))?;
+
+    let mut map = HashMap::new();
+    for iden in iden_list {
+        if !matches_version(version, iden) {
+            let value = intercept(
+                Intercept::NotPresent(iden, iden.default.to_json_value()),
+                PickleValue::None,
+            );
+
+            map.insert(iden.name, value);
+        } else {
+            let value = value_list.next().ok_or_else(|| Error::DecompressionError)?;
+
+            map.insert(iden.name, pickle_val_to_json(iden, value, intercept));
         }
     }
 
-    Ok(output_map)
+    assert!(value_list.next().is_none());
+    Ok(serde_json::to_value(map).unwrap())
 }
 
-fn parse_multiple_pickle(multiple: PickleValue) -> Result<ObjectList> {
-    let mut tuple = try_variant!(multiple, PickleValue::Tuple)?.into_iter();
-    ensure!(tuple.len() == 4, "tuple do not contain expected num of items");
 
-    let common = try_variant!(tuple.next().unwrap(), PickleValue::List)?;
-    let player_info = to_rust_dict(tuple.next().unwrap())?;
-    let vehicle_all = to_rust_dict(tuple.next().unwrap())?;
-    let account_all = to_rust_dict(tuple.next().unwrap())?;
+/// Convert a `PickleValue` that contains a field value(for ex. field value
+/// of `damageDealt` is of type `i32`) to JSON. Note that even if the
+/// parsing fails we get a JSON because it will be the default value for
+/// the field We make the distinction between `Ok` and `Err` based on
+/// whether the field value was parsed succesfully to JSON
+fn pickle_val_to_json(iden: &'static Field, input: PickleValue, intercept: InterceptFn) -> JSONValue {
+    let value = to_default_if_none(iden, input);
 
-    Ok(ObjectList {
-        common,
-        account_all,
-        vehicle_all,
-        player_info,
-    })
+    match serde_pickle::from_value(value.clone()) {
+        Ok(json_value) => intercept(Intercept::Success(iden, json_value), value),
+
+        // Simple parsing did not work so we delegate to the more
+        // powerful manual parser
+        Err(_) => match pickle_val_to_json_manual(value.clone(), iden) {
+            Ok(json_value) => intercept(Intercept::ManuallyParsed(iden, json_value), value),
+            Err((err, json_value)) => intercept(Intercept::Failed(iden, json_value, err.to_string()), value),
+        },
+    }
 }
 
-fn to_rust_dict(pickle_object: PickleValue) -> Result<HashMap<String, Vec<PickleValue>>> {
-    let input_dict = try_variant!(pickle_object, PickleValue::Dict)?;
 
-    input_dict
+fn to_rust_dict(input: BTreeMap<HashableValue, PickleValue>) -> Result<Dict<Vec<PickleValue>>> {
+    input
         .into_iter()
         .map(|(key, value)| match value {
             PickleValue::List(list) => Ok((key.to_string(), list)),
             PickleValue::Dict(dict) => {
                 let mut dict_iter = dict.into_iter();
-                let (inner_key, value) = dict_iter.next().context("dict was empty")?;
-                ensure!(
-                    dict_iter.next().is_none(),
-                    "values that are dictionaries may only have one (key, value)"
-                );
+                let (inner_key, PickleValue::List(value)) = dict_iter.next().unwrap() else { panic!()};
 
-                Ok((
-                    format!("{} {}", key, inner_key),
-                    try_variant!(value, PickleValue::List)?,
-                ))
+                Ok((format!("{} {}", key, inner_key), value))
             }
-            _ => Err(anyhow!("to rust map found unexpected pickle object")),
+            _ => Err(Error::DecompressionError.into()),
         })
         .collect()
-}
-
-impl<'a> std::fmt::Debug for Parser<'a> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Parser")
-            .field("result", &self.result)
-            .field("not_present", &self.not_present)
-            .field("manually_parsed", &self.manually_parsed)
-            .field("failed", &self.failed)
-            .finish()
-    }
 }
