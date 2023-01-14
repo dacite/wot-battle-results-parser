@@ -1,35 +1,25 @@
-#[derive(thiserror::Error, Debug)]
-pub struct NomErrorWrapper {
-    pub kind:  nom::error::ErrorKind,
-    backtrace: Vec<nom::error::ErrorKind>,
-    _input:    Vec<u8>,
-}
-
-impl nom::error::ParseError<&[u8]> for NomErrorWrapper {
-    fn from_error_kind(input: &[u8], kind: nom::error::ErrorKind) -> Self {
-        Self {
-            kind,
-            backtrace: Vec::new(),
-            _input: input.to_vec(),
-        }
-    }
-
-    fn append(input: &[u8], kind: nom::error::ErrorKind, mut other: Self) -> Self {
-        other.backtrace.push(Self::from_error_kind(input, kind).kind);
-
-        other
-    }
-}
-
-impl std::fmt::Display for NomErrorWrapper {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Nom error: {} error", self.kind.description())
-    }
-}
-
+use crate::AnyErr;
 
 #[derive(thiserror::Error, Debug)]
-pub enum DatfileParseError {
-    #[error("{0} has unknown checksum: {1}")]
-    UnknownChecksum(String, i32),
+pub enum Error {
+    #[error("Unknown Checksum for {0}: {1}")]
+    UnknownChecksum(&'static str, i64),
+
+    #[error("AccountCompDescrError: {0}")]
+    AccountCompDescrError(#[source] AnyErr),
+
+    #[error("ValueReplayError: {0}")]
+    ValueReplayError(#[source] AnyErr),
+
+    #[error("ManualParserError: {0}")]
+    ManualParserError(#[source] AnyErr),
+
+    #[error("Error during decompression")]
+    DecompressionError,
+
+    #[error("PickleError: {0}")]
+    PickleError(#[from] serde_pickle::Error),
+
+    #[error("OtherError: {0}")]
+    OtherError(&'static str),
 }
