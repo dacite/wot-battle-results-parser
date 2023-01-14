@@ -48,6 +48,20 @@ pub enum FieldType {
     Server,
 }
 
+impl FieldType {
+    pub fn to_str(&self) -> &'static str {
+        match self {
+            FieldType::Common => "Common",
+            FieldType::PlayerInfo => "PlayerInfo",
+            FieldType::AccountAll => "AccountAll",
+            FieldType::AccountSelf => "AccountSelf",
+            FieldType::VehicleAll => "VehicleAll",
+            FieldType::VehicleSelf => "VehicleSelf",
+            FieldType::Server => "Server",
+        }
+    }
+}
+
 /// A Representation for the default value for a certain field.
 /// `Dict`, `Str`, `List` variants create empty instances of HashMap, String,
 /// Vec respectively. `Tuple` variant can be seen as the tuple.0 value repeated
