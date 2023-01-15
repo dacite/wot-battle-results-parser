@@ -1,6 +1,6 @@
 use super::{FieldDefault, Field, FieldType};
 
-pub const MAX_VERSION: usize = 1;
+pub const MAX_VERSION: usize = 2;
 
 pub const RANDOM_ARENA: &[Field] = &[
     Field { name: "bpChapter", default: FieldDefault::Int(0), combined_string: "bpChapter<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountAll },
@@ -294,8 +294,10 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "eventEventCoinList", default: FieldDefault::List, combined_string: "eventEventCoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventBpcoinList", default: FieldDefault::List, combined_string: "eventBpcoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventEquipCoinList", default: FieldDefault::List, combined_string: "eventEquipCoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
-    Field { name: "eventCreditsFactor1000List", default: FieldDefault::List, combined_string: "eventCreditsFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
-    Field { name: "eventXPFactor1000List", default: FieldDefault::List, combined_string: "eventXPFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "eventCreditsFactor1000List", default: FieldDefault::List, combined_string: "eventCreditsFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 1, field_type: FieldType::VehicleSelf },
+    Field { name: "eventCreditsFactor100List", default: FieldDefault::List, combined_string: "eventCreditsFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 1, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "eventXPFactor1000List", default: FieldDefault::List, combined_string: "eventXPFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 1, field_type: FieldType::VehicleSelf },
+    Field { name: "eventXPFactor100List", default: FieldDefault::List, combined_string: "eventXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 1, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventFreeXPFactor100List", default: FieldDefault::List, combined_string: "eventFreeXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventTMenXPFactor100List", default: FieldDefault::List, combined_string: "eventTMenXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventGoldFactor100List", default: FieldDefault::List, combined_string: "eventGoldFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
