@@ -17,7 +17,7 @@ This project can parse both sections. However, most of the code is focused on tr
 information from the Binary section.
 ## Supported Versions of World of Tanks
 ### Datfile Parser
- - `1.15.0` - `1.17.0`
+ - `1.19.0` - `1.19.1`
 
 Backwards compatibility is not guaranteed for the Datfile parser. This is not very important anyway since these files don't persist indefinitely like `.wotreplay` files do.
 ### Replay Parser
