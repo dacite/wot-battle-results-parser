@@ -13,7 +13,7 @@ fn main() {
 
     let battle = parser
         .parse_intercept(
-            &std::fs::read("datfile_parser/input_files/test/19011713064132879.dat").unwrap(),
+            &std::fs::read("datfile_parser/input_files/WOT_1_19_1_0/19011713064132879.dat").unwrap(),
             intercept,
         )
         .unwrap();
