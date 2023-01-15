@@ -9,5 +9,5 @@ dp:
 fmt:
     cargo +nightly fmt
 
-udep:
+udeps:
     cargo +nightly udeps
