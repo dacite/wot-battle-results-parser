@@ -4,8 +4,11 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use miniz_oxide::inflate::DecompressError;
 use serde::Deserializer;
 use serde_pickle::Value as PickleValue;
+mod pickle;
+pub use pickle::IntoSubValue;
 
 // Get files in directory, given directory path (only direct childs of the directory)
 #[cfg(not(target_arch = "wasm32"))]
@@ -43,20 +46,8 @@ pub fn load_pickle(input: &[u8]) -> Result<PickleValue, DataError> {
     Ok(result)
 }
 
-pub fn decompress_vec(compressed: &[u8]) -> Result<Vec<u8>, DataError> {
-    let result = miniz_oxide::inflate::decompress_to_vec_zlib(compressed)
-        .map_err(|err| DataError::DecompressionFaliure(format!("{:?}", err.status)))?;
-
-    Ok(result)
-}
-
-pub fn decompress_and_load_pickle(val: &PickleValue) -> Result<PickleValue, DataError> {
-    let PickleValue::Bytes(compressed) = val else {
-        return Err(DataError::Other("Expected pickle value to be bytes".into()));
-    };
-
-    let decompressed = decompress_vec(compressed)?;
-    load_pickle(&decompressed)
+pub fn decompress_vec<E>(compressed: &[u8], f: fn(DecompressError) -> E) -> Result<Vec<u8>, E> {
+    miniz_oxide::inflate::decompress_to_vec_zlib(compressed).map_err(|err| f(err))
 }
 
 #[derive(thiserror::Error, Debug)]
