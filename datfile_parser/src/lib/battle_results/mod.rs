@@ -7,7 +7,7 @@ use wot_types::ArenaBonusType;
 
 use crate::PickleValue;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// A data structure that holds information about a field found in battle
 /// results.
 pub struct Field {
@@ -66,7 +66,7 @@ impl FieldType {
 /// `Dict`, `Str`, `List` variants create empty instances of HashMap, String,
 /// Vec respectively. `Tuple` variant can be seen as the tuple.0 value repeated
 /// tuple.1 times. For ex: Tuple(&(Int(0), 3)) is a tuple like (0, 0, 0)
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum FieldDefault {
     None,
     Int(i64),

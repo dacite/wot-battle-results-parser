@@ -17,7 +17,7 @@ use crate::{
     to_default_if_none, Battle,
 };
 
-/// An instantiation of a `Parser` is used to parse a single `.dat` file
+
 pub struct DatFileParser {
     /// Identifier manager. Identifier lists can be retrieved with a checksum
     /// value
@@ -38,6 +38,7 @@ struct DatfileFormat {
 }
 
 
+#[derive(Debug)]
 pub enum Intercept {
     Success(&'static Field, serde_json::Value),
     NotPresent(&'static Field, serde_json::Value),
@@ -55,6 +56,7 @@ impl Intercept {
 }
 
 impl DatFileParser {
+    /// Parse a datfile into a Battle struct
     pub fn parse(&self, input: &[u8]) -> Result<Battle> {
         // Load the root pickle
         let root_pickle = utils::load_pickle(input).unwrap();
@@ -66,6 +68,8 @@ impl DatFileParser {
         self.parse_datfile_format(datfile_format, |intercept, _| intercept.original_result())
     }
 
+    /// Same as `parse` but takes a function that you can use to implement your own parsing code to convert a
+    /// pickle value to its JSON counterpart
     pub fn parse_intercept(&self, input: &[u8], intercept: InterceptFn) -> Result<Battle> {
         // Load the root pickle
         let root_pickle = utils::load_pickle(input).unwrap();
@@ -77,6 +81,7 @@ impl DatFileParser {
         self.parse_datfile_format(datfile_format, intercept)
     }
 
+    /// Construct a parser. You can then use this parser to parse any number of datfiles
     pub fn new() -> Self {
         Self {
             fields: gen_collection(),
