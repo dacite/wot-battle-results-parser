@@ -9,4 +9,4 @@ license = "MIT"
 
 [dependencies]
 roxmltree = "0.14.1"
-utils = { path = "../utils", package = "wot-battle-results-parser-utils", version = "0.1.0"}
+utils = { package = "wot-battle-results-parser-utils", version = "0.1.0"}

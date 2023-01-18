@@ -1,6 +1,5 @@
 use std::{num::ParseIntError, str::Utf8Error, string::FromUtf8Error};
 
-use utils::DataError;
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum PacketError {
     #[error("{0}: incomplete input")]
@@ -83,12 +82,6 @@ impl From<Utf8Error> for PacketError {
     }
 }
 
-
-impl From<DataError> for PacketError {
-    fn from(err: DataError) -> Self {
-        PacketError::DataError(err.to_string())
-    }
-}
 
 impl From<FromUtf8Error> for PacketError {
     fn from(err: FromUtf8Error) -> Self {

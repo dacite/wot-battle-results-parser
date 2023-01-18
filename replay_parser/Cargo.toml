@@ -33,17 +33,18 @@ phf = "0.11.0"
 blowfish = "0.9.1"
 serde_with = { version = "1.12.0", features = ["hex"]}
 enum_dispatch = "0.3.8"
-utils = { path = "../utils", package = "wot-battle-results-parser-utils", version = "0.1.0"}
+utils = { package = "wot-battle-results-parser-utils", version = "0.2.0"}
+pyo3 = { version = "0.17.3", features = ["extension-module"], optional = true }
 
 [build-dependencies]
 phf_codegen = "0.11.0"
 definition_parser = { path = "../definition_parser", version = "0.1.0", package = "wot_def_file_parser" }
-utils = { path = "../utils", package = "wot-battle-results-parser-utils", version = "0.1.0"}
+utils = { package = "wot-battle-results-parser-utils", version = "0.1.0"}
 
 [dev-dependencies]
 criterion = "0.3.5"
 env_logger = "0.8.4"
-utils = { path = "../utils", package = "wot-battle-results-parser-utils", version = "0.1.0"}
+utils = { package = "wot-battle-results-parser-utils", version = "0.2.0"}
 version-sync = "0.9.4"
 
 [[bench]]
@@ -52,3 +53,6 @@ harness = false
 
 [badges.maintenance]
 status = "actively-developed"
+
+[features]
+python = ["dep:pyo3"]

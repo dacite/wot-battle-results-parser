@@ -9,5 +9,7 @@ members = [
     "definition_parser",
     "examples/replay_parser_example",
     "examples/replay_parser_simple",
-    "examples/replay_version_sorter"
+    "examples/replay_version_sorter",
+    "examples/datfile_parser_simple",
+    "examples/datfile_parser_advanced",
 ]

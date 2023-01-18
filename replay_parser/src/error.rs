@@ -77,3 +77,11 @@ impl serde::de::Error for ReplayError {
         Self::SerdePacketError(msg.to_string())
     }
 }
+
+
+#[cfg(feature = "python")]
+impl From<ReplayError> for pyo3::PyErr {
+    fn from(err: ReplayError) -> Self {
+        pyo3::exceptions::PyRuntimeError::new_err(err.to_string())
+    }
+}
