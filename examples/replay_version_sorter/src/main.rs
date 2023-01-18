@@ -9,9 +9,7 @@ pub fn main() -> Result<(), ReplayError> {
     let paths = utils::parse_dir("/home/dacite/Projects/wot-battle-results-parser/replays").unwrap();
 
     // Use rayon to multithread this workload
-    paths
-        .par_iter()
-        .for_each(|path| copy_replay(path.path()));
+    paths.par_iter().for_each(|path| copy_replay(path.path()));
 
     Ok(())
 }

@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 wot_replay_parser = { path = "../../replay_parser" }
-utils = { path = "../../utils", package = "wot-battle-results-parser-utils", version = "0.1.0"}
+utils = { path = "../../utils", package = "wot-battle-results-parser-utils", version = "0.2.0"}
 rayon = "1.5.3"
