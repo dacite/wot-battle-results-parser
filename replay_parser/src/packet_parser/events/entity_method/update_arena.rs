@@ -192,7 +192,9 @@ pub struct VehicleKilled {
     pub killer_id:             i32,
     pub equipment_id:          i32,
     pub attack_reason:         AttackReason,
-    pub num_vehicles_affected: i32,
+
+    #[version([1, 17, 0, 0])]
+    pub num_vehicles_affected: Option<i32>,
 }
 
 fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
@@ -203,6 +205,12 @@ fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 
     let PickleVal::Tuple(thing) = pickle_value else { todo!() };
 
+    let num_vehicles_affected = if thing.len() > 4 {
+        parse_value(4, &thing)?
+    } else {
+        None
+    };
+
     let attack_reason: i32 = parse_value(3, &thing)?;
 
     let vehicle_killed = VehicleKilled {
@@ -212,7 +220,7 @@ fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
         victim_id: parse_value(0, &thing)?,
         killer_id: parse_value(1, &thing)?,
         equipment_id: parse_value(2, &thing)?,
-        num_vehicles_affected: parse_value(4, &thing)?,
+        num_vehicles_affected,
     };
 
     Ok(UpdateData::VehicleKilled(vehicle_killed))
