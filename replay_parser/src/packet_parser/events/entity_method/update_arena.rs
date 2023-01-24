@@ -188,10 +188,11 @@ fn parse_avatar_ready(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 }
 #[derive(Debug, Clone, Serialize, Version)]
 pub struct VehicleKilled {
-    pub victim_id:     i32,
-    pub killer_id:     i32,
-    pub equipment_id:  i32,
-    pub attack_reason: AttackReason,
+    pub victim_id:             i32,
+    pub killer_id:             i32,
+    pub equipment_id:          i32,
+    pub attack_reason:         AttackReason,
+    pub num_vehicles_affected: i32,
 }
 
 fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
@@ -209,8 +210,9 @@ fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
             PacketError::WrongEnumVariant(format!("arena attack reason of {attack_reason} is invalid"))
         })?,
         victim_id: parse_value(0, &thing)?,
-        equipment_id: parse_value(2, &thing)?,
         killer_id: parse_value(1, &thing)?,
+        equipment_id: parse_value(2, &thing)?,
+        num_vehicles_affected: parse_value(4, &thing)?,
     };
 
     Ok(UpdateData::VehicleKilled(vehicle_killed))
