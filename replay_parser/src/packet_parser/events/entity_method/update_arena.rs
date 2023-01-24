@@ -209,7 +209,7 @@ fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
             PacketError::WrongEnumVariant(format!("arena attack reason of {attack_reason} is invalid"))
         })?,
         victim_id: parse_value(0, &thing)?,
-        equipment_id: 0,
+        equipment_id: parse_value(2, &thing)?,
         killer_id: parse_value(1, &thing)?,
     };
 
