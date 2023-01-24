@@ -1,6 +1,6 @@
 use nom::number::complete::le_u8;
 use serde_pickle::Value as PickleVal;
-use wot_types::ArenaUpdate;
+use wot_types::{ArenaUpdate, AttackReason};
 
 use crate::packet_parser::prelude::*;
 use crate::packet_parser::serde_packet;
@@ -188,11 +188,10 @@ fn parse_avatar_ready(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 }
 #[derive(Debug, Clone, Serialize, Version)]
 pub struct VehicleKilled {
-    pub victim_id:    i32,
-    pub killer_id:    i32,
-    pub equipment_id: i32,
-    pub reason:       i32,
-    //TODO: More fields in later versions
+    pub victim_id:     i32,
+    pub killer_id:     i32,
+    pub equipment_id:  i32,
+    pub attack_reason: AttackReason,
 }
 
 fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
@@ -203,8 +202,12 @@ fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 
     let PickleVal::Tuple(thing) = pickle_value else { todo!() };
 
+    let attack_reason: i32 = parse_value(3, &thing)?;
+
     let vehicle_killed = VehicleKilled {
-        reason: parse_value(3, &thing)?,
+        attack_reason: AttackReason::try_from(attack_reason as i32).map_err(|_| {
+            PacketError::WrongEnumVariant(format!("arena attack reason of {attack_reason} is invalid"))
+        })?,
         victim_id: parse_value(0, &thing)?,
         equipment_id: 0,
         killer_id: parse_value(1, &thing)?,
