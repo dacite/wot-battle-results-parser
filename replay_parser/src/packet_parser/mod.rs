@@ -73,7 +73,7 @@ mod prelude {
     pub(crate) use serde::{Deserialize, Serialize};
 
     pub(crate) use super::event::{
-        BattleEvent, EventPrinter, PacketParser, UpdateContext, Version, VersionInfo,
+        BattleEvent, EventPrinter, PacketParser, UpdateContext, TrackVersion, VersionInfo,
     };
     pub(crate) use super::from_slice;
     pub(crate) use super::from_slice_unchecked;

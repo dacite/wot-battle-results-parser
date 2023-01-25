@@ -31,8 +31,8 @@ impl BattleEvent {
             0x00 => AvatarCreate::parse(packet, context),
             0x05 => EntityCreate::parse(packet, context),
             0x08 => EntityMethodEvent::parse(packet, context),
-            0x0A => Position::parse(packet, &Context::default()),
-            0x18 => GameVersion::parse(packet, &Context::default()),
+            0x0A => Position::parse(packet, context),
+            0x18 => GameVersion::parse(packet, context),
             0x23 => Chat::parse(packet, context),
             0x3D => CryptoKey::parse(packet, context),
             _ => Ok(BattleEvent::Unimplemented),
@@ -78,7 +78,7 @@ pub trait EventPrinter {
         Self: std::fmt::Debug;
 }
 
-pub trait Version {
+pub trait TrackVersion {
     fn name() -> &'static str;
     fn version() -> VersionInfo;
 }
@@ -122,6 +122,12 @@ impl UpdateContext for BattleEvent {
 }
 
 #[derive(Debug, Clone)]
+pub enum VersionList {
+    Range(([u16; 4], [u16; 4])),
+    From([u16; 4]),
+}
+
+#[derive(Debug, Clone)]
 pub enum VersionInfo {
     /// Present in all versions
     All,
@@ -129,8 +135,11 @@ pub enum VersionInfo {
     /// Present in this version
     Version([u16; 4]),
 
-    /// Present in this version range (inclusive)
+    /// Present in this version range
     VersionRange(([u16; 4], [u16; 4])),
+
+    /// Intermittently present in these ranges
+    VersionRangeList(&'static [VersionList]),
 
     /// Represent Versions of structs
     Struct(&'static [VersionInfo]),

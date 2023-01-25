@@ -3,7 +3,7 @@ use nom::number::complete::{le_u24, le_u8};
 use serde::de::{self, DeserializeSeed, SeqAccess, Visitor};
 use serde::Deserialize;
 
-use super::event::{Version, VersionInfo};
+use super::event::{TrackVersion, VersionInfo};
 use crate::packet_parser::PacketError;
 
 
@@ -41,7 +41,7 @@ impl<'de> Deserializer<'de> {
 
 pub fn from_slice<'a, T>(input: &'a [u8], de_version: [u16; 4]) -> Result<T, PacketError>
 where
-    T: Deserialize<'a> + Version,
+    T: Deserialize<'a> + TrackVersion,
 {
     let mut deserializer = Deserializer::from_slice(input, de_version, T::version(), T::name());
     let t = T::deserialize(&mut deserializer)?;
@@ -58,7 +58,7 @@ pub fn from_slice_unchecked<'a, T>(
     input: &'a [u8], de_version: [u16; 4],
 ) -> Result<(&'a [u8], T), PacketError>
 where
-    T: Deserialize<'a> + Version,
+    T: Deserialize<'a> + TrackVersion,
 {
     let mut deserializer = Deserializer::from_slice(input, de_version, T::version(), T::name());
     let t = T::deserialize(&mut deserializer)?;
@@ -430,20 +430,31 @@ impl<'de, 'a> SeqAccess<'de> for VersionedSeqAccess<'a, 'de> {
 }
 
 fn is_correct_version(de_version: &[u16; 4], item_version: &VersionInfo) -> bool {
+    if de_version == &[0, 0, 0, 0] {
+        return true;
+    }
+
     match item_version {
-        VersionInfo::Version(version) => {
-            if de_version == &[0, 0, 0, 0] {
-                return true;
-            }
-
-            de_version >= version
-        }
+        VersionInfo::Version(version) => de_version >= version,
         VersionInfo::VersionRange((range_begin, range_end)) => {
-            if de_version == &[0, 0, 0, 0] {
-                return true;
+            de_version >= range_begin && de_version < range_end
+        }
+        VersionInfo::VersionRangeList(list) => {
+            for version_list in list.iter() {
+                match version_list {
+                    super::event::VersionList::Range((range_begin, range_end)) => {
+                        if de_version >= range_begin && de_version < range_end {
+                            return true;
+                        }
+                    }
+                    super::event::VersionList::From(version) => {
+                        if de_version >= version {
+                            return true;
+                        }
+                    }
+                }
             }
-
-            de_version >= range_begin && de_version <= range_end
+            false
         }
         _ => true,
     }
