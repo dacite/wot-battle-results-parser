@@ -57,12 +57,38 @@ pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
             continue;
         }
 
-        let version = args.into_iter().next().unwrap();
-        match version {
-            VersionArg::Single(version) => statements.push(quote! { VersionInfo::Version(#version), }),
-            VersionArg::Range((range_begin, range_end)) => {
-                statements.push(quote! { VersionInfo::VersionRange((#range_begin, #range_end)), })
+        let mut version_args = args.into_iter();
+
+        #[allow(clippy::comparison_chain)]
+        if version_args.len() == 1 {
+            let version = version_args.next().unwrap();
+            match version {
+                VersionArg::Single(version) => statements.push(quote! { VersionInfo::Version(#version), }),
+                VersionArg::Range((range_begin, range_end)) => {
+                    statements.push(quote! { VersionInfo::VersionRange((#range_begin, #range_end)), })
+                }
             }
+        } else if version_args.len() > 1 {
+            let mut range_list = Vec::new();
+
+            let mut is_last = false;
+            for version in version_args {
+                if is_last {
+                    panic!("Single Version arg must be the last")
+                }
+                match version {
+                    VersionArg::Single(version) => {
+                        is_last = true;
+                        range_list.push(quote!(VersionList::From(#version),))
+                    }
+                    VersionArg::Range((start, end)) => {
+                        range_list.push(quote! { VersionList::Range((#start, #end)), })
+                    }
+                }
+            }
+            statements.push(quote! { VersionInfo::VersionRangeList(&[#(#range_list)*]),})
+        } else {
+            panic!("Unknown version args")
         }
     }
 
@@ -82,13 +108,13 @@ pub fn imp_version_macro(ast: &syn::DeriveInput) -> TokenStream {
 
     let gen = if has_lifetime {
         quote! {
-            impl Version for #struct_name<'_> {
+            impl TrackVersion for #struct_name<'_> {
                 #version
             }
         }
     } else {
         quote! {
-            impl Version for #struct_name {
+            impl TrackVersion for #struct_name {
                 #version
             }
         }
