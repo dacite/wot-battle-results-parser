@@ -12,7 +12,7 @@ pub enum AttackReason {
     Ram                     = 2,
     WorldCollision          = 3,
     DeathZone               = 4,
-    Drowing                 = 5,
+    Drowning                = 5,
     GasAttack               = 6,
     Overturn                = 7,
     Manual                  = 8,
