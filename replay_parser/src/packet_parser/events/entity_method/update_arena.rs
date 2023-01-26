@@ -186,9 +186,9 @@ fn parse_avatar_ready(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 }
 #[derive(Debug, Clone, Serialize, Version)]
 pub struct VehicleKilled {
-    victim_id:    i32,
-    killer_id:    i32,
-    equipment_id: i32,
-    reason:       i32,
+    pub victim_id:    i32,
+    pub killer_id:    i32,
+    pub equipment_id: i32,
+    pub reason:       i32,
     //TODO: More fields in later versions
 }
