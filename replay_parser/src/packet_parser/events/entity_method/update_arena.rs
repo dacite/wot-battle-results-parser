@@ -72,7 +72,7 @@ fn parse_vehicle_list(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
             is_avatar_ready: parse_truthy_value(5, &thing)?,
             is_team_killer: parse_truthy_value(6, &thing)?,
             account_dbid: parse_value(7, &thing)?,
-            clan_abbrev: parse_value(9, &thing)?,
+            clan_abbrev: parse_value(8, &thing)?,
             clan_dbid: parse_value(9, &thing)?,
             pre_battle_id: parse_value(10, &thing)?,
         };
@@ -114,7 +114,7 @@ pub struct VehicleData {
     pub is_avatar_ready:       i64,
     pub is_team_killer:        i64,
     pub account_dbid:          i64,
-    pub clan_abbrev:           i64,
+    pub clan_abbrev:           String,
     pub clan_dbid:             i64,
     pub pre_battle_id:         i64,
 }
