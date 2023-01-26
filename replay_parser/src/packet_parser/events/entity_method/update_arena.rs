@@ -1,6 +1,6 @@
 use nom::number::complete::le_u8;
 use serde_pickle::Value as PickleVal;
-use wot_types::ArenaUpdate;
+use wot_types::{ArenaUpdate, AttackReason};
 
 use crate::packet_parser::prelude::*;
 use crate::packet_parser::serde_packet;
@@ -15,6 +15,7 @@ pub struct UpdateArena {
 pub enum UpdateData {
     VehicleList(Vec<VehicleData>),
     AvatarReady(AvatarReady),
+    VehicleKilled(VehicleKilled),
     Unimplemented,
 }
 
@@ -33,6 +34,7 @@ impl UpdateArena {
         let update_data = match update_type {
             VehicleList => parse_vehicle_list(arena_data)?,
             AvatarReady => parse_avatar_ready(arena_data)?,
+            VehicleKilled => parse_vehicle_killed(arena_data)?,
             _ => UpdateData::Unimplemented,
         };
 
@@ -186,9 +188,40 @@ fn parse_avatar_ready(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 }
 #[derive(Debug, Clone, Serialize, Version)]
 pub struct VehicleKilled {
-    pub victim_id:    i32,
-    pub killer_id:    i32,
-    pub equipment_id: i32,
-    pub reason:       i32,
-    //TODO: More fields in later versions
+    pub victim_id:             i32,
+    pub killer_id:             i32,
+    pub equipment_id:          i32,
+    pub attack_reason:         AttackReason,
+
+    #[version([1, 17, 0, 0])]
+    pub num_vehicles_affected: Option<i32>,
+}
+
+fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let pickle_value = serde_pickle::value_from_slice(
+        arena_data,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )?;
+
+    let PickleVal::Tuple(thing) = pickle_value else { todo!() };
+
+    let num_vehicles_affected = if thing.len() > 4 {
+        parse_value(4, &thing)?
+    } else {
+        None
+    };
+
+    let attack_reason: i32 = parse_value(3, &thing)?;
+
+    let vehicle_killed = VehicleKilled {
+        attack_reason: AttackReason::try_from(attack_reason as i32).map_err(|_| {
+            PacketError::WrongEnumVariant(format!("arena attack reason of {attack_reason} is invalid"))
+        })?,
+        victim_id: parse_value(0, &thing)?,
+        killer_id: parse_value(1, &thing)?,
+        equipment_id: parse_value(2, &thing)?,
+        num_vehicles_affected,
+    };
+
+    Ok(UpdateData::VehicleKilled(vehicle_killed))
 }
