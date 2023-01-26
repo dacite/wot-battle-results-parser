@@ -2,8 +2,8 @@ use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct VehicleMiscStatus {
-    avatar_id:     i32,
-    status_detail: VehicleMiscStatusDetail,
+    pub avatar_id:     i32,
+    pub status_detail: VehicleMiscStatusDetail,
 }
 #[derive(Debug, Clone)]
 pub enum VehicleMiscStatusDetail {
@@ -31,10 +31,10 @@ impl VehicleMiscStatus {
 #[derive(Serialize, Deserialize, Debug, Clone, EventPrinter, Version)]
 /// This info is present for the player vehicle or the observed vehicle
 pub struct UpdateVehicleMiscStatus {
-    avatar_id:   i32,
-    status_code: u8,
-    status_data: i32,
-    other_args:  Vec<f32>,
+    pub avatar_id:   i32,
+    pub status_code: u8,
+    pub status_data: i32,
+    pub other_args:  Vec<f32>,
 }
 
 

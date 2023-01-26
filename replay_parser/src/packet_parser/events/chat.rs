@@ -4,7 +4,7 @@ use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
 pub struct Chat {
-    msg: String,
+    pub msg: String,
 }
 
 impl PacketParser for Chat {
