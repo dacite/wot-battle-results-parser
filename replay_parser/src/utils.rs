@@ -118,21 +118,3 @@ pub fn validate_version(version: [u16; 4]) -> [u16; 4] {
 
     best_candidate
 }
-
-/// A macro that tries to destructure an Enum to the given variant,
-/// wrapped in a `Result`. Used to avoid using if let everywhere and have the
-/// entire code shift right. Once if let chains stablize, this is probably not
-/// needed.
-#[macro_export]
-macro_rules! try_variant {
-    ($target: expr, $pattern: path) => {{
-        if let $pattern(value) = $target {
-            Ok(value)
-        } else {
-            Err($crate::PacketError::WrongEnumVariant(format!(
-                "Wrong variant. Expected: {}",
-                stringify!($pattern)
-            )))
-        }
-    }};
-}
