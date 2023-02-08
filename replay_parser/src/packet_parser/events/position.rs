@@ -24,3 +24,41 @@ impl PacketParser for Position {
         Ok(BattleEvent::Position(position))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::utils::replay_iterator;
+    pub use crate::{Packet, ReplayParser};
+
+    #[test]
+    fn parses_position() {
+        for file in replay_iterator(&std::env::var("REPLAY_DIR").unwrap()) {
+            println!("{} ", file.display());
+            let parser = ReplayParser::parse_file(file).unwrap();
+            let mut context = parser.context().unwrap();
+
+            // We currently do not have the def files for versions less than 0.9.13.0 so we skip them
+            if parser.parse_replay_version().unwrap() < [0, 9, 13, 0] {
+                return;
+            }
+
+            let packet_stream = parser
+                .packet_stream()
+                .filter(|packet| packet.as_ref().unwrap().packet_type() == 0x0A);
+
+            for position_packet in packet_stream {
+                let position_packet = position_packet.unwrap();
+                let position = BattleEvent::parse(&position_packet, &mut context);
+
+                match position.unwrap() {
+                    BattleEvent::Position(pos) => {
+                        // TODO: Add more checks
+                        assert!(matches!(pos.is_volatile, 0..=1));
+                    }
+                    _ => panic!("Incorrect event. expected position"),
+                }
+            }
+        }
+    }
+}

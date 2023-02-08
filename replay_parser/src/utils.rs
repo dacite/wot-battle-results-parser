@@ -118,3 +118,19 @@ pub fn validate_version(version: [u16; 4]) -> [u16; 4] {
 
     best_candidate
 }
+
+/// Used in test code
+#[allow(dead_code)]
+pub fn replay_iterator(path: &str) -> impl Iterator<Item = std::path::PathBuf> {
+    let entries = std::fs::read_dir(path).unwrap();
+
+    entries.into_iter().flatten().filter_map(|entry| {
+        let path = entry.path();
+
+        if path.extension() == Some(std::ffi::OsStr::new("wotreplay")) {
+            Some(path)
+        } else {
+            None
+        }
+    })
+}
