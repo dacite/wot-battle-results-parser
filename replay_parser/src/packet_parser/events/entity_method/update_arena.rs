@@ -188,10 +188,10 @@ fn parse_avatar_ready(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 }
 #[derive(Debug, Clone, Serialize, Version)]
 pub struct VehicleKilled {
-    pub victim_id:             i32,
-    pub killer_id:             i32,
-    pub equipment_id:          i32,
-    pub attack_reason:         AttackReason,
+    pub victim_id:     i32,
+    pub killer_id:     i32,
+    pub equipment_id:  i32,
+    pub attack_reason: AttackReason,
 
     #[version([1, 17, 0, 0])]
     pub num_vehicles_affected: Option<i32>,
