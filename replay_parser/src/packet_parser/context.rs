@@ -23,6 +23,8 @@ impl Context {
         }
     }
 
+    /// This may not be same as the replay version. This version returns a version that is closest to
+    /// the actual replay version that we have .def files for
     pub fn get_version(&self) -> [u16; 4] {
         self.version
     }
