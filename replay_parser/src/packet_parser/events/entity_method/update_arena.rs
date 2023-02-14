@@ -298,8 +298,8 @@ fn parse_base_captured(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 
 #[derive(Debug, Clone, Serialize, Version)]
 pub struct VehicleStatistics {
-    vehicle_id: i32,
-    frags:      i32,
+    pub vehicle_id: i32,
+    pub frags:      i32,
 }
 
 fn parse_vehicle_statistics(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
