@@ -18,6 +18,7 @@ pub enum UpdateData {
     VehicleKilled(VehicleKilled),
     BasePoints(BasePoints),
     BaseCaptured(BaseCaptured),
+    VehicleStatistics(VehicleStatistics),
     Unimplemented,
 }
 
@@ -39,6 +40,7 @@ impl UpdateArena {
             VehicleKilled => parse_vehicle_killed(arena_data)?,
             BasePoints => parse_base_points(arena_data)?,
             BaseCaptured => parse_base_captured(arena_data)?,
+            VehicleStatistics => parse_vehicle_statistics(arena_data)?,
             _ => UpdateData::Unimplemented,
         };
 
@@ -292,4 +294,29 @@ fn parse_base_captured(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
         team:    parse_value(0, &thing)?,
         base_id: parse_value(1, &thing)?,
     }))
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct VehicleStatistics {
+    vehicle_id: i32,
+    frags:      i32,
+}
+
+fn parse_vehicle_statistics(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let decompressed =
+        utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
+    let pickle_value = serde_pickle::value_from_slice(
+        &decompressed,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )
+    .unwrap();
+
+    let PickleVal::Tuple(thing) = pickle_value else { todo!() };
+
+    let vehicle_statistics = VehicleStatistics {
+        vehicle_id: parse_value(0, &thing)?,
+        frags:      parse_value(1, &thing)?,
+    };
+
+    Ok(UpdateData::VehicleStatistics(vehicle_statistics))
 }
