@@ -236,10 +236,10 @@ pub struct BasePoints {
     pub base_id: i32,
     pub points:  i32,
 
-    #[version([0, 9, 14, 0])]
+    #[version([0, 9, 15, 0])]
     pub time_left: Option<i32>,
 
-    #[version([0, 9, 14, 0])]
+    #[version([0, 9, 15, 0])]
     pub invaders_cnt: Option<i32>,
 
     pub capturing_stopped: bool,
