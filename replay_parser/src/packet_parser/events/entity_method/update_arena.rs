@@ -454,8 +454,8 @@ fn parse_vehicle_descr(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
 
 #[derive(Debug, Clone, Serialize, Version)]
 pub struct FogOfWar {
-    is_enabled:          bool,
-    has_hidden_vehicles: bool,
+    pub is_enabled:          bool,
+    pub has_hidden_vehicles: bool,
 }
 
 fn parse_fog_of_war(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
