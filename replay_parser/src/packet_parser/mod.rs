@@ -72,9 +72,7 @@ mod prelude {
     pub(crate) use macros::{EventPrinter, Version};
     pub(crate) use serde::{Deserialize, Serialize};
 
-    pub(crate) use super::event::{
-        BattleEvent, EventPrinter, PacketParser, TrackVersion, UpdateContext, VersionInfo,
-    };
+    pub(crate) use super::event::{BattleEvent, EventPrinter, PacketParser, TrackVersion, VersionInfo};
     pub(crate) use super::from_slice;
     pub(crate) use super::from_slice_unchecked;
     pub(crate) use super::types::Vector3;

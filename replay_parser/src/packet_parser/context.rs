@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use crate::utils::validate_version;
-
 // This file contains information regarding method calls for different replay versions. This is
 // generated during the build process
 include!(concat!(env!("OUT_DIR"), "/method_map_codegen.rs"));

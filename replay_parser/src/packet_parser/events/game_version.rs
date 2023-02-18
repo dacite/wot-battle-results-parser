@@ -13,7 +13,7 @@ pub struct GameVersion {
 }
 
 impl PacketParser for GameVersion {
-    fn parse(packet: &Packet, _context: &Context) -> Result<BattleEvent, PacketError> {
+    fn parse(packet: &Packet, _: &Context) -> Result<BattleEvent, PacketError> {
         // First, we skip an le_u32 value which tells us the size of the rest of the packet
         // We don't really need it because we try to match 4 digits in input regardless of size.
         let (remaining, _) = take(4_usize)(packet.payload())?;
