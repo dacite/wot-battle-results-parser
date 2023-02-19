@@ -1,5 +1,6 @@
 use serde::de;
 
+use crate::entity_defs::EntityType;
 use crate::packet_parser::prelude::*;
 use crate::wot_types::WotValue;
 #[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
@@ -35,7 +36,7 @@ impl PacketParser for AvatarCreate {
 
         let (_, avatar_create) = from_slice_unchecked::<AvatarCreate>(data, context.get_version())?;
 
-        context.add_entity(avatar_create.entity_id, "Avatar");
+        context.add_entity(avatar_create.entity_id, EntityType::Avatar); // TODO: Use entity type map here
 
         Ok(BattleEvent::AvatarCreate(avatar_create))
     }
