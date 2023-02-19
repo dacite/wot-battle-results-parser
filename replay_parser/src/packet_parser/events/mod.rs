@@ -1,5 +1,6 @@
 /// `entity_method` describe multiple events because there can be many different types of method calls
 mod entity_method;
+pub use entity_method::avatar_methods::update_arena::ArenaUpdateData;
 pub use entity_method::vehicle_methods::*;
 pub use entity_method::EntityMethod;
 pub use entity_method::EntityMethodEvent;
