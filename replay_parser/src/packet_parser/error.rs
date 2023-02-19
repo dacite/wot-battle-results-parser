@@ -41,6 +41,12 @@ pub enum PacketError {
 
     #[error("Pickle error: {0}")]
     PickleError(String),
+
+    #[error("Deserialize error: {0}")]
+    DeserializeError(String),
+
+    #[error("Not found: {0}")]
+    NotFoundError(String),
 }
 
 

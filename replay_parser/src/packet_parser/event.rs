@@ -20,6 +20,7 @@ pub enum BattleEvent {
     Position(Position),
     Chat(Chat),
     EntityCreate(EntityCreate),
+    EntityProperty(EntityPropertyEvent),
     CryptoKey(CryptoKey),
 }
 
@@ -28,8 +29,9 @@ impl BattleEvent {
     /// packets.
     pub fn parse(packet: &Packet, context: &mut Context) -> Result<BattleEvent, ReplayError> {
         let event_result = match packet.packet_type() {
-            0x00 => AvatarCreate::parse(packet, context),
+            0x00 => AvatarCreate::parse_mut(packet, context),
             0x05 => EntityCreate::parse(packet, context),
+            0x07 => EntityPropertyEvent::parse(packet, context),
             0x08 => EntityMethodEvent::parse(packet, context),
             0x0A => Position::parse(packet, context),
             0x18 => GameVersion::parse(packet, context),
@@ -38,18 +40,11 @@ impl BattleEvent {
             _ => Ok(BattleEvent::Unimplemented),
         };
 
-        match event_result {
-            Ok(event) => {
-                event.update_context(context);
-
-                Ok(event)
-            }
-            Err(error) => Err(ReplayError::PacketParseError {
-                packet_id: packet.id(),
-                packet_type: packet.packet_type(),
-                error,
-            }),
-        }
+        event_result.map_err(|error| ReplayError::PacketParseError {
+            packet_id: packet.id(),
+            packet_type: packet.packet_type(),
+            error,
+        })
     }
 
     pub fn is_unknown(&self) -> bool {
@@ -59,7 +54,13 @@ impl BattleEvent {
 
 /// This trait is implemented by all events so that they can parse a packet to a BattleEvent
 pub trait PacketParser {
-    fn parse(packet: &Packet, context: &Context) -> Result<BattleEvent, PacketError>;
+    fn parse(_: &Packet, _: &Context) -> Result<BattleEvent, PacketError> {
+        unimplemented!()
+    }
+
+    fn parse_mut(_: &Packet, _: &mut Context) -> Result<BattleEvent, PacketError> {
+        unimplemented!()
+    }
 }
 
 /// Used for debugging purposes. Instead of the `Debug` trait (we don't have to choose. It is available as
@@ -83,10 +84,6 @@ pub trait TrackVersion {
     fn version() -> VersionInfo;
 }
 
-pub trait UpdateContext {
-    fn update_context(&self, context: &mut Context);
-}
-
 impl EventPrinter for BattleEvent {
     fn to_debug_string(&self, context: &Context) -> String
     where
@@ -98,25 +95,11 @@ impl EventPrinter for BattleEvent {
             AvatarCreate(x) => x.to_debug_string(context),
             GameVersion(x) => x.to_debug_string(context),
             EntityMethod(x) => x.to_debug_string(context),
+            EntityProperty(x) => x.to_debug_string(context),
             Position(x) => x.to_debug_string(context),
             Chat(x) => x.to_debug_string(context),
             EntityCreate(x) => x.to_debug_string(context),
             CryptoKey(x) => x.to_debug_string(context),
-        }
-    }
-}
-
-impl UpdateContext for BattleEvent {
-    fn update_context(&self, context: &mut Context) {
-        match self {
-            BattleEvent::AvatarCreate(x) => x.update_context(context),
-            BattleEvent::Unimplemented => {}
-            BattleEvent::GameVersion(_) => {}
-            BattleEvent::EntityMethod(_) => {}
-            BattleEvent::Position(_) => {}
-            BattleEvent::Chat(_) => {}
-            BattleEvent::EntityCreate(_) => {}
-            BattleEvent::CryptoKey(_) => {}
         }
     }
 }

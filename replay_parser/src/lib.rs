@@ -31,3 +31,5 @@ pub mod wot_types {
     pub use wot_types::ArenaBonusType;
     pub use wot_types::WotValue;
 }
+
+mod entity_defs;

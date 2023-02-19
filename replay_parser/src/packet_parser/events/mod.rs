@@ -21,3 +21,6 @@ pub use entity_create::EntityCreate;
 
 mod crypto_key;
 pub use crypto_key::CryptoKey;
+
+mod entity_property;
+pub use entity_property::EntityPropertyEvent;

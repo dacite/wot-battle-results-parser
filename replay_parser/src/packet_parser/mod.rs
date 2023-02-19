@@ -65,7 +65,7 @@ pub use event::EventPrinter;
 pub use event::EventStream;
 pub use event::PacketParser;
 
-mod types;
+pub mod types;
 
 /// This prelude is to be used by code inside the events module
 mod prelude {

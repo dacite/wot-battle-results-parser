@@ -4,8 +4,8 @@ mod event_debug_derive;
 // mod field_access_derive;
 // mod metadata_derive;
 // mod sql_insert_derive;
+mod enum_variant_deserialize;
 mod version_derive;
-
 // #[proc_macro_derive(FieldAccess, attributes(custom_parser))]
 // pub fn field_access_macro_derive(input: TokenStream) -> TokenStream {
 //     let ast = syn::parse(input).unwrap();
@@ -30,6 +30,11 @@ pub fn to_version_derive(input: TokenStream) -> TokenStream {
     version_derive::imp_version_macro(&ast)
 }
 
+#[proc_macro_derive(EnumVariantDeserialize, attributes(evd))]
+pub fn to_enum_variant_deserialize_derive(input: TokenStream) -> TokenStream {
+    let ast = syn::parse(input).unwrap();
+    enum_variant_deserialize::imp_enum_variant_deserialize_macro(&ast)
+}
 // #[proc_macro_derive(SqlInsert, attributes(version))]
 // pub fn to_sql_insert_derive(input: TokenStream) -> TokenStream {
 //     let ast = syn::parse(input).unwrap();
