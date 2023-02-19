@@ -126,22 +126,22 @@ pub static AVATAR_PROPS: phf::Map<&str, &'static [&'static str]> = phf_map! {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AmmoViews {
-    vehTypeCompDescrs: Vec<i32>,
-    compDescrs:        Vec<Vec<i32>>,
+    veh_type_comp_descrs: Vec<i32>,
+    comp_descrs:        Vec<Vec<i32>>,
 }
 
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RemoteCamera {
     time:      f64,
-    shotPoint: Vector3,
+    shot_point: Vector3,
     zoom:      u8,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OrderingRoster {
-    vehicleID:   i32,
-    prebattleID: i32,
+    vehicle_id:   i32,
+    prebattle_id: i32,
     team:        i8,
     observer:    u8,
 }
@@ -150,14 +150,14 @@ pub struct OrderingRoster {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RemoteCameraArcade {
     time:           f64,
-    relTranslation: Vector3,
-    shotPoint:      Vector3,
+    rel_translation: Vector3,
+    shot_point:      Vector3,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RemoteCameraArty {
     time:        f64,
-    shotPoint:   Vector3,
+    shot_point:   Vector3,
     translation: Vector3,
     rotation:    Vector3,
 }
@@ -165,21 +165,21 @@ pub struct RemoteCameraArty {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RemoteCameraSniper {
     time:                 f64,
-    camMatrixTranslation: Vector3,
-    camMatrixRotation:    Vector3,
+    cam_matrix_translation: Vector3,
+    cam_matrix_rotation:    Vector3,
     zoom:                 u8,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RemoteCameraStrategic {
     time:      f64,
-    shotPoint: Vector3,
+    shot_point: Vector3,
 }
 
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Goodie {
-    goodieID:   u32,
+    goodie_id:   u32,
     lifetime:   u16,
     useby:      u64,
     resource:   GoodieResource,
@@ -191,14 +191,14 @@ pub struct Goodie {
 pub struct GoodieResource {
     type_:        u8,
     value:        u16,
-    isPercentage: u8,
+    is_percentage: u8,
 }
 
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GoodieStateInfo {
     state:      u8,
-    finishTime: f64,
+    finish_time: f64,
     count:      u16,
 }
 
