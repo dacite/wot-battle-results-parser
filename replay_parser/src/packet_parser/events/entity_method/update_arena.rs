@@ -1,6 +1,6 @@
 use nom::number::complete::le_u8;
 use serde_pickle::Value as PickleVal;
-use wot_types::{ArenaUpdate, AttackReason};
+use wot_types::{ArenaPeriod, ArenaUpdate, AttackReason, FinishReason};
 
 use crate::packet_parser::prelude::*;
 use crate::packet_parser::serde_packet;
@@ -16,6 +16,12 @@ pub enum UpdateData {
     VehicleList(Vec<VehicleData>),
     AvatarReady(AvatarReady),
     VehicleKilled(VehicleKilled),
+    BasePoints(BasePoints),
+    BaseCaptured(BaseCaptured),
+    VehicleStatistics(VehicleStatistics),
+    Statistics(Vec<VehicleStatistics>),
+    Period(Period),
+    VehicleDescr(VehicleDescr),
     Unimplemented,
 }
 
@@ -35,6 +41,12 @@ impl UpdateArena {
             VehicleList => parse_vehicle_list(arena_data)?,
             AvatarReady => parse_avatar_ready(arena_data)?,
             VehicleKilled => parse_vehicle_killed(arena_data)?,
+            BasePoints => parse_base_points(arena_data)?,
+            BaseCaptured => parse_base_captured(arena_data)?,
+            VehicleStatistics => parse_vehicle_statistics(arena_data)?,
+            Statistics => parse_statistics(arena_data)?,
+            Period => parse_period(arena_data)?,
+            VehicleDescr => parse_vehicle_descr(arena_data)?,
             _ => UpdateData::Unimplemented,
         };
 
@@ -224,4 +236,216 @@ fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
     };
 
     Ok(UpdateData::VehicleKilled(vehicle_killed))
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct BasePoints {
+    pub team:    i32,
+    pub base_id: i32,
+    pub points:  i32,
+
+    #[version([0, 9, 15, 0])]
+    pub time_left: Option<i32>,
+
+    #[version([0, 9, 15, 0])]
+    pub invaders_cnt: Option<i32>,
+
+    pub capturing_stopped: bool,
+}
+
+fn parse_base_points(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let pickle_value = serde_pickle::value_from_slice(
+        arena_data,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )?;
+
+    let PickleVal::Tuple(thing) = pickle_value else { todo!() };
+
+    if thing.len() >= 6 {
+        Ok(UpdateData::BasePoints(BasePoints {
+            team:              parse_value(0, &thing)?,
+            base_id:           parse_value(1, &thing)?,
+            points:            parse_value(2, &thing)?,
+            time_left:         parse_value(3, &thing)?,
+            invaders_cnt:      parse_value(4, &thing)?,
+            capturing_stopped: parse_value::<i64>(5, &thing)? != 0,
+        }))
+    } else {
+        Ok(UpdateData::BasePoints(BasePoints {
+            team:              parse_value(0, &thing)?,
+            base_id:           parse_value(1, &thing)?,
+            points:            parse_value(2, &thing)?,
+            time_left:         None,
+            invaders_cnt:      None,
+            capturing_stopped: parse_value::<i64>(3, &thing)? != 0,
+        }))
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct BaseCaptured {
+    pub team:    i32,
+    pub base_id: i32,
+}
+
+fn parse_base_captured(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let pickle_value = serde_pickle::value_from_slice(
+        arena_data,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )?;
+
+    let PickleVal::Tuple(thing) = pickle_value else { todo!() };
+
+    Ok(UpdateData::BaseCaptured(BaseCaptured {
+        team:    parse_value(0, &thing)?,
+        base_id: parse_value(1, &thing)?,
+    }))
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct VehicleStatistics {
+    pub vehicle_id: i32,
+    pub frags:      i32,
+}
+
+fn parse_vehicle_statistics(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let decompressed =
+        utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
+    let pickle_value = serde_pickle::value_from_slice(
+        &decompressed,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )
+    .unwrap();
+
+    let PickleVal::Tuple(thing) = pickle_value else { todo!() };
+
+    let vehicle_statistics = VehicleStatistics {
+        vehicle_id: parse_value(0, &thing)?,
+        frags:      parse_value(1, &thing)?,
+    };
+
+    Ok(UpdateData::VehicleStatistics(vehicle_statistics))
+}
+
+fn parse_statistics(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let decompressed =
+        utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
+    let pickle_value = serde_pickle::value_from_slice(
+        &decompressed,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )
+    .unwrap();
+
+    let PickleVal::List(stats_list) = pickle_value  else {
+        return Err(PacketError::PickleError("Expected List value for payload".into()))
+    };
+
+    let mut res: Vec<VehicleStatistics> = vec![];
+    for stats in stats_list.into_iter() {
+        let PickleVal::Tuple(items) = stats  else {
+            return Err(PacketError::PickleError("Expected Tuple value for stats".into()))
+        };
+        res.push(VehicleStatistics {
+            vehicle_id: parse_value(0, &items)?,
+            frags:      parse_value(1, &items)?,
+        })
+    }
+
+    Ok(UpdateData::Statistics(res))
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct ArenaEnded {
+    pub winner_team:   i32,
+    pub finish_reason: FinishReason,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub enum PeriodAdditionalInfo {
+    ActivitiesStartTimes(Vec<f32>),
+    ArenaEnded(ArenaEnded),
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct Period {
+    pub period:          ArenaPeriod,
+    pub end_time:        f32,
+    pub length:          f32,
+    pub additional_info: PeriodAdditionalInfo,
+}
+
+fn parse_period(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let decompressed =
+        utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
+    let pickle_value = serde_pickle::value_from_slice(
+        &decompressed,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )
+    .unwrap();
+
+    let PickleVal::Tuple(thing) = pickle_value else { todo!() };
+    let period_type: i32 = parse_value(0, &thing)?;
+
+    let additional_info = match &thing[3] {
+        PickleVal::Tuple(info) => {
+            let finish_reason = parse_value::<i32>(1, &info)?;
+            Ok(PeriodAdditionalInfo::ArenaEnded(ArenaEnded {
+                winner_team:   parse_value(0, &info)?,
+                finish_reason: FinishReason::try_from(finish_reason).map_err(|_| {
+                    PacketError::WrongEnumVariant(format!("finish reason of {finish_reason} is invalid"))
+                })?,
+            }))
+        }
+        PickleVal::List(start_times) => {
+            let mut res: Vec<f32> = vec![];
+            for i in 0..start_times.len() {
+                res.push(parse_value::<f32>(i, start_times)?);
+            }
+            Ok(PeriodAdditionalInfo::ActivitiesStartTimes(res))
+        }
+        _ => Err(PacketError::PickleError(format!(
+            "Invalid additional info payload"
+        ))),
+    }?;
+
+    let period = Period {
+        period: ArenaPeriod::try_from(period_type as i32).map_err(|_| {
+            PacketError::WrongEnumVariant(format!("arena period of {period_type} is invalid"))
+        })?,
+        end_time: parse_value(1, &thing)?,
+        length: parse_value(2, &thing)?,
+        additional_info,
+    };
+
+    Ok(UpdateData::Period(period))
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct VehicleDescr {
+    pub vehicle_id:    i32,
+    pub compact_descr: VehicleCompactDescr,
+    pub max_health:    i32,
+}
+
+fn parse_vehicle_descr(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let pickle_value = serde_pickle::value_from_slice(
+        arena_data,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )?;
+
+    let PickleVal::Tuple(thing) = pickle_value else { todo!() };
+
+    let compact_descr = if let PickleVal::Bytes(compact_descr) = thing.get(1).unwrap() {
+        parse_compact_descr(compact_descr.clone())
+    } else {
+        return Err(PacketError::PickleError(format!(
+            "Invalid vehicle compact description"
+        )));
+    };
+
+    Ok(UpdateData::VehicleDescr(VehicleDescr {
+        vehicle_id: parse_value(0, &thing)?,
+        compact_descr,
+        max_health: parse_value(2, &thing)?,
+    }))
 }
