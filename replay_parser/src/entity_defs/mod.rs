@@ -1,9 +1,12 @@
 mod avatar;
-mod entity_types;
-
 pub use avatar::{AvatarProperties, AVATAR_PROPS};
+
+mod entity_types;
 pub use entity_types::{find_entity_type, EntityType, ENTITY_TYPE_MAP};
+
+mod vehicle;
 use serde::{Deserialize, Serialize};
+pub use vehicle::{VehicleProperties, VEHICLE_PROPS};
 
 
 #[derive(Serialize, Debug, Clone, Deserialize)]
