@@ -22,6 +22,7 @@ pub enum UpdateData {
     Statistics(Vec<VehicleStatistics>),
     Period(Period),
     VehicleDescr(VehicleDescr),
+    FogOfWar(FogOfWar),
     Unimplemented,
 }
 
@@ -47,6 +48,7 @@ impl UpdateArena {
             Statistics => parse_statistics(arena_data)?,
             Period => parse_period(arena_data)?,
             VehicleDescr => parse_vehicle_descr(arena_data)?,
+            FogOfWar => parse_fog_of_war(arena_data)?,
             _ => UpdateData::Unimplemented,
         };
 
@@ -448,4 +450,26 @@ fn parse_vehicle_descr(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
         compact_descr,
         max_health: parse_value(2, &thing)?,
     }))
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct FogOfWar {
+    pub is_enabled:          bool,
+    pub has_hidden_vehicles: bool,
+}
+
+fn parse_fog_of_war(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let pickle_value = serde_pickle::value_from_slice(
+        arena_data,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )?;
+
+    let PickleVal::I64(status) = pickle_value else { todo!() };
+
+    let fog_of_war = FogOfWar {
+        is_enabled:          status & 1 != 0,
+        has_hidden_vehicles: status & 2 != 0,
+    };
+
+    Ok(UpdateData::FogOfWar(fog_of_war))
 }
