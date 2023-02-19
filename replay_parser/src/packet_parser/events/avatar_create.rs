@@ -1,12 +1,14 @@
 use serde::de;
 
-use crate::entity_defs::EntityType;
+use crate::entity_defs::{find_entity_type, EntityType, ENTITY_TYPE_MAP};
 use crate::packet_parser::prelude::*;
+use crate::utils;
 use crate::wot_types::WotValue;
+
 #[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
 pub struct AvatarCreate {
-    pub entity_id:   i32,
-    pub entity_type: u16,
+    pub entity_id:      i32,
+    pub entity_type_id: u16,
 
     #[version([0, 9, 14, 0])]
     _padding: Option<u32>, // not exactly sure what this is
@@ -33,10 +35,20 @@ pub struct AvatarCreate {
 impl PacketParser for AvatarCreate {
     fn parse_mut(packet: &Packet, context: &mut Context) -> Result<BattleEvent, PacketError> {
         let data = packet.payload();
+        let version = context.get_version();
 
-        let (_, avatar_create) = from_slice_unchecked::<AvatarCreate>(data, context.get_version())?;
+        let (_, avatar_create) = from_slice_unchecked::<AvatarCreate>(data, version)?;
 
-        context.add_entity(avatar_create.entity_id, EntityType::Avatar); // TODO: Use entity type map here
+        let key = utils::version_as_string(version);
+        let entity_type_id = avatar_create.entity_type_id;
+
+        let entity_type = find_entity_type(&key, entity_type_id as usize).ok_or_else(|| {
+            PacketError::NotFoundError(format!(
+                "entity type with id: {entity_type_id} not found for version: {key}"
+            ))
+        })?;
+
+        context.add_entity(avatar_create.entity_id, entity_type); // TODO: Use entity type map here
 
         Ok(BattleEvent::AvatarCreate(avatar_create))
     }

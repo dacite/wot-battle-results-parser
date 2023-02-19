@@ -2,7 +2,7 @@ mod avatar;
 mod entity_types;
 
 pub use avatar::{AvatarProperties, AVATAR_PROPS};
-pub use entity_types::{EntityType, ENTITY_TYPE_MAP};
+pub use entity_types::{find_entity_type, EntityType, ENTITY_TYPE_MAP};
 use serde::{Deserialize, Serialize};
 
 

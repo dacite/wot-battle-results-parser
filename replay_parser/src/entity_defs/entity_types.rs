@@ -189,3 +189,10 @@ pub static ENTITY_TYPE_MAP: phf::Map<&str, &'static [EntityType]> = phf_map! {
     "1_19_0_0" => &[Account, Avatar, ArenaInfo, ClientSelectableObject, HangarVehicle, Vehicle, AreaDestructibles, OfflineEntity, Flock, FlockExotic, Login, DetachedTurret, BootcampAccount, DebugDrawEntity, ClientSelectableCameraObject, ClientSelectableCameraVehicle, ClientSelectableWebLinksOpener, ClientSelectableEasterEgg, EmptyEntity, HeroTank, PlatoonTank, PlatoonLighting, SectorBase, Sector, DestructibleEntity, StepRepairPoint, ProtectionZone, HangarPoster, TeamInfo, AreaOfEffect, AttackBomber, AttackArtilleryFort, PersonalDeathZone, ClientSelectableRankedObject, ClientSelectableHangarsSwitcher, StaticDeathZone, BasicMine, ApplicationPoint, NewYearVisualObject, NewYearJukeboxObject],
     "1_19_1_0" => &[Account, Avatar, ArenaInfo, ClientSelectableObject, HangarVehicle, Vehicle, AreaDestructibles, OfflineEntity, Flock, FlockExotic, Login, DetachedTurret, BootcampAccount, DebugDrawEntity, ClientSelectableCameraObject, ClientSelectableCameraVehicle, ClientSelectableWebLinksOpener, ClientSelectableEasterEgg, EmptyEntity, HeroTank, PlatoonTank, PlatoonLighting, SectorBase, Sector, DestructibleEntity, StepRepairPoint, ProtectionZone, HangarPoster, TeamInfo, AreaOfEffect, AttackBomber, AttackArtilleryFort, PersonalDeathZone, ClientSelectableRankedObject, ClientSelectableHangarsSwitcher, StaticDeathZone, BasicMine, ApplicationPoint],
 };
+
+pub fn find_entity_type(version: &str, entity_type_id: usize) -> Option<EntityType> {
+    // Bigword uses non-zero index hence why we subtract 1
+    ENTITY_TYPE_MAP
+        .get(version)
+        .and_then(|ent_array| ent_array.get(entity_type_id - 1).copied())
+}
