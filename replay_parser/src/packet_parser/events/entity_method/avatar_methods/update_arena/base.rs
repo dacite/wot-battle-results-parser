@@ -1,6 +1,6 @@
 use serde_pickle::Value as PickleVal;
 
-use super::{parse_value, ArenaUpdateData};
+use super::{parse_truthy_value, parse_value, ArenaUpdateData};
 use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Version)]
@@ -33,7 +33,7 @@ pub fn parse_base_points(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketErr
             points:            parse_value(2, &thing)?,
             time_left:         parse_value(3, &thing)?,
             invaders_cnt:      parse_value(4, &thing)?,
-            capturing_stopped: parse_value::<i64>(5, &thing)? != 0,
+            capturing_stopped: parse_truthy_value(5, &thing)? != 0,
         }))
     } else {
         Ok(ArenaUpdateData::BasePoints(BasePoints {
@@ -42,7 +42,7 @@ pub fn parse_base_points(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketErr
             points:            parse_value(2, &thing)?,
             time_left:         None,
             invaders_cnt:      None,
-            capturing_stopped: parse_value::<i64>(3, &thing)? != 0,
+            capturing_stopped: parse_truthy_value(3, &thing)? != 0,
         }))
     }
 }
