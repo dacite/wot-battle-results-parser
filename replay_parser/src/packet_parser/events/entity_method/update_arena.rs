@@ -21,6 +21,7 @@ pub enum UpdateData {
     VehicleStatistics(VehicleStatistics),
     Statistics(Vec<VehicleStatistics>),
     Period(Period),
+    VehicleDescr(VehicleDescr),
     Unimplemented,
 }
 
@@ -45,6 +46,7 @@ impl UpdateArena {
             VehicleStatistics => parse_vehicle_statistics(arena_data)?,
             Statistics => parse_statistics(arena_data)?,
             Period => parse_period(arena_data)?,
+            VehicleDescr => parse_vehicle_descr(arena_data)?,
             _ => UpdateData::Unimplemented,
         };
 
@@ -416,4 +418,34 @@ fn parse_period(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
     };
 
     Ok(UpdateData::Period(period))
+}
+
+#[derive(Debug, Clone, Serialize, Version)]
+pub struct VehicleDescr {
+    pub vehicle_id:    i32,
+    pub compact_descr: VehicleCompactDescr,
+    pub max_health:    i32,
+}
+
+fn parse_vehicle_descr(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+    let pickle_value = serde_pickle::value_from_slice(
+        arena_data,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    )?;
+
+    let PickleVal::Tuple(thing) = pickle_value else { todo!() };
+
+    let compact_descr = if let PickleVal::Bytes(compact_descr) = thing.get(1).unwrap() {
+        parse_compact_descr(compact_descr.clone())
+    } else {
+        return Err(PacketError::PickleError(format!(
+            "Invalid vehicle compact description"
+        )));
+    };
+
+    Ok(UpdateData::VehicleDescr(VehicleDescr {
+        vehicle_id: parse_value(0, &thing)?,
+        compact_descr,
+        max_health: parse_value(2, &thing)?,
+    }))
 }
