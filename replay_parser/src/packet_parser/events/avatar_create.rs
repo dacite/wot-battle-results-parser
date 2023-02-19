@@ -48,7 +48,7 @@ impl PacketParser for AvatarCreate {
             ))
         })?;
 
-        context.add_entity(avatar_create.entity_id, entity_type); // TODO: Use entity type map here
+        context.add_entity(avatar_create.entity_id, entity_type);
 
         Ok(BattleEvent::AvatarCreate(avatar_create))
     }

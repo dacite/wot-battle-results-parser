@@ -30,7 +30,7 @@ impl BattleEvent {
     pub fn parse(packet: &Packet, context: &mut Context) -> Result<BattleEvent, ReplayError> {
         let event_result = match packet.packet_type() {
             0x00 => AvatarCreate::parse_mut(packet, context),
-            0x05 => EntityCreate::parse(packet, context),
+            0x05 => EntityCreate::parse_mut(packet, context),
             0x07 => EntityPropertyEvent::parse(packet, context),
             0x08 => EntityMethodEvent::parse(packet, context),
             0x0A => Position::parse(packet, context),

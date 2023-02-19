@@ -37,14 +37,15 @@ impl PacketParser for EntityPropertyEvent {
             .map_err(PacketError::NotFoundError)?;
 
         let property = if let Some(discrim) = discrim {
-            parse_property(&entity_type, discrim, &mut d)?
+            let property = parse_property(&entity_type, discrim, &mut d)?;
+            if !d.is_empty() {
+                return Err(PacketError::UnconsumedInput);
+            }
+            property
         } else {
             None
         };
 
-        if !d.is_empty() {
-            return Err(PacketError::UnconsumedInput);
-        }
 
         Ok(BattleEvent::EntityProperty(EntityPropertyEvent {
             entity_type,
