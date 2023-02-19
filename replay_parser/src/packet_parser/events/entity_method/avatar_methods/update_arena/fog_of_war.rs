@@ -1,6 +1,6 @@
 use serde_pickle::Value as PickleVal;
 
-use super::UpdateData;
+use super::ArenaUpdateData;
 use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Version)]
@@ -9,7 +9,7 @@ pub struct FogOfWar {
     pub has_hidden_vehicles: bool,
 }
 
-pub fn parse_fog_of_war(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+pub fn parse_fog_of_war(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
     let pickle_value = serde_pickle::value_from_slice(
         arena_data,
         serde_pickle::DeOptions::new().replace_unresolved_globals(),
@@ -22,5 +22,5 @@ pub fn parse_fog_of_war(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
         has_hidden_vehicles: status & 2 != 0,
     };
 
-    Ok(UpdateData::FogOfWar(fog_of_war))
+    Ok(ArenaUpdateData::FogOfWar(fog_of_war))
 }

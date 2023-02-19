@@ -1,6 +1,6 @@
 use serde_pickle::Value as PickleVal;
 
-use super::{parse_value, UpdateData};
+use super::{parse_value, ArenaUpdateData};
 use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Version)]
@@ -9,7 +9,7 @@ pub struct VehicleStatistics {
     pub frags:      i32,
 }
 
-pub fn parse_vehicle_statistics(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+pub fn parse_vehicle_statistics(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
     let decompressed =
         utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
     let pickle_value = serde_pickle::value_from_slice(
@@ -25,10 +25,10 @@ pub fn parse_vehicle_statistics(arena_data: &[u8]) -> Result<UpdateData, PacketE
         frags:      parse_value(1, &thing)?,
     };
 
-    Ok(UpdateData::VehicleStatistics(vehicle_statistics))
+    Ok(ArenaUpdateData::VehicleStatistics(vehicle_statistics))
 }
 
-pub fn parse_statistics(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+pub fn parse_statistics(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
     let decompressed =
         utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
     let pickle_value = serde_pickle::value_from_slice(
@@ -52,5 +52,5 @@ pub fn parse_statistics(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
         })
     }
 
-    Ok(UpdateData::Statistics(res))
+    Ok(ArenaUpdateData::Statistics(res))
 }

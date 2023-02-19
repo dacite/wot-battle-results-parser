@@ -1,10 +1,10 @@
-mod avatar_methods;
+pub(crate) mod avatar_methods;
 pub(crate) mod vehicle_methods;
 // mod vehicle_misc_status;
 
-use avatar_methods::update_arena::UpdateArena;
 use nom::number::complete::le_i32;
 pub use vehicle_methods::*;
+pub use avatar_methods::update_arena::*;
 
 use crate::packet_parser::prelude::*;
 

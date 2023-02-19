@@ -1,7 +1,7 @@
 use serde_pickle::Value as PickleVal;
 use wot_types::{ArenaPeriod, FinishReason};
 
-use super::{parse_value, UpdateData};
+use super::{parse_value, ArenaUpdateData};
 use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Version)]
@@ -24,7 +24,7 @@ pub struct Period {
     pub additional_info: PeriodAdditionalInfo,
 }
 
-pub fn parse_period(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+pub fn parse_period(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
     let decompressed =
         utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
     let pickle_value = serde_pickle::value_from_slice(
@@ -67,5 +67,5 @@ pub fn parse_period(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
         additional_info,
     };
 
-    Ok(UpdateData::Period(period))
+    Ok(ArenaUpdateData::Period(period))
 }

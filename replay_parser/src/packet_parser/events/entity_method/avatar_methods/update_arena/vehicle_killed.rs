@@ -1,7 +1,7 @@
 use serde_pickle::Value as PickleVal;
 use wot_types::AttackReason;
 
-use super::{parse_value, UpdateData};
+use super::{parse_value, ArenaUpdateData};
 use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Version)]
@@ -15,7 +15,7 @@ pub struct VehicleKilled {
     pub num_vehicles_affected: Option<i32>,
 }
 
-pub fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+pub fn parse_vehicle_killed(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
     let pickle_value = serde_pickle::value_from_slice(
         arena_data,
         serde_pickle::DeOptions::new().replace_unresolved_globals(),
@@ -41,5 +41,5 @@ pub fn parse_vehicle_killed(arena_data: &[u8]) -> Result<UpdateData, PacketError
         num_vehicles_affected,
     };
 
-    Ok(UpdateData::VehicleKilled(vehicle_killed))
+    Ok(ArenaUpdateData::VehicleKilled(vehicle_killed))
 }

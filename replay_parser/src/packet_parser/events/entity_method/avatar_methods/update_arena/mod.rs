@@ -25,11 +25,11 @@ use crate::packet_parser::serde_packet;
 #[derive(Debug, Clone, Serialize)]
 pub struct UpdateArena {
     pub update_type: ArenaUpdate,
-    pub update_data: UpdateData,
+    pub update_data: ArenaUpdateData,
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub enum UpdateData {
+pub enum ArenaUpdateData {
     VehicleList(Vec<VehicleData>),
     AvatarReady(AvatarReady),
     VehicleKilled(VehicleKilled),
@@ -64,7 +64,7 @@ impl UpdateArena {
             Period => parse_period(arena_data)?,
             VehicleDescr => parse_vehicle_descr(arena_data)?,
             FogOfWar => parse_fog_of_war(arena_data)?,
-            _ => UpdateData::Unimplemented,
+            _ => ArenaUpdateData::Unimplemented,
         };
 
         Ok(UpdateArena {

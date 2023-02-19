@@ -3,7 +3,7 @@ use serde_pickle::Value as PickleVal;
 use super::{
     parse_truthy_value, parse_value,
     vehicle_descr::{parse_compact_descr, VehicleCompactDescr},
-    UpdateData,
+    ArenaUpdateData,
 };
 use crate::packet_parser::prelude::*;
 
@@ -21,7 +21,7 @@ pub struct VehicleData {
     pub pre_battle_id:         i64,
 }
 
-pub fn parse_vehicle_list(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+pub fn parse_vehicle_list(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
     let decompressed =
         utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
     let pickle_value = serde_pickle::value_from_slice(
@@ -57,5 +57,5 @@ pub fn parse_vehicle_list(arena_data: &[u8]) -> Result<UpdateData, PacketError> 
 
         vehicle_list.push(vehicle_data);
     }
-    Ok(UpdateData::VehicleList(vehicle_list))
+    Ok(ArenaUpdateData::VehicleList(vehicle_list))
 }

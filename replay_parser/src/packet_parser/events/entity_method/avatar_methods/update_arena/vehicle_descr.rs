@@ -1,6 +1,6 @@
 use serde_pickle::Value as PickleVal;
 
-use super::{parse_value, UpdateData};
+use super::{parse_value, ArenaUpdateData};
 use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Clone, Serialize)]
@@ -54,7 +54,7 @@ pub struct VehicleDescr {
     pub max_health:    i32,
 }
 
-pub fn parse_vehicle_descr(arena_data: &[u8]) -> Result<UpdateData, PacketError> {
+pub fn parse_vehicle_descr(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
     let pickle_value = serde_pickle::value_from_slice(
         arena_data,
         serde_pickle::DeOptions::new().replace_unresolved_globals(),
@@ -70,7 +70,7 @@ pub fn parse_vehicle_descr(arena_data: &[u8]) -> Result<UpdateData, PacketError>
         )));
     };
 
-    Ok(UpdateData::VehicleDescr(VehicleDescr {
+    Ok(ArenaUpdateData::VehicleDescr(VehicleDescr {
         vehicle_id: parse_value(0, &thing)?,
         compact_descr,
         max_health: parse_value(2, &thing)?,
