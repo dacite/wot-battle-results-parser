@@ -17,7 +17,6 @@ pub use packet_parser::Packet;
 pub use packet_parser::PacketError;
 pub use packet_parser::PacketParser;
 pub use packet_parser::PacketStream;
-pub use packet_parser::VERSIONS;
 
 mod battle_context;
 pub use battle_context::BattleContext;
@@ -33,3 +32,4 @@ pub mod wot_types {
 }
 
 mod entity_defs;
+pub use entity_defs::VERSIONS;

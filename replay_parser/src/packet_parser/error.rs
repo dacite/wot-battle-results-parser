@@ -1,5 +1,7 @@
 use std::{num::ParseIntError, str::Utf8Error, string::FromUtf8Error};
 
+use crate::entity_defs::EntityType;
+
 #[derive(Debug, thiserror::Error, Clone)]
 pub enum PacketError {
     #[error("{0}: incomplete input")]
@@ -33,6 +35,13 @@ pub enum PacketError {
         method_data: String,
         method_id:   i32,
         method_name: String,
+        root_cause:  String,
+    },
+
+    #[error("entity_type={entity_type}, property={property} root_cause={root_cause}")]
+    EntityPropertyError {
+        entity_type: EntityType,
+        property:    String,
         root_cause:  String,
     },
 

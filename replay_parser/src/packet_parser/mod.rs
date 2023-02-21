@@ -67,14 +67,15 @@ pub use event::PacketParser;
 
 pub mod types;
 
-/// This prelude is to be used by code inside the events module
-mod prelude {
+pub(crate) mod prelude {
     pub(crate) use macros::{EventPrinter, Version};
     pub(crate) use serde::{Deserialize, Serialize};
 
     pub(crate) use super::event::{BattleEvent, EventPrinter, PacketParser, TrackVersion, VersionInfo};
-    pub(crate) use super::from_slice;
-    pub(crate) use super::from_slice_unchecked;
+    
+    pub(crate) use super::serde_packet::{
+        from_slice, from_slice_prim, from_slice_unchecked,
+    };
     pub(crate) use super::types::Vector3;
     pub(crate) use super::Context;
     pub(crate) use super::{Packet, PacketError};

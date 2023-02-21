@@ -1,7 +1,7 @@
 use nom::number::complete::{le_i32, le_u32};
 use serde::Deserializer;
 
-use crate::entity_defs::{EntityProperty, EntityType, VariantDeserializer};
+use crate::entity_defs::{EntityProperty, EntityType, PropertyParser, VariantDeserializer};
 use crate::packet_parser::{prelude::*, serde_packet};
 
 #[derive(Debug, Clone, EventPrinter, Version, Deserialize, Serialize)]
@@ -36,15 +36,21 @@ impl PacketParser for EntityPropertyEvent {
             .find_property(&version, property_id as usize)
             .map_err(PacketError::NotFoundError)?;
 
-        let property = if let Some(discrim) = discrim {
-            let property = parse_property(&entity_type, discrim, &mut d)?;
-            if !d.is_empty() {
-                return Err(PacketError::UnconsumedInput);
-            }
-            property
-        } else {
-            None
-        };
+        let property =
+            if let Some(discrim) = discrim {
+                let property = parse_property(entity_type, remaining, context.get_version(), discrim)
+                    .map_err(|err| PacketError::EntityPropertyError {
+                        entity_type,
+                        property: discrim.into(),
+                        root_cause: err.to_string(),
+                    })?;
+                // if !d.is_empty() {
+                //     return Err(PacketError::UnconsumedInput);
+                // }
+                property
+            } else {
+                None
+            };
 
 
         Ok(BattleEvent::EntityProperty(EntityPropertyEvent {
@@ -54,21 +60,17 @@ impl PacketParser for EntityPropertyEvent {
     }
 }
 
-pub fn parse_property<'de, D>(
-    ent_type: &EntityType, discrim: &'static str, d: D,
-) -> Result<Option<EntityProperty>, PacketError>
-where
-    D: Deserializer<'de>,
-{
+pub fn parse_property(
+    ent_type: EntityType, input: &[u8], version: [u16; 4], discrim: &'static str,
+) -> Result<Option<EntityProperty>, PacketError> {
     use EntityProperty::*;
     use EntityType::*;
 
-    let err = |err: D::Error| PacketError::DeserializeError(err.to_string());
-
     let prop = match ent_type {
-        Avatar => Some(AvatarProperties(
-            VariantDeserializer::deserialize_variant(discrim, d).map_err(err)?,
-        )),
+        // Avatar => Some(AvatarProperties(
+        //     VariantDeserializer::deserialize_variant(discrim, d).map_err(err)?,
+        // )),
+        Vehicle => Some(VehicleProperties(PropertyParser::parse(input, version, discrim)?)),
         _ => None,
     };
 

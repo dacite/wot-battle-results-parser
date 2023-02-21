@@ -1,8 +1,8 @@
 use phf::phf_map;
-use serde::{Deserialize, Serialize};
 use EntityType::*;
 
-use super::AVATAR_PROPS;
+use super::{AVATAR_PROPS, VEHICLE_PROPS};
+use crate::packet_parser::prelude::*;
 
 #[derive(Debug, Serialize, Copy, Clone, Deserialize, strum::Display)]
 pub enum EntityType {
@@ -136,6 +136,7 @@ impl EntityType {
 
         match self {
             Self::Avatar => find_in(&AVATAR_PROPS).ok_or_else(not_found_error).map(Some),
+            Self::Vehicle => find_in(&VEHICLE_PROPS).ok_or_else(not_found_error).map(Some),
             _ => Ok(None),
         }
     }
