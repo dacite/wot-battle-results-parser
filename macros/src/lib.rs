@@ -30,7 +30,7 @@ pub fn to_version_derive(input: TokenStream) -> TokenStream {
     version_derive::imp_version_macro(&ast)
 }
 
-#[proc_macro_derive(EnumVariantDeserialize, attributes(evd))]
+#[proc_macro_derive(EnumVariantDeserialize, attributes(variant_de))]
 pub fn to_enum_variant_deserialize_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
     enum_variant_deserialize::imp_enum_variant_deserialize_macro(&ast)
