@@ -10,8 +10,9 @@ pub struct VehicleStatistics {
 }
 
 pub fn parse_vehicle_statistics(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
-    let decompressed =
-        utils::decompress_vec(arena_data, |err| PacketError::ConversionError{ err: err.to_string()})?;
+    let decompressed = utils::decompress_vec(arena_data, |err| PacketError::ConversionError {
+        err: err.to_string(),
+    })?;
     let pickle_value = serde_pickle::value_from_slice(
         &decompressed,
         serde_pickle::DeOptions::new().replace_unresolved_globals(),
@@ -29,8 +30,9 @@ pub fn parse_vehicle_statistics(arena_data: &[u8]) -> Result<ArenaUpdateData, Pa
 }
 
 pub fn parse_statistics(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
-    let decompressed =
-        utils::decompress_vec(arena_data, |err| PacketError::ConversionError{ err: err.to_string()})?;
+    let decompressed = utils::decompress_vec(arena_data, |err| PacketError::ConversionError {
+        err: err.to_string(),
+    })?;
     let pickle_value = serde_pickle::value_from_slice(
         &decompressed,
         serde_pickle::DeOptions::new().replace_unresolved_globals(),

@@ -15,8 +15,8 @@ impl MethodParser for AvatarMethods {
         let version = context.get_version();
         let version_str = crate::utils::version_as_string(version);
 
-        let not_found_err = |err_msg| {
-            PacketError::NotFoundError{ err: format!("{err_msg} version={version_str} method_id={method_id}") }
+        let not_found_err = |err_msg| PacketError::NotFoundError {
+            err: format!("{err_msg} version={version_str} method_id={method_id}"),
         };
 
         let methods = AVATAR_METHODS
@@ -28,9 +28,15 @@ impl MethodParser for AvatarMethods {
             .ok_or_else(|| not_found_err("method not found"))?;
 
         let method = match *discrim {
-            "UpdateArena" => AvatarMethods::UpdateArena(UpdateArena::from(input, version)?),
-            _ => VariantDeserializer::deserialize_variant(discrim, input, &context)?,
-        };
+            "UpdateArena" => Ok(AvatarMethods::UpdateArena(UpdateArena::from(input, version)?)),
+            _ => VariantDeserializer::deserialize_variant(discrim, input, &context),
+        }.map_err(|err| {
+            PacketError::EntityMethodError {
+                entity_type: AvatarMethods::entity_type(),
+                method:      discrim,
+                root_cause:  err.to_string(),
+            }
+        })?;
 
         Ok(super::EntityMethod::Avatar(method))
     }

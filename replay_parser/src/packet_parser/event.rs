@@ -28,13 +28,16 @@ impl BattleEvent {
     /// Parse packet to a Battle event. Optional context is provided to aid in parsing some particular
     /// packets.
     pub fn parse(packet: &Packet, context: &mut Context) -> Result<BattleEvent, ReplayError> {
+        let v = context.get_version();
+
         let event_result = match packet.packet_type() {
             0x00 => AvatarCreate::parse_mut(packet, context),
             0x05 => EntityCreate::parse_mut(packet, context),
             0x07 => EntityPropertyEvent::parse(packet, context),
             0x08 => EntityMethodEvent::parse(packet, context),
             0x0A => Position::parse(packet, context),
-            0x18 => GameVersion::parse(packet, context),
+            0x14 if v <= [0, 9, 13, 0] => GameVersion::parse(packet, context),
+            0x18 if v > [0, 9, 13, 0] => GameVersion::parse(packet, context),
             0x23 => Chat::parse(packet, context),
             0x3D => CryptoKey::parse(packet, context),
             _ => Ok(BattleEvent::Unimplemented),

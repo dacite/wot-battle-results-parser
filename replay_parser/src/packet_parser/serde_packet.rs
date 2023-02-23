@@ -246,7 +246,9 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
         let (remaining, len) = le_u8(self.input)?;
 
         if (len as usize) > remaining.len() {
-            return Err(PacketError::IncompleteInput { err: "string length is too large".into()});
+            return Err(PacketError::IncompleteInput {
+                err: "string length is too large".into(),
+            });
         }
 
         let str_vec = &remaining[..(len as usize)];

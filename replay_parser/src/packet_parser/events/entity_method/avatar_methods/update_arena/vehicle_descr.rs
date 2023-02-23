@@ -65,9 +65,9 @@ pub fn parse_vehicle_descr(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketE
     let compact_descr = if let PickleVal::Bytes(compact_descr) = thing.get(1).unwrap() {
         parse_compact_descr(compact_descr.clone())
     } else {
-        return Err(PacketError::PickleError{ err: format!(
-            "Invalid vehicle compact description"
-        )});
+        return Err(PacketError::PickleError {
+            err: format!("Invalid vehicle compact description"),
+        });
     };
 
     Ok(ArenaUpdateData::VehicleDescr(VehicleDescr {

@@ -29,11 +29,12 @@ impl Context {
     }
 
     pub fn find_entity_type(&self, entity_id: i32) -> Result<EntityType, PacketError> {
-        self.entities.get(&entity_id).copied().ok_or_else(|| {
-            PacketError::NotFoundError{ err: format!(
-                "entity with id: {entity_id} not found for current replay context"
-            ) }
-        })
+        self.entities
+            .get(&entity_id)
+            .copied()
+            .ok_or_else(|| PacketError::NotFoundError {
+                err: format!("entity with id: {entity_id} not found for current replay context"),
+            })
     }
 
     pub fn add_entity(&mut self, entity_id: i32, entity_type: EntityType) {

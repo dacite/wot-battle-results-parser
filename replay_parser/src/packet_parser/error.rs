@@ -1,40 +1,38 @@
 use std::{num::ParseIntError, str::Utf8Error, string::FromUtf8Error};
 
-use crate::entity_defs::EntityType;
 use snafu::prelude::*;
+
+use crate::entity_defs::EntityType;
 #[derive(Debug, Snafu, Clone)]
 pub enum PacketError {
     #[snafu(display("{err}: incomplete input"))]
-    IncompleteInput{ err: String },
+    IncompleteInput { err: String },
 
     #[snafu(display("packet should be fully consumed after deserializing"))]
     UnconsumedInput,
 
     #[snafu(display("nom error: {err}"))]
-    NomError{err: String},
+    NomError { err: String },
 
     #[snafu(display("{err}"))]
-    StringUtf8Error{err: String},
+    StringUtf8Error { err: String },
 
     #[snafu(display("temporary error to catch incorrect usage of serde_packet deserializer"))]
     IncorrectUsage,
 
     #[snafu(display("{err}"))]
-    ParseIntError{ err: ParseIntError } ,
+    ParseIntError { err: ParseIntError },
 
     #[snafu(display("{err}"))]
-    ConversionError{err: String},
+    ConversionError { err: String },
 
     #[snafu(display("{err}"))]
-    DataError{err: String},
+    DataError { err: String },
 
-    #[snafu(display(
-        "entity method {method_name}[ID: {method_id}] parse failed: {root_cause}. given data: {method_data}"
-    ))]
+    #[snafu(display("entity_type={entity_type}, method={method} root_cause={root_cause}"))]
     EntityMethodError {
-        method_data: String,
-        method_id:   i32,
-        method_name: String,
+        entity_type: EntityType,
+        method:      &'static str,
         root_cause:  String,
     },
 
@@ -46,16 +44,16 @@ pub enum PacketError {
     },
 
     #[snafu(display("Expected variant: {err}"))]
-    WrongEnumVariant{ err: String },
+    WrongEnumVariant { err: String },
 
     #[snafu(display("Pickle error: {err}"))]
-    PickleError{ err: String },
+    PickleError { err: String },
 
     #[snafu(display("Deserialize error: {err}"))]
-    DeserializeError{ err: String },
+    DeserializeError { err: String },
 
     #[snafu(display("Not found: {err}"))]
-    NotFoundError{ err: String },
+    NotFoundError { err: String },
 
     #[snafu(display("size marker says {expected} bytes but {actual} bytes remaining"))]
     IncorrectSizeMarker { expected: usize, actual: usize },
@@ -87,7 +85,7 @@ impl serde::de::Error for PacketError {
 impl From<nom::Err<PacketError>> for PacketError {
     fn from(err: nom::Err<PacketError>) -> Self {
         match err {
-            nom::Err::Incomplete(_) => PacketError::IncompleteInput{ err: "nom".into() },
+            nom::Err::Incomplete(_) => PacketError::IncompleteInput { err: "nom".into() },
             nom::Err::Error(error) => error,
             nom::Err::Failure(error) => error,
         }
@@ -97,8 +95,10 @@ impl From<nom::Err<PacketError>> for PacketError {
 impl<T> nom::error::ParseError<T> for PacketError {
     fn from_error_kind(_: T, kind: nom::error::ErrorKind) -> Self {
         match kind {
-            nom::error::ErrorKind::Eof => PacketError::IncompleteInput{ err: "nom".into()},
-            _ => PacketError::NomError{ err: kind.description().to_string() }
+            nom::error::ErrorKind::Eof => PacketError::IncompleteInput { err: "nom".into() },
+            _ => PacketError::NomError {
+                err: kind.description().to_string(),
+            },
         }
     }
 
@@ -109,25 +109,25 @@ impl<T> nom::error::ParseError<T> for PacketError {
 
 impl From<Utf8Error> for PacketError {
     fn from(err: Utf8Error) -> Self {
-        PacketError::StringUtf8Error{ err: err.to_string() }
+        PacketError::StringUtf8Error { err: err.to_string() }
     }
 }
 
 
 impl From<FromUtf8Error> for PacketError {
     fn from(err: FromUtf8Error) -> Self {
-        PacketError::StringUtf8Error{ err: err.to_string() }
+        PacketError::StringUtf8Error { err: err.to_string() }
     }
 }
 
 impl From<ParseIntError> for PacketError {
     fn from(err: ParseIntError) -> Self {
-        PacketError::ParseIntError{ err }
+        PacketError::ParseIntError { err }
     }
 }
 
 impl From<serde_pickle::Error> for PacketError {
     fn from(err: serde_pickle::Error) -> Self {
-        PacketError::PickleError{ err: err.to_string() }
+        PacketError::PickleError { err: err.to_string() }
     }
 }
