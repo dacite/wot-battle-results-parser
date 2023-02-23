@@ -36,6 +36,7 @@ enum_dispatch = "0.3.8"
 utils = { package = "wot-battle-results-parser-utils", version = "0.2.0"}
 pyo3 = { version = "0.17.3", features = ["extension-module"], optional = true }
 strum = { version = "0.24", features = ["derive"] }
+snafu = "0.7.4"
 
 [build-dependencies]
 phf_codegen = "0.11.0"

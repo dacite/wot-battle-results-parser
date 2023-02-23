@@ -16,7 +16,7 @@ impl MethodParser for AvatarMethods {
         let version_str = crate::utils::version_as_string(version);
 
         let not_found_err = |err_msg| {
-            PacketError::NotFoundError(format!("{err_msg} version={version_str} method_id={method_id}"))
+            PacketError::NotFoundError{ err: format!("{err_msg} version={version_str} method_id={method_id}") }
         };
 
         let methods = AVATAR_METHODS

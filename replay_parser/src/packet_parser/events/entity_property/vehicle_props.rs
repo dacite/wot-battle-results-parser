@@ -15,9 +15,9 @@ impl PropertyParser for VehicleProperties {
         let version_str = crate::utils::version_as_string(version);
 
         let not_found_err = |err_msg| {
-            PacketError::NotFoundError(format!(
+            PacketError::NotFoundError{ err: format!(
                 "{err_msg} version={version_str} property_id={property_id}"
-            ))
+            )}
         };
 
         let props = VEHICLE_PROPS

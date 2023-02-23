@@ -44,7 +44,7 @@ pub fn parse_vehicle_data(vehicle_data: Vec<PickleVal>) -> Result<VehicleData, P
 
 pub fn parse_vehicle_list(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
     let decompressed =
-        utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
+        utils::decompress_vec(arena_data, |err| PacketError::ConversionError{ err: err.to_string()})?;
     let pickle_value = serde_pickle::value_from_slice(
         &decompressed,
         serde_pickle::DeOptions::new().replace_unresolved_globals(),

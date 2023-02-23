@@ -24,6 +24,16 @@ pub fn get_replay_time(start_time: f64, current_time: f64, duration: i64) -> Str
     )
 }
 
+// pub fn decompress_and_unpickle(input: &[u8]) -> Result<serde_pickle::Value, String> {
+
+// }
+pub fn unpickle(input: &[u8]) -> Result<serde_pickle::Value, String> {
+    serde_pickle::value_from_slice(
+        &input,
+        serde_pickle::DeOptions::new().replace_unresolved_globals(),
+    ).map_err(|err| err.to_string())
+}
+
 pub fn as_map<'a>(path: &'static str, json: &'a JsonVal) -> Result<&'a Map<String, JsonVal>, ReplayError> {
     json.pointer(path)
         .ok_or(ReplayError::JsonPathError(path))?

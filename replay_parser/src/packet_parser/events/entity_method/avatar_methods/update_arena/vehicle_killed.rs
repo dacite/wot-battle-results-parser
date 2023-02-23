@@ -33,7 +33,7 @@ pub fn parse_vehicle_killed(arena_data: &[u8]) -> Result<ArenaUpdateData, Packet
 
     let vehicle_killed = VehicleKilled {
         attack_reason: AttackReason::try_from(attack_reason as i32).map_err(|_| {
-            PacketError::WrongEnumVariant(format!("arena attack reason of {attack_reason} is invalid"))
+            PacketError::WrongEnumVariant{ err: format!("arena attack reason of {attack_reason} is invalid") }
         })?,
         victim_id: parse_value(0, &thing)?,
         killer_id: parse_value(1, &thing)?,

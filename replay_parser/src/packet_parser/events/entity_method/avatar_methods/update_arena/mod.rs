@@ -55,7 +55,7 @@ impl UpdateArena {
         let (_remaining, arena_data) = serde_packet::parse_byte_array(remaining)?;
 
         let update_type = ArenaUpdate::try_from(update_type as i32).map_err(|_| {
-            PacketError::ConversionError(format!("Unable to parse {update_type} into ArenaUpdate"))
+            PacketError::ConversionError{ err: format!("Unable to parse {update_type} into ArenaUpdate") }
         })?;
 
         use ArenaUpdate::*;
@@ -85,22 +85,22 @@ impl UpdateArena {
 fn parse_value<'de, T: Deserialize<'de>>(index: usize, pickle_val: &[PickleVal]) -> Result<T, PacketError> {
     let pickle_val = pickle_val
         .get(index)
-        .ok_or_else(|| PacketError::PickleError(format!("Cannot get index: {index}")))?
+        .ok_or_else(|| PacketError::PickleError{ err: format!("Cannot get index: {index}")})?
         .clone();
 
-    serde_pickle::from_value(pickle_val).map_err(|err| PacketError::PickleError(err.to_string()))
+    serde_pickle::from_value(pickle_val).map_err(|err| PacketError::PickleError{ err: err.to_string()})
 }
 
 fn parse_truthy_value(index: usize, pickle_val: &[PickleVal]) -> Result<i64, PacketError> {
     let pickle_val = pickle_val
         .get(index)
-        .ok_or_else(|| PacketError::PickleError(format!("Cannot get index: {index}")))?;
+        .ok_or_else(|| PacketError::PickleError{ err: format!("Cannot get index: {index}")})?;
 
     match pickle_val {
         PickleVal::Bool(value) => Ok(*value as i64),
         PickleVal::I64(value) => Ok(*value),
-        _ => Err(PacketError::PickleError(
+        _ => Err(PacketError::PickleError{err:
             "Pickle error: expected value to be boolean or integer".into(),
-        )),
+    }),
     }
 }
