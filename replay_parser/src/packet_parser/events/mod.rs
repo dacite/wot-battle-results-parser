@@ -24,4 +24,5 @@ mod crypto_key;
 pub use crypto_key::CryptoKey;
 
 mod entity_property;
+pub use entity_property::EntityProperty;
 pub use entity_property::EntityPropertyEvent;

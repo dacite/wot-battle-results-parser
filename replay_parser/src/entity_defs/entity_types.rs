@@ -192,7 +192,7 @@ pub static ENTITY_TYPE_MAP: phf::Map<&str, &'static [EntityType]> = phf_map! {
 };
 
 pub fn find_entity_type(version: &str, entity_type_id: usize) -> Option<EntityType> {
-    // Bigword uses non-zero index hence why we subtract 1
+    // Bigword uses non-zero index here, that is why we subtract 1
     ENTITY_TYPE_MAP
         .get(version)
         .and_then(|ent_array| ent_array.get(entity_type_id - 1).copied())

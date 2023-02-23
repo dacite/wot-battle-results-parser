@@ -1,4 +1,66 @@
-use crate::packet_parser::prelude::*;
+use super::MethodParser;
+use crate::{entity_defs::VEHICLE_METHODS, packet_parser::prelude::*};
+
+#[derive(Debug, Clone, Serialize, macros::EnumVariantDeserialize)]
+#[non_exhaustive]
+pub enum VehicleMethods {
+    OnDropCapturePointsOnDamagedByEnemy,
+    OnExtraHitted,
+    OnFestivalRaceRepair,
+
+    #[variant_de(delegate)]
+    OnHealthChanged(OnHealthChanged),
+
+    OnPushed,
+
+    #[variant_de(delegate)]
+    OnStaticCollision(OnStaticCollision),
+
+    OnVehiclePickup,
+    ReceiveHorn,
+    ShowAmmoBayEffect,
+
+    #[variant_de(delegate)]
+    ShowDamageFromExplosion(ShowDamageFromExplosion),
+
+    #[variant_de(delegate)]
+    ShowDamageFromShot(ShowDamageFromShot),
+
+    ShowNotDamage,
+    ShowRammingEffect,
+
+    #[variant_de(delegate)]
+    ShowShooting(ShowShooting),
+
+    UpdateLaserSight,
+}
+
+impl MethodParser for VehicleMethods {
+    fn parse(input: &[u8], method_id: usize, context: &Context) -> Result<super::EntityMethod, PacketError>
+    where
+        Self: Sized,
+    {
+        let version = context.get_version();
+        let version_str = crate::utils::version_as_string(version);
+
+        let not_found_err = |err_msg| {
+            PacketError::NotFoundError(format!("{err_msg} version={version_str} method_id={method_id}"))
+        };
+
+        let methods = VEHICLE_METHODS
+            .get(&version_str)
+            .ok_or_else(|| not_found_err("version not found"))?;
+
+        let discrim = methods
+            .get(method_id)
+            .ok_or_else(|| not_found_err("method not found"))?;
+
+
+        let method = VariantDeserializer::deserialize_variant(discrim, input, &context)?;
+
+        Ok(super::EntityMethod::Vehicle(method))
+    }
+}
 
 /// Ex: Your teammate hits an enemy. Another ex: You get shot by artillery.
 #[derive(Serialize, Deserialize, Debug, Clone, Version)]

@@ -24,7 +24,7 @@ pub fn imp_enum_variant_deserialize_macro(ast: &syn::DeriveInput) -> TokenStream
                 }
                 match attrs.get(0){
                     Some(s) if s == "delegate" => quote!(Ok(Self::#name(crate::packet_parser::prelude::from_slice(input, context.get_version())?))),
-                    Some(s) if s == "manual" => unreachable!("You should've specified manual parser for "),
+                    Some(s) if s == "manual" => quote!(unreachable!("You should've specified manual parser for {}", stringify!(#name))),
                     Some(_) => panic!("Unknown args"),
                     None => quote!(Ok(Self::#name(crate::packet_parser::prelude::from_slice_prim(input, context.get_version())?)))
                 }
@@ -39,13 +39,13 @@ pub fn imp_enum_variant_deserialize_macro(ast: &syn::DeriveInput) -> TokenStream
 
     let gen = quote! {
         impl VariantDeserializer for #enum_name {
-            fn deserialize_variant(discim: &'static str, input: &[u8], context: crate::Context) -> core::result::Result<Self, crate::PacketError>
+            fn deserialize_variant(discrim: &'static str, input: &[u8], context: &crate::Context) -> core::result::Result<Self, crate::PacketError>
             where
                 Self: Sized
             {
-                match discim {
+                match discrim {
                     #(#match_statements)*
-                    _ => unreachable!("Cannot reach")
+                    _ => panic!("{} is not found in match statement", discrim)
                 }
             }
         }
