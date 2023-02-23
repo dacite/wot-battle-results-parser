@@ -99,11 +99,13 @@ pub fn get_player_list(parser: &ReplayParser) -> Result<HashMap<i32, String>, Re
 
 /// Validate this version by checking if we have definition files for this version. If not return version
 /// closest to the input version
-pub fn validate_version(version: [u16; 4]) -> [u16; 4] {
+pub fn validate_version(mut version: [u16; 4]) -> [u16; 4] {
+    version[3] = 0; // There is no reason to check the last part of the version so we set to zero
+
     let mut smallest_diff = [u16::MAX, u16::MAX, u16::MAX, u16::MAX];
     let mut best_candidate = version;
 
-    for &curr_version in VERSIONS.iter() {
+    for &curr_version in VERSIONS {
         let diff = [
             version[0].abs_diff(curr_version[0]),
             version[1].abs_diff(curr_version[1]),

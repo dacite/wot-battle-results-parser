@@ -1,14 +1,13 @@
 use std::collections::HashMap;
 
-use crate::utils::validate_version;
-
+use crate::{entity_defs::EntityType, utils::validate_version, PacketError};
 // This file contains information regarding method calls for different replay versions. This is
 // generated during the build process
 include!(concat!(env!("OUT_DIR"), "/method_map_codegen.rs"));
 
 #[derive(Default, Debug)]
 pub struct Context {
-    entities: HashMap<i32, String>,
+    entities: HashMap<i32, EntityType>,
     players:  HashMap<i32, String>,
     version:  [u16; 4],
 }
@@ -29,22 +28,28 @@ impl Context {
         self.version
     }
 
-    pub fn add_entity(&mut self, entity_id: i32, entity_name: &str) {
-        // let entity = Entity::new(entity_name, self.version, self.type_aliases.clone()).unwrap();
+    pub fn find_entity_type(&self, entity_id: i32) -> Result<EntityType, PacketError> {
+        self.entities.get(&entity_id).copied().ok_or_else(|| {
+            PacketError::NotFoundError(format!(
+                "entity with id: {entity_id} not found for current replay context"
+            ))
+        })
+    }
 
-        self.entities.insert(entity_id, entity_name.to_string());
+    pub fn add_entity(&mut self, entity_id: i32, entity_type: EntityType) {
+        self.entities.insert(entity_id, entity_type);
     }
 
     pub fn find_method(&self, entity_id: i32, method_id: i32) -> Option<&str> {
         let entity_name = if let Some(name) = self.entities.get(&entity_id) {
-            name
+            name.to_string()
         } else {
-            "Vehicle"
+            EntityType::Vehicle.to_string()
         };
 
         let version_str = crate::utils::version_as_string(self.version);
 
-        find_method(entity_name, &version_str, method_id)
+        find_method(&entity_name, &version_str, method_id)
     }
 
     pub fn find_player(&self, id: i32) -> Option<String> {
@@ -55,5 +60,6 @@ impl Context {
 
 pub fn find_method(entity_name: &str, version_str: &str, method_id: i32) -> Option<&'static str> {
     let key = format!("{entity_name} {version_str} {method_id}");
+    println!("key={key}");
     METHOD_MAP.get(&key).copied()
 }

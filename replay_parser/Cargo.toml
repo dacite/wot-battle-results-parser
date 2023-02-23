@@ -29,12 +29,13 @@ serde-pickle = "1.1.0"
 serde_bytes = "0.11.6"
 bimap = "0.6.2"
 tracing = "0.1.35"
-phf = "0.11.0"
+phf = { version = "0.11.0", features = ["macros"] }
 blowfish = "0.9.1"
 serde_with = { version = "1.12.0", features = ["hex"]}
 enum_dispatch = "0.3.8"
 utils = { package = "wot-battle-results-parser-utils", version = "0.2.0"}
 pyo3 = { version = "0.17.3", features = ["extension-module"], optional = true }
+strum = { version = "0.24", features = ["derive"] }
 
 [build-dependencies]
 phf_codegen = "0.11.0"
