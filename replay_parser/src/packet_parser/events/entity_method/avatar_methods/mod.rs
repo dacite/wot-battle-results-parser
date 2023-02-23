@@ -1,7 +1,7 @@
 pub mod update_arena;
 
 use super::{MethodParser, UpdateArena};
-use crate::{entity_defs::AVATAR_METHODS, packet_parser::prelude::*};
+use crate::{entity_defs::{AVATAR_METHODS, EntityType}, packet_parser::prelude::*};
 
 
 impl MethodParser for AvatarMethods {
@@ -165,4 +165,10 @@ pub enum AvatarMethods {
     UpdateVehicleSetting,
     VehicleEnteredLoFEffect,
     WelcomeToSector,
+}
+
+impl AvatarMethods {
+    pub fn entity_type() -> EntityType {
+        EntityType::Avatar
+    }
 }

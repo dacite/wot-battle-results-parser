@@ -1,5 +1,5 @@
 use super::MethodParser;
-use crate::{entity_defs::VEHICLE_METHODS, packet_parser::prelude::*};
+use crate::{entity_defs::{VEHICLE_METHODS, EntityType}, packet_parser::prelude::*};
 
 #[derive(Debug, Clone, Serialize, macros::EnumVariantDeserialize)]
 #[non_exhaustive]
@@ -59,6 +59,12 @@ impl MethodParser for VehicleMethods {
         let method = VariantDeserializer::deserialize_variant(discrim, input, &context)?;
 
         Ok(super::EntityMethod::Vehicle(method))
+    }
+}
+
+impl VehicleMethods {
+    pub fn entity_type() -> EntityType {
+        EntityType::Vehicle
     }
 }
 

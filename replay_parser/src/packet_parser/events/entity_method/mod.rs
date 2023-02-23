@@ -26,7 +26,7 @@ impl PacketParser for EntityMethodEvent {
 
         let (remaining, entity_id) = le_i32(data)?;
         let (remaining, method_id) = le_i32(remaining)?;
-        let (method_data, size) = le_i32(remaining)?;
+        let (method_data, _size) = le_i32(remaining)?;
 
         let entity_type = context.find_entity_type(entity_id)?;
         let method_id = method_id as usize;

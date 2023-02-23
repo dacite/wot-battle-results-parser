@@ -1,5 +1,5 @@
 use super::{EntityProperty, PropertyParser};
-use crate::{entity_defs::AVATAR_PROPS, packet_parser::prelude::*};
+use crate::{entity_defs::{AVATAR_PROPS, EntityType}, packet_parser::prelude::*};
 
 impl PropertyParser for AvatarProperties {
     fn parse(
@@ -88,6 +88,13 @@ pub enum AvatarProperties {
     TkillIsSuspected(u8),
     WeatherPresetID(u8),
 }
+
+impl AvatarProperties {
+    pub fn entity_type() -> EntityType {
+        EntityType::Avatar
+    }
+}
+
 
 #[derive(Clone, Debug, Serialize, Deserialize, macros::Version)]
 pub struct AmmoViews {

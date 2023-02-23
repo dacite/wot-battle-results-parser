@@ -1,6 +1,6 @@
 use serde::de;
 
-use crate::entity_defs::{find_entity_type, EntityType, ENTITY_TYPE_MAP};
+use crate::entity_defs::find_entity_type;
 use crate::packet_parser::prelude::*;
 use crate::utils;
 use crate::wot_types::WotValue;

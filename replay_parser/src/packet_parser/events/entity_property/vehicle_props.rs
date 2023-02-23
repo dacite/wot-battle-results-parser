@@ -1,5 +1,5 @@
 use super::{EntityProperty, PropertyParser};
-use crate::{entity_defs::VEHICLE_PROPS, packet_parser::prelude::*};
+use crate::{entity_defs::{VEHICLE_PROPS, EntityType}, packet_parser::prelude::*};
 
 impl PropertyParser for VehicleProperties {
     fn parse(
@@ -112,6 +112,12 @@ pub enum VehicleProperties {
     VehPostProgression(Vec<i32>),
     WheelsScroll(Vec<u8>),
     WheelsState(u64),
+}
+
+impl VehicleProperties {
+    pub fn entity_type() -> EntityType {
+        EntityType::Vehicle
+    }
 }
 
 #[derive(Clone, Serialize, Debug, Deserialize, Version)]

@@ -71,7 +71,7 @@ where
     Ok(t)
 }
 
-pub fn from_slice_prim_unchecked<'a, T>(
+pub fn _from_slice_prim_unchecked<'a, T>(
     input: &'a [u8], de_version: [u16; 4],
 ) -> Result<(&'a [u8], T), PacketError>
 where
