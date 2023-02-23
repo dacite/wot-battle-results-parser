@@ -2,10 +2,12 @@ mod avatar_ready;
 mod base;
 mod fog_of_war;
 mod period;
+mod vehicle_added;
 mod vehicle_descr;
 mod vehicle_killed;
 mod vehicle_list;
 mod vehicle_statistics;
+mod vehicle_updated;
 
 use avatar_ready::{parse_avatar_ready, AvatarReady};
 use base::{parse_base_captured, parse_base_points, BaseCaptured, BasePoints};
@@ -13,10 +15,12 @@ use fog_of_war::{parse_fog_of_war, FogOfWar};
 use nom::number::complete::le_u8;
 use period::{parse_period, Period};
 use serde_pickle::Value as PickleVal;
+use vehicle_added::parse_vehicle_added;
 use vehicle_descr::{parse_vehicle_descr, VehicleDescr};
 use vehicle_killed::{parse_vehicle_killed, VehicleKilled};
 use vehicle_list::{parse_vehicle_list, VehicleData};
 use vehicle_statistics::{parse_statistics, parse_vehicle_statistics, VehicleStatistics};
+use vehicle_updated::parse_vehicle_updated;
 use wot_types::ArenaUpdate;
 
 use crate::packet_parser::prelude::*;
@@ -40,6 +44,8 @@ pub enum ArenaUpdateData {
     Period(Period),
     VehicleDescr(VehicleDescr),
     FogOfWar(FogOfWar),
+    VehicleAdded(VehicleData),
+    VehicleUpdated(VehicleData),
     Unimplemented,
 }
 
@@ -64,6 +70,8 @@ impl UpdateArena {
             Period => parse_period(arena_data)?,
             VehicleDescr => parse_vehicle_descr(arena_data)?,
             FogOfWar => parse_fog_of_war(arena_data)?,
+            VehicleAdded => parse_vehicle_added(arena_data)?,
+            VehicleUpdated => parse_vehicle_updated(arena_data)?,
             _ => ArenaUpdateData::Unimplemented,
         };
 
