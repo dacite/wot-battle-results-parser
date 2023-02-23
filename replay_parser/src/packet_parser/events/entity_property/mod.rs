@@ -41,7 +41,7 @@ impl PacketParser for EntityPropertyEvent {
         let (remaining, size) = le_u32(remaining)?;
 
         if remaining.len() != size as usize {
-            return Err(PacketError::UnconsumedInput);
+            return Err(PacketError::incorrect_size(size as usize, remaining.len()));
         }
 
         let entity_type = context.find_entity_type(entity_id)?;

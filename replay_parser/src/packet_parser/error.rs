@@ -41,7 +41,7 @@ pub enum PacketError {
     #[error("entity_type={entity_type}, property={property} root_cause={root_cause}")]
     EntityPropertyError {
         entity_type: EntityType,
-        property:    String,
+        property:    &'static str,
         root_cause:  String,
     },
 
@@ -56,8 +56,24 @@ pub enum PacketError {
 
     #[error("Not found: {0}")]
     NotFoundError(String),
+
+    #[error("size marker says {expected} bytes but {actual} bytes remaining")]
+    IncorrectSizeMarker { expected: usize, actual: usize },
 }
 
+impl PacketError {
+    pub fn incorrect_size(expected: usize, actual: usize) -> Self {
+        Self::IncorrectSizeMarker { expected, actual }
+    }
+
+    pub fn entity_prop_err(entity_type: EntityType, property: &'static str, root_cause: String) -> Self {
+        Self::EntityPropertyError {
+            entity_type,
+            property,
+            root_cause,
+        }
+    }
+}
 
 impl serde::de::Error for PacketError {
     fn custom<T>(_msg: T) -> Self

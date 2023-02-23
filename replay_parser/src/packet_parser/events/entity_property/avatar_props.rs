@@ -1,5 +1,8 @@
 use super::{EntityProperty, PropertyParser};
-use crate::{entity_defs::{AVATAR_PROPS, EntityType}, packet_parser::prelude::*};
+use crate::{
+    entity_defs::{EntityType, AVATAR_PROPS},
+    packet_parser::prelude::*,
+};
 
 impl PropertyParser for AvatarProperties {
     fn parse(

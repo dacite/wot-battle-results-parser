@@ -43,16 +43,10 @@ pub fn imp_enum_variant_deserialize_macro(ast: &syn::DeriveInput) -> TokenStream
             where
                 Self: Sized
             {
-                let result = match discrim {
+                match discrim {
                     #(#match_statements)*
                     _ => panic!("{} is not found in match statement", discrim)
-                };
-
-                result.map_err(|err: PacketError| PacketError::EntityPropertyError {
-                    entity_type: #enum_name::entity_type(),
-                    property:    discrim.into(),
-                    root_cause:  err.to_string(),
-                })
+                }
             }
         }
     };

@@ -1,5 +1,8 @@
 use super::{EntityProperty, PropertyParser};
-use crate::{entity_defs::{VEHICLE_PROPS, EntityType}, packet_parser::prelude::*};
+use crate::{
+    entity_defs::{EntityType, VEHICLE_PROPS},
+    packet_parser::prelude::*,
+};
 
 impl PropertyParser for VehicleProperties {
     fn parse(
@@ -28,7 +31,8 @@ impl PropertyParser for VehicleProperties {
         let property = match *discrim {
             "Debuff" => parse_debuff_values(input, context.get_version()),
             _ => VariantDeserializer::deserialize_variant(discrim, input, &context),
-        }?;
+        }
+        .map_err(|err| PacketError::entity_prop_err(EntityType::Vehicle, discrim, err.to_string()))?;
 
         Ok(EntityProperty::Vehicle(property))
     }

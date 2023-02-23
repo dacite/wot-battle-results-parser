@@ -1,7 +1,10 @@
 pub mod update_arena;
 
 use super::{MethodParser, UpdateArena};
-use crate::{entity_defs::{AVATAR_METHODS, EntityType}, packet_parser::prelude::*};
+use crate::{
+    entity_defs::{EntityType, AVATAR_METHODS},
+    packet_parser::prelude::*,
+};
 
 
 impl MethodParser for AvatarMethods {
