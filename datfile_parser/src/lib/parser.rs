@@ -130,7 +130,7 @@ fn parse_list(
 }
 
 fn decompress_and_load_pickle(input: &PickleValue) -> Result<PickleValue> {
-    let PickleValue::Bytes(input) = input else { panic!() };
+    let PickleValue::Bytes(input) = input else { return Err(Error::PickleFormatError) };
     let decompressed =
         miniz_oxide::inflate::decompress_to_vec_zlib(input).map_err(|_| Error::DecompressionError)?;
 
@@ -140,22 +140,22 @@ fn decompress_and_load_pickle(input: &PickleValue) -> Result<PickleValue> {
 fn parse_root_pickle(root_pickle: PickleValue) -> Result<DatfileFormat> {
     use PickleValue::*;
     // root pickle is a tuple of the shape : (i64, Tuple)
-    let Tuple(root_tuple) = root_pickle else { panic!( )};
+    let Tuple(root_tuple) = root_pickle else { return Err(Error::PickleFormatError) };
 
     // data tuple should contain the following: (arenaUniqueID, [u8], [u8], [u8])
     // the three u8 buffers in this tuple are compressed pickle dumps
-    let [_, Tuple(data_tuple)] = root_tuple.as_slice() else { panic!( )};
+    let [_, Tuple(data_tuple)] = root_tuple.as_slice() else { return Err(Error::PickleFormatError) };
 
     let [I64(arena_unique_id), rest @ ..] = data_tuple.as_slice() else {
-        panic!()
+        return Err(Error::PickleFormatError)
     };
 
     let Some((List(account_self), Dict(vehicle_self), Tuple(multiple))) = rest.into_iter().map(decompress_and_load_pickle).flatten().next_tuple() else {
-        panic!()
+        return Err(Error::PickleFormatError)
     };
 
     let Some((List(common), Dict(player_info), Dict(vehicle_all), Dict(account_all))) = multiple.into_iter().next_tuple() else {
-        panic!()
+        return Err(Error::PickleFormatError)
     };
 
     Ok(DatfileFormat {
@@ -238,7 +238,7 @@ fn to_rust_dict(input: BTreeMap<HashableValue, PickleValue>) -> Result<Dict<Vec<
             PickleValue::List(list) => Ok((key.to_string(), list)),
             PickleValue::Dict(dict) => {
                 let mut dict_iter = dict.into_iter();
-                let (inner_key, PickleValue::List(value)) = dict_iter.next().unwrap() else { panic!()};
+                let Some((inner_key, PickleValue::List(value))) = dict_iter.next() else { return Err(Error::PickleFormatError) };
 
                 Ok((format!("{} {}", key, inner_key), value))
             }
