@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{entity_defs::EntityType, utils::validate_version, PacketError};
-// This file contains information regarding method calls for different replay versions. This is
-// generated during the build process
-include!(concat!(env!("OUT_DIR"), "/method_map_codegen.rs"));
+
 
 #[derive(Default, Debug)]
 pub struct Context {
@@ -41,26 +39,7 @@ impl Context {
         self.entities.insert(entity_id, entity_type);
     }
 
-    pub fn find_method(&self, entity_id: i32, method_id: i32) -> Option<&str> {
-        let entity_name = if let Some(name) = self.entities.get(&entity_id) {
-            name.to_string()
-        } else {
-            EntityType::Vehicle.to_string()
-        };
-
-        let version_str = crate::utils::version_as_string(self.version);
-
-        find_method(&entity_name, &version_str, method_id)
-    }
-
     pub fn find_player(&self, id: i32) -> Option<String> {
         self.players.get(&id).map(Into::into)
     }
-}
-
-
-pub fn find_method(entity_name: &str, version_str: &str, method_id: i32) -> Option<&'static str> {
-    let key = format!("{entity_name} {version_str} {method_id}");
-    println!("key={key}");
-    METHOD_MAP.get(&key).copied()
 }

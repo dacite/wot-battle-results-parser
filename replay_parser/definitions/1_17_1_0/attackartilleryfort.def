@@ -1,9 +1,0 @@
-<AttackArtilleryFort.def>
-  <Parent>	AreaOfEffect	</Parent>
-  <Properties>
-    <team>
-      <Type>	INT32	</Type>
-      <Flags>	ALL_CLIENTS	</Flags>
-    </team>
-  </Properties>
-</AttackArtilleryFort.def>

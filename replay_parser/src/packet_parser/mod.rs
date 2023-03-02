@@ -57,7 +57,6 @@ pub use error::PacketError;
 
 mod context;
 pub use context::Context;
-pub use context::VERSIONS;
 
 mod event;
 pub use event::BattleEvent;
