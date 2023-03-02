@@ -13,7 +13,7 @@ use crate::{events::*, ReplayError};
 #[non_exhaustive]
 // TODO: Box Large structure
 pub enum BattleEvent {
-    Unimplemented,
+    Unimplemented { packet_type: u32, size: usize },
     GameVersion(GameVersion),
     AvatarCreate(AvatarCreate),
     EntityMethod(EntityMethodEvent),
@@ -28,16 +28,22 @@ impl BattleEvent {
     /// Parse packet to a Battle event. Optional context is provided to aid in parsing some particular
     /// packets.
     pub fn parse(packet: &Packet, context: &mut Context) -> Result<BattleEvent, ReplayError> {
+        let v = context.get_version();
+
         let event_result = match packet.packet_type() {
             0x00 => AvatarCreate::parse_mut(packet, context),
             0x05 => EntityCreate::parse_mut(packet, context),
             0x07 => EntityPropertyEvent::parse(packet, context),
             0x08 => EntityMethodEvent::parse(packet, context),
             0x0A => Position::parse(packet, context),
-            0x18 => GameVersion::parse(packet, context),
+            0x14 if v <= [0, 9, 13, 0] => GameVersion::parse(packet, context),
+            0x18 if v > [0, 9, 13, 0] => GameVersion::parse(packet, context),
             0x23 => Chat::parse(packet, context),
             0x3D => CryptoKey::parse(packet, context),
-            _ => Ok(BattleEvent::Unimplemented),
+            packet_type @ _ => Ok(BattleEvent::Unimplemented {
+                packet_type,
+                size: packet.payload().len(),
+            }),
         };
 
         event_result.map_err(|error| ReplayError::PacketParseError {
@@ -48,7 +54,14 @@ impl BattleEvent {
     }
 
     pub fn is_unknown(&self) -> bool {
-        matches!(self, BattleEvent::Unimplemented)
+        matches!(self, BattleEvent::Unimplemented { .. })
+    }
+
+    pub fn entity_property(self) -> Option<EntityProperty> {
+        match self {
+            Self::EntityProperty(EntityPropertyEvent { property, .. }) => Some(property),
+            _ => None,
+        }
     }
 }
 
@@ -91,7 +104,9 @@ impl EventPrinter for BattleEvent {
     {
         use BattleEvent::*;
         match self {
-            Unimplemented => "Unimplemented".to_string(),
+            Unimplemented { packet_type, size } => {
+                format!("Unimplemented packet: {packet_type}, Size: {size}")
+            }
             AvatarCreate(x) => x.to_debug_string(context),
             GameVersion(x) => x.to_debug_string(context),
             EntityMethod(x) => x.to_debug_string(context),

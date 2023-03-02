@@ -42,11 +42,10 @@ impl PacketParser for AvatarCreate {
         let key = utils::version_as_string(version);
         let entity_type_id = avatar_create.entity_type_id;
 
-        let entity_type = find_entity_type(&key, entity_type_id as usize).ok_or_else(|| {
-            PacketError::NotFoundError(format!(
-                "entity type with id: {entity_type_id} not found for version: {key}"
-            ))
-        })?;
+        let entity_type =
+            find_entity_type(&key, entity_type_id as usize).ok_or_else(|| PacketError::NotFoundError {
+                err: format!("entity type with id: {entity_type_id} not found for version: {key}"),
+            })?;
 
         context.add_entity(avatar_create.entity_id, entity_type);
 
