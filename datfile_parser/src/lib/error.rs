@@ -22,4 +22,7 @@ pub enum Error {
 
     #[error("OtherError: {0}")]
     OtherError(&'static str),
+
+    #[error("Unexpected pickle format")]
+    PickleFormatError,
 }
