@@ -5,7 +5,7 @@
 //! ```
 //! use wot_datfile_parser::DatFileParser;
 //!
-//! let file = std::fs::read("input_files/WOT_1_19_1_0/19011713064132879.dat").unwrap();
+//! let file = std::fs::read("input_files/WOT_1_20_0_0/10277381675613523.dat").unwrap();
 //!
 //! // You must construct the parser first as it needs to
 //! // do some initialization to parse the datfiles.
@@ -16,10 +16,10 @@
 //! let battle = parser.parse(&file).unwrap();
 //!
 //! assert_eq!(
-//!    &battle.common["teamHealth"],
-//!    &serde_json::json!({ "1": 13595, "2": 12985 })
+//!     &battle.common["teamHealth"],
+//!     &serde_json::json!({ "1": 25130, "2": 24820 })
 //! );
-//! assert_eq!(&battle.common["duration"], &serde_json::json!(407));
+//! assert_eq!(&battle.common["duration"], &serde_json::json!(417));
 //!
 //! // Battle implements serde::Serialize and serde::Deserialize.
 //! // So, you can use other data formats as well.
@@ -35,7 +35,7 @@
 //! ```
 //! use wot_datfile_parser::{DatFileParser, Intercept};
 //!
-//! let file = std::fs::read("input_files/WOT_1_19_1_0/19011713064132879.dat").unwrap();
+//! let file = std::fs::read("input_files/WOT_1_20_0_0/10277381675613523.dat").unwrap();
 //!
 //! let parser = DatFileParser::new();
 //!
@@ -66,7 +66,7 @@
 //!    &battle.common["teamHealth"],
 //!    &serde_json::json!("My own parser for teamHealth")
 //! );
-//! assert_eq!(&battle.common["duration"], &serde_json::json!(407));
+//! assert_eq!(&battle.common["duration"], &serde_json::json!(417));
 //! ```
 
 mod battle_results;

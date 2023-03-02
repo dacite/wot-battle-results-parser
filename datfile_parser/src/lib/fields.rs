@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use wot_types::ArenaBonusType;
 
-use crate::battle_results::{get_collection, Field, FieldType, ALL_TYPES, MAX_VERSION};
+use crate::battle_results::{get_collection, Field, FieldType, ALL_TYPES, BATTLE_PASS, MAX_VERSION};
 
 pub const CRC32: crc::Crc<u32> = crc::Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
 
@@ -14,6 +14,7 @@ pub struct ChecksumInfo {
 }
 
 // Manages the different types of field list
+#[derive(Debug)]
 pub struct FieldCollection {
     fields_list: Vec<Vec<&'static Field>>,
     checksums:   HashMap<i64, ChecksumInfo>,
@@ -22,6 +23,7 @@ pub struct FieldCollection {
 pub fn gen_collection() -> FieldCollection {
     use wot_types::ArenaBonusType::*;
     let arena_types = [
+        Regular,
         EpicRandom,
         Ranked,
         EpicBattle,
@@ -40,7 +42,6 @@ pub fn gen_collection() -> FieldCollection {
             fields_collection.add_fields_list(field_list, arena_type);
         });
     });
-
     fields_collection
 }
 
@@ -96,6 +97,11 @@ pub fn generate_fields_list(arena_type: ArenaBonusType) -> Vec<Vec<&'static Fiel
             fields.append(&mut arena_field_list);
         }
 
+        if has_battle_pass_integration(arena_type) {
+            let mut battle_pass_field_list = filter_list_for_type(field_type, BATTLE_PASS);
+            fields.append(&mut battle_pass_field_list);
+        }
+
         fields_list.push(fields);
     });
 
@@ -125,6 +131,14 @@ fn filter_list_for_type(field_type: FieldType, field_list: &'static [Field]) -> 
         .iter()
         .filter(|field| matches_type(field_type, field))
         .collect()
+}
+
+fn has_battle_pass_integration(arena_type: ArenaBonusType) -> bool {
+    use ArenaBonusType::*;
+    return matches!(
+        arena_type,
+        Regular | Ranked | Mapbox | Comp7 | EpicBattle | BattleRoyaleSolo | BattleRoyaleSquad
+    );
 }
 
 /// Check if a field is part of a specific vesion.
