@@ -5,7 +5,7 @@ use crate::packet_parser::prelude::*;
 pub struct Position {
     pub entity_id: i32,
 
-    #[version(range([0, 9, 7, 0], [0, 9, 13, 0]))]
+    #[version(range([0, 9, 7, 0], [0, 9, 14, 0]))]
     pub space_id: Option<i32>,
 
     pub vehicle_id:     i32,

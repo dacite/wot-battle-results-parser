@@ -25,8 +25,9 @@ pub struct Period {
 }
 
 pub fn parse_period(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
-    let decompressed =
-        utils::decompress_vec(arena_data, |err| PacketError::ConversionError(err.to_string()))?;
+    let decompressed = utils::decompress_vec(arena_data, |err| PacketError::ConversionError {
+        err: err.to_string(),
+    })?;
     let pickle_value = serde_pickle::value_from_slice(
         &decompressed,
         serde_pickle::DeOptions::new().replace_unresolved_globals(),
@@ -42,7 +43,9 @@ pub fn parse_period(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
             Ok(PeriodAdditionalInfo::ArenaEnded(ArenaEnded {
                 winner_team:   parse_value(0, &info)?,
                 finish_reason: FinishReason::try_from(finish_reason).map_err(|_| {
-                    PacketError::WrongEnumVariant(format!("finish reason of {finish_reason} is invalid"))
+                    PacketError::WrongEnumVariant {
+                        err: format!("finish reason of {finish_reason} is invalid"),
+                    }
                 })?,
             }))
         }
@@ -53,14 +56,14 @@ pub fn parse_period(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketError> {
             }
             Ok(PeriodAdditionalInfo::ActivitiesStartTimes(res))
         }
-        _ => Err(PacketError::PickleError(format!(
-            "Invalid additional info payload"
-        ))),
+        _ => Err(PacketError::PickleError {
+            err: format!("Invalid additional info payload"),
+        }),
     }?;
 
     let period = Period {
-        period: ArenaPeriod::try_from(period_type as i32).map_err(|_| {
-            PacketError::WrongEnumVariant(format!("arena period of {period_type} is invalid"))
+        period: ArenaPeriod::try_from(period_type as i32).map_err(|_| PacketError::WrongEnumVariant {
+            err: format!("arena period of {period_type} is invalid"),
         })?,
         end_time: parse_value(1, &thing)?,
         length: parse_value(2, &thing)?,

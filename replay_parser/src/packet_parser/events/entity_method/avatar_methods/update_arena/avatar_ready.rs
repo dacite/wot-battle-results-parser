@@ -15,7 +15,7 @@ pub fn parse_avatar_ready(arena_data: &[u8]) -> Result<ArenaUpdateData, PacketEr
     )?;
 
     let PickleVal::I64(vehicle_id) = pickle_value  else {
-        return Err(PacketError::PickleError("Expected I64 value for vehicle id".into()))
+        return Err(PacketError::PickleError{ err: "Expected I64 value for vehicle id".into()})
     };
 
     let avatar_ready = AvatarReady {

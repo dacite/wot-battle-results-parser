@@ -46,8 +46,8 @@ impl MethodParser for VehicleMethods {
         let version = context.get_version();
         let version_str = crate::utils::version_as_string(version);
 
-        let not_found_err = |err_msg| {
-            PacketError::NotFoundError(format!("{err_msg} version={version_str} method_id={method_id}"))
+        let not_found_err = |err_msg| PacketError::NotFoundError {
+            err: format!("{err_msg} version={version_str} method_id={method_id}"),
         };
 
         let methods = VEHICLE_METHODS
@@ -59,7 +59,13 @@ impl MethodParser for VehicleMethods {
             .ok_or_else(|| not_found_err("method not found"))?;
 
 
-        let method = VariantDeserializer::deserialize_variant(discrim, input, &context)?;
+        let method = VariantDeserializer::deserialize_variant(discrim, input, &context).map_err(|err| {
+            PacketError::EntityMethodError {
+                entity_type: VehicleMethods::entity_type(),
+                method:      discrim,
+                root_cause:  err.to_string(),
+            }
+        })?;
 
         Ok(super::EntityMethod::Vehicle(method))
     }
