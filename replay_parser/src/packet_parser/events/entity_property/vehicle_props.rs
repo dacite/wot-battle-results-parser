@@ -28,6 +28,7 @@ impl PropertyParser for VehicleProperties {
 
         let property = match *discrim {
             "Debuff" => parse_debuff_values(input, context.get_version()),
+            "StunInfo" => parse_stun_info_values(input, context.get_version()),
             _ => VariantDeserializer::deserialize_variant(discrim, input, &context),
         }
         .map_err(|err| PacketError::entity_prop_err(EntityType::Vehicle, discrim, err.to_string()))?;
@@ -107,7 +108,10 @@ pub enum VehicleProperties {
     SiegeState(u8),
     SteeringAngle(f32),
     SteeringAngles(Vec<u8>),
-    StunInfo(f64),
+
+    #[variant_de(manual)]
+    StunInfo(StunInfoValues),
+
     TeamBasePoints(u16),
     TrackScrolling(u16),
     VehPerks, // Python
@@ -193,6 +197,29 @@ pub fn parse_debuff_values(input: &[u8], de_version: [u16; 4]) -> Result<Vehicle
     }
 }
 
+#[derive(Clone, Serialize, Debug, Deserialize)]
+pub enum StunInfoValues {
+    F64(f64),
+    StunInfo(StunInfo),
+}
+
+#[derive(Clone, Serialize, Debug, Deserialize, Version)]
+pub struct StunInfo {
+    stun_finish_time: f64,
+    stun_type:        u8,
+}
+
+pub fn parse_stun_info_values(input: &[u8], de_version: [u16; 4]) -> Result<VehicleProperties, PacketError> {
+    if de_version >= [1, 20, 0, 0] {
+        Ok(VehicleProperties::StunInfo(StunInfoValues::StunInfo(from_slice(
+            input, de_version,
+        )?)))
+    } else {
+        Ok(VehicleProperties::StunInfo(StunInfoValues::F64(from_slice_prim(
+            input, de_version,
+        )?)))
+    }
+}
 // #[derive(Clone, Debug, Deserialize, Serialize)]
 // pub enum GunAnglesPackedValues {
 //     // #[version([0, 9, 20, 0])]

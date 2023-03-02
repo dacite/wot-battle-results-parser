@@ -109,6 +109,9 @@ pub struct RemoteCamera {
     time:       f64,
     shot_point: Vector3,
     zoom:       u8,
+
+    #[version([1, 20, 0, 0])]
+    mode: Option<u8>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, macros::Version)]
