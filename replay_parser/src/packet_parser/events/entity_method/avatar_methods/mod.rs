@@ -30,12 +30,11 @@ impl MethodParser for AvatarMethods {
         let method = match *discrim {
             "UpdateArena" => Ok(AvatarMethods::UpdateArena(UpdateArena::from(input, version)?)),
             _ => VariantDeserializer::deserialize_variant(discrim, input, &context),
-        }.map_err(|err| {
-            PacketError::EntityMethodError {
-                entity_type: AvatarMethods::entity_type(),
-                method:      discrim,
-                root_cause:  err.to_string(),
-            }
+        }
+        .map_err(|err| PacketError::EntityMethodError {
+            entity_type: AvatarMethods::entity_type(),
+            method:      discrim,
+            root_cause:  err.to_string(),
         })?;
 
         Ok(super::EntityMethod::Avatar(method))
