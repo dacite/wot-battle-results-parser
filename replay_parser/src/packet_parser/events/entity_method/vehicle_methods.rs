@@ -6,6 +6,8 @@ use crate::{
 
 #[derive(Debug, Clone, Serialize, macros::EnumVariantDeserialize)]
 #[non_exhaustive]
+/// Different methods that can be called on the Vehicle entity. If the enum is a unit variant, it means
+/// that we don't yet support parsing the data of the packet
 pub enum VehicleMethods {
     OnDropCapturePointsOnDamagedByEnemy,
     OnExtraHitted,

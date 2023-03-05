@@ -5,10 +5,16 @@ use serde::Serialize;
 use crate::packet_parser::{Context, Packet, PacketError};
 use crate::{events::*, ReplayError};
 
-/// This enum aims to represent all possible events that can occur in a battle. It's variant should map to
-/// each packet type and is expected to always be that type. For ex., a `GameVersion` packet has type `0x18`
-/// and is a variant of this enum. It is always be expected to be this type across all replays. Note that some
-/// packet types like `0x08` may have children of its own. See `EntityMethodEvent` for more details.
+/// This enum aims to represent all possible events that can occur in a battle. Variants of this enum
+/// usually maps to a specific type of packet. For example, `BattleEvent::Position` maps to packets of
+/// type `0x0A`. There are special cases however, such as `BattleEvent::GameVersion` which maps to packets of
+/// different type depending on the game version:
+/// - `0x14` (if the replay is from, or before patch 0.9.13)
+/// - `0x18` (if the replay is from or later patch 0.9.14)
+///
+/// Some of these events have sub-events. For example, `BattleEvent::EntityMethod` has many sub events
+/// (represented as enum variants) such as `Avatar`, `Vehicle` etc. Furthermore, these sub-events also have their
+/// own sub-events. See their documentation for details
 #[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 // TODO: Box Large structure

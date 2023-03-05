@@ -66,6 +66,21 @@ pub use event::PacketParser;
 
 pub mod types;
 
+/// This is a trait used to make parsing EntityMethods and EntityProperties easier. Without this we
+/// will need huge match statements everywhere and lot of repetitive code. This trait should be implemented by
+/// deriving the `EnumVariantDeserialize` macro. Then, we use the following attributes on the enum variants to
+/// parse that event from the packet:
+///
+/// - `#[variant_de(delegate)]` This simply calls `serde_packet::from_slice` on the type of the enum variant
+/// - `#[variant_de(manual)]` This will just don't do anything (panic). Useful for when we need to provide a
+///   manual way of parsing that cannot be handled by this trait (and the macro)
+/// - no attribute and tuple like enum variant. This is used for types that do not implement the `Version`
+///   trait. Which is basically all standard library types such as `Vec<T>`, `i32`, `u32`, etc. This will call
+///   `serde_packet::from_slice_prim`
+/// - no attribute and unit like enum variant. This will just return that unit variant whenever it is
+///
+/// The way we know which variant to target is using the `discrim` argument provided to
+/// `VariantDeserializer::deserialize_variant`. See how it is used in `avatar_methods.rs` for example usage.
 pub trait VariantDeserializer {
     fn deserialize_variant(
         discrim: &'static str, input: &[u8], context: &Context,

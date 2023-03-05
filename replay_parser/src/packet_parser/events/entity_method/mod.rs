@@ -10,7 +10,7 @@ use self::avatar_methods::AvatarMethods;
 use crate::{entity_defs::EntityType, packet_parser::prelude::*};
 
 /// Represents all packets of type `0x08`. `0x08` packet seems to describe a method call on an entity.
-/// Refers to multiple types of events (depending on which method was called on the entity).
+/// Refers to multiple types of events (see `EntityMethod` enum)
 #[derive(Debug, Clone, EventPrinter, Serialize)]
 pub struct EntityMethodEvent {
     /// ID of the entity who called this method
@@ -58,7 +58,7 @@ impl From<EntityMethodEvent> for EntityMethod {
     }
 }
 
-/// Enumerates all possible entity method calls (hopefully).
+/// Enumerates all possible entity method calls (hopefully). This enum groups methods by its entity type.
 #[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub enum EntityMethod {

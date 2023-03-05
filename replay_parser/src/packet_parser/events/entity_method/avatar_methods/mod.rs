@@ -42,6 +42,8 @@ impl MethodParser for AvatarMethods {
 }
 
 #[derive(Clone, Debug, strum::IntoStaticStr, Serialize, macros::EnumVariantDeserialize)]
+/// Different methods that can be called on the Avatar entity. If the enum is a unit variant, it means
+/// that we don't yet support parsing the data of the packet
 pub enum AvatarMethods {
     AddRespawnGroup,
     BattleEventsSummary,
