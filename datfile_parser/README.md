@@ -84,4 +84,4 @@ assert_eq!(&battle.common["duration"], &serde_json::json!(407));
 ```
 
 ## Supported WoT Versions
-`1.20.0`
+`1.20.0`, `1.20.1`
