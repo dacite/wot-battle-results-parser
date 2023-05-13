@@ -278,10 +278,8 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "eventEventCoinList", default: FieldDefault::List, combined_string: "eventEventCoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventBpcoinList", default: FieldDefault::List, combined_string: "eventBpcoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventEquipCoinList", default: FieldDefault::List, combined_string: "eventEquipCoinList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
-    Field { name: "eventCreditsFactor1000List", default: FieldDefault::List, combined_string: "eventCreditsFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 1, field_type: FieldType::VehicleSelf },
-    Field { name: "eventCreditsFactor100List", default: FieldDefault::List, combined_string: "eventCreditsFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 1, max_version: 0, field_type: FieldType::VehicleSelf },
-    Field { name: "eventXPFactor1000List", default: FieldDefault::List, combined_string: "eventXPFactor1000List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 1, field_type: FieldType::VehicleSelf },
-    Field { name: "eventXPFactor100List", default: FieldDefault::List, combined_string: "eventXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 1, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "eventCreditsFactor100List", default: FieldDefault::List, combined_string: "eventCreditsFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
+    Field { name: "eventXPFactor100List", default: FieldDefault::List, combined_string: "eventXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventFreeXPFactor100List", default: FieldDefault::List, combined_string: "eventFreeXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventTMenXPFactor100List", default: FieldDefault::List, combined_string: "eventTMenXPFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
     Field { name: "eventGoldFactor100List", default: FieldDefault::List, combined_string: "eventGoldFactor100List<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
@@ -425,10 +423,10 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "potentialDamageDealt", default: FieldDefault::Int(0), combined_string: "potentialDamageDealt<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "soloHitsAssisted", default: FieldDefault::Int(0), combined_string: "soloHitsAssisted<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "isEnemyBaseCaptured", default: FieldDefault::Bool(false), combined_string: "isEnemyBaseCaptured<type 'bool'>False<type 'NoneType'>max", version: 0, max_version: 0, field_type: FieldType::Server },
-
+    
 	// Packed Value: DictPackers.DeltaPacker
     Field { name: "stucks", default: FieldDefault::List, combined_string: "stucks<type 'list'>[]<class 'DictPackers.DeltaPacker'>extend", version: 0, max_version: 0, field_type: FieldType::Server },
-
+    
     Field { name: "autoAimedShots", default: FieldDefault::Int(0), combined_string: "autoAimedShots<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "presenceTime", default: FieldDefault::Int(0), combined_string: "presenceTime<type 'int'>0<type 'NoneType'>max", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "spotList", default: FieldDefault::List, combined_string: "spotList<type 'list'>[]<type 'NoneType'>extend", version: 0, max_version: 0, field_type: FieldType::Server },
@@ -438,17 +436,17 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "tkillRating", default: FieldDefault::Float(0.0), combined_string: "tkillRating<type 'float'>0.0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "thitPenalties", default: FieldDefault::Dict, combined_string: "thitPenalties<type 'dict'>{}<type 'NoneType'>joinTHitPenalties", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "destroyedObjects", default: FieldDefault::Dict, combined_string: "destroyedObjects<type 'dict'>{}<type 'NoneType'>sumByEackKey", version: 0, max_version: 0, field_type: FieldType::Server },
-
+    
 	// Packed Value: DictPackers.DeltaPacker
     Field { name: "discloseShots", default: FieldDefault::List, combined_string: "discloseShots<type 'list'>[]<class 'DictPackers.DeltaPacker'>extend", version: 0, max_version: 0, field_type: FieldType::Server },
-
+    
     Field { name: "critsCount", default: FieldDefault::Int(0), combined_string: "critsCount<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "aimerSeries", default: FieldDefault::Int(0), combined_string: "aimerSeries<type 'int'>0<type 'NoneType'>max", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "observedByEnemyTime", default: FieldDefault::Int(-1), combined_string: "observedByEnemyTime<type 'int'>-1<type 'NoneType'>any", version: 0, max_version: 0, field_type: FieldType::Server },
 
 	// Packed Value: DictPackers.DictPacker
     Field { name: "critsByType", default: FieldDefault::Dict, combined_string: "critsByType<type 'dict'>{}<class 'DictPackers.DictPacker'>joinCritsByType", version: 0, max_version: 0, field_type: FieldType::Server },
-
+    
     Field { name: "innerModuleCritCount", default: FieldDefault::Int(0), combined_string: "innerModuleCritCount<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "innerModuleDestrCount", default: FieldDefault::Int(0), combined_string: "innerModuleDestrCount<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "isAnyOurCrittedInnerModules", default: FieldDefault::Int(0), combined_string: "isAnyOurCrittedInnerModules<type 'int'>0<type 'NoneType'>max", version: 0, max_version: 0, field_type: FieldType::Server },
@@ -500,20 +498,20 @@ pub const ALL_TYPES: &[Field] = &[
     Field { name: "startAmmo", default: FieldDefault::List, combined_string: "startAmmo<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "initialVehicleAmmo", default: FieldDefault::List, combined_string: "initialVehicleAmmo<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Server },
     Field { name: "replayURL", default: FieldDefault::Str, combined_string: "replayURL<type 'str'><type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
-
+    
 	// Packed Value: DictPackers.MergeDictPacker
     Field { name: "currencies", default: FieldDefault::Dict, combined_string: "currencies<type 'dict'>{}<class 'DictPackers.MergeDictPacker'>joinByEachPacker", version: 0, max_version: 0, field_type: FieldType::VehicleSelf },
-
+    
     Field { name: "entityCaptured", default: FieldDefault::Dict, combined_string: "entityCaptured<type 'dict'>{}<type 'NoneType'>any", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "poiCapturedByOwnTeam", default: FieldDefault::Int(0), combined_string: "poiCapturedByOwnTeam<type 'int'>0<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
     Field { name: "isFirstBlood", default: FieldDefault::Bool(false), combined_string: "isFirstBlood<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::VehicleAll },
+    Field { name: "finishAllPlayersLeft", default: FieldDefault::Bool(false), combined_string: "finishAllPlayersLeft<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Common },
     Field { name: "originalBattlePassPoints", default: FieldDefault::Int(0), combined_string: "originalBattlePassPoints<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
-
+    
 	// Packed Value: DictPackers.ValueReplayPacker
     Field { name: "battlePassPointsReplay", default: FieldDefault::Str, combined_string: "battlePassPointsReplay<type 'str'><type 'instance'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
-
+    
     Field { name: "battlePassPoints", default: FieldDefault::Int(0), combined_string: "battlePassPoints<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "eventBattlePassPointsList", default: FieldDefault::List, combined_string: "eventBattlePassPointsList<type 'list'>[]<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
     Field { name: "eventBattlePassPoints", default: FieldDefault::Int(0), combined_string: "eventBattlePassPoints<type 'int'>0<type 'NoneType'>sum", version: 0, max_version: 0, field_type: FieldType::AccountSelf },
-    Field { name: "finishAllPlayersLeft", default: FieldDefault::Bool(false), combined_string: "finishAllPlayersLeft<type 'bool'>False<type 'NoneType'>skip", version: 0, max_version: 0, field_type: FieldType::Common },
 ];
