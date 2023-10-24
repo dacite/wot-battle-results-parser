@@ -1,0 +1,22 @@
+site_name: WOT Battle Results Parser
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+nav:
+  - Home: index.md
+  - Contributor Guide:
+    - Supporting New WoT Version: supporting-new-wot-version.md
