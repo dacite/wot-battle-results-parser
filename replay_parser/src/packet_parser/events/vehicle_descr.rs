@@ -115,7 +115,7 @@ pub fn parse_compact_descr(
         nation_id,
         vehicle_type_id,
         components,
-        optional_devices: parse_optional_devices(optional_device_slots, optional_devices),
+        optional_devices: vec![],
         enhancements,
     })
 }
